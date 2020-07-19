@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', 'UserController@register');
 Route::post('login', 'UserController@login');
 Route::get('cek', 'UserController@getAuthenticatedUser');
-Route::post('pw', 'UserController@forgetPassword');
+Route::post('forgetPassword', 'UserController@forgetPassword');
 Route::middleware(['jwt.verify'])->group(function(){
 
 });

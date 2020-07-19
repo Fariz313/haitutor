@@ -42,7 +42,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
-            'photo' => 'required|string|max:255',
+            'photo' => 'file',
             'role' => 'in:student,parent,tutor,admin',
             'contact' => 'required|string|max:20',
             'company_id' => 'required|integer|max:20',
@@ -57,22 +57,32 @@ class UserController extends Controller
                 'error'     =>$validator->errors()
             ],400);
         }
-
+        $message = "Upload";
         $user = User::create([
             'name' => $request->get('name'),
             'email' => $request->get('email'),
             'password' => Hash::make($request->get('password')),
             'birth_date' => $request->get('birth_date'),
-            'photo' => $request->get('photo'),
+            // 'photo' => $request->get('photo'),
             'role' => $request->get('role'),
             'contact' => $request->get('contact'),
             'company_id' => $request->get('company_id'),
             'address' => $request->get('address'),
         ]);
+        try{
+                $photo = $request->file('photo');
+                $tujuan_upload = 'temp';
+                $photo->move($tujuan_upload,$photo->getClientOriginalName());
+                $user->photo = $photo->getClientOriginalName();
+                $user->save();
+                $message = "Upload Success";
+        }catch(\throwable $e){
+                $message = "Upload Success no image";
+        }
 
         $token = JWTAuth::fromUser($user);
 
-        return response()->json(compact('user','token'),201);
+        return response()->json(compact('user','token','message'),201);
     }
 
     public function getAuthenticatedUser()
