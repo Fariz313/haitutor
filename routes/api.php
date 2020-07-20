@@ -25,8 +25,8 @@ Route::middleware(['jwt.verify'])->group(function(){
     Route::post('photo', 'UserController@uploadPhoto');
 
     Route::prefix('company')->group(function () {
-
+        
     });
 
-    
+
 });
