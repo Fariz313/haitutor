@@ -22,7 +22,7 @@ class CreateUsersTable extends Migration
             $table->string('photo')->nullable();
             $table->enum('role', ['student', 'parent', 'tutor', 'admin']);
             $table->string('contact');
-            $table->integer('company_id');
+            $table->integer('company_id')->nullable();
             $table->string('address');
             $table->date('verified_at')->nullable();
 

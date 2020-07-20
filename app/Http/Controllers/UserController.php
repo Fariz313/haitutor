@@ -43,6 +43,94 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
             'photo' => 'file',
+            'role' => 'required|in:student,parent,tutor,admin',
+            'contact' => 'required|string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'required|string',
+
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed validate',
+                'error'     =>$validator->errors()
+            ],400);
+        }
+        $message = "Upload";
+        try {
+            $user = User::create([
+                'name' => $request->get('name'),
+                'email' => $request->get('email'),
+                'password' => Hash::make($request->get('password')),
+                'birth_date' => $request->get('birth_date'),
+                'role' => $request->get('role'),
+                'contact' => $request->get('contact'),
+                'company_id' => $request->get('company_id'),
+                'address' => $request->get('address'),
+            ]);
+            try{
+                $photo = $request->file('photo');
+                $tujuan_upload = 'temp';
+                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).$file->getClientOriginalExtension();
+                $photo->move($tujuan_upload,$photo_name);
+                $user->photo = $photo_name;
+                $user->save();
+                    $message = "Upload Success";
+            }catch(\throwable $e){
+                    $message = "Upload Success no image";
+            }
+            $token = JWTAuth::fromUser($user);
+        } catch (\Throwable $th) {
+            $token      = 'no token';
+            $message    = 'Failed To Create User';
+            return response()->json(compact('user','token','message'),500);
+        }
+
+        
+
+        return response()->json(compact('user','token','message'),201);
+    }
+    public function uploadPhoto(Request $request){
+        $validator = Validator::make($request->all(), [
+            'photo' => 'required|file',
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed validate',
+                'error'     =>'No Photo Uploaded'
+            ],400);
+        }
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user           = User::findOrFail($userDetail->id);
+            $photo = $request->file('photo');
+            $tujuan_upload = 'temp';
+            $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).$file->getClientOriginalExtension();
+            $photo->move($tujuan_upload,$photo_name);
+            $user->photo = $photo_name;
+            $user->save();
+            return response()->json([
+                'status'    =>'success',
+                'message'   =>'Yours Photo Uploaded'
+            ],201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>'failed validate',
+                'error'     =>'No Photo Uploaded'
+            ],400);
+        }
+    }
+    public function update(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:6',
+            'birth_date' => 'required|date',
+            'photo' => 'file',
             'role' => 'in:student,parent,tutor,admin',
             'contact' => 'required|string|max:20',
             'company_id' => 'required|integer|max:20',
@@ -57,32 +145,28 @@ class UserController extends Controller
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Upload";
-        $user = User::create([
-            'name' => $request->get('name'),
-            'email' => $request->get('email'),
-            'password' => Hash::make($request->get('password')),
-            'birth_date' => $request->get('birth_date'),
-            // 'photo' => $request->get('photo'),
-            'role' => $request->get('role'),
-            'contact' => $request->get('contact'),
-            'company_id' => $request->get('company_id'),
-            'address' => $request->get('address'),
-        ]);
-        try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo->move($tujuan_upload,$photo->getClientOriginalName());
-                $user->photo = $photo->getClientOriginalName();
-                $user->save();
-                $message = "Upload Success";
-        }catch(\throwable $e){
-                $message = "Upload Success no image";
+        $message = "Update";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            $user->name = $request->get('name');
+            $user->email = $request->get('email');
+            $user->password = Hash::make($request->get('password'));
+            $user->birth_date = $request->get('birth_date');
+            $user->role = $request->get('role');
+            $user->contact = $request->get('contact');
+            $user->company_id = $request->get('company_id');
+            $user->address = $request->get('address');
+            $message = "Update Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
         }
 
-        $token = JWTAuth::fromUser($user);
+        
 
-        return response()->json(compact('user','token','message'),201);
+        return response()->json(compact('user','status','message'),201);
     }
 
     public function getAuthenticatedUser()
@@ -150,14 +234,15 @@ class UserController extends Controller
                 'token' => 'token_absent'],403);
 
         }
-        
+        return $user;
     }
 
     public function forgetPassword(Request $request){
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255'
         ]);
-        $pw =  Hash::make(Str::random(6));
+        $password = Str::random(6);
+        $pw =  Hash::make($password);
         if($validator->fails()){
             return response()->json([
                 'status'    =>'failed validate',
@@ -178,7 +263,7 @@ class UserController extends Controller
         {
             $message->subject('Contoh Otp');
             $message->to($request->email);
-            $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$pw.'</b></h1>','text/html');
+            $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$password.'</b></h1>','text/html');
 
         });
         }catch(\throwable $e){
@@ -189,4 +274,15 @@ class UserController extends Controller
             'status' => 'success',
             'message'=> 'password has been changed']);
     }
+
+    public function logout(){
+            $token = JWTAuth::getToken();
+            JWTAuth::setToken($token)->invalidate();
+            return response()->json([
+                'status'    =>  'success',
+                'message'   =>  'Token now is invalidated'
+            ]);
+
+
+    }   
 }

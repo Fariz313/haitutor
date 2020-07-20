@@ -16,8 +16,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('register', 'UserController@register');
 Route::post('login', 'UserController@login');
-Route::get('cek', 'UserController@getAuthenticatedUser');
 Route::post('forgetPassword', 'UserController@forgetPassword');
-Route::middleware(['jwt.verify'])->group(function(){
+Route::get('cek', 'UserController@getAuthenticatedUser');
 
+Route::middleware(['jwt.verify'])->group(function(){
+    Route::put('edit', 'UserController@update');
+    Route::get('logout', 'UserController@logout');
+    Route::post('photo', 'UserController@uploadPhoto');
+
+    Route::prefix('company')->group(function () {
+
+    });
+
+    
 });
