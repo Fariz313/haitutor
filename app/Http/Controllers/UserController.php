@@ -72,7 +72,7 @@ class UserController extends Controller
             try{
                 $photo = $request->file('photo');
                 $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).$file->getClientOriginalExtension();
+                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
                 $photo->move($tujuan_upload,$photo_name);
                 $user->photo = $photo_name;
                 $user->save();
@@ -108,7 +108,7 @@ class UserController extends Controller
             $user           = User::findOrFail($userDetail->id);
             $photo = $request->file('photo');
             $tujuan_upload = 'temp';
-            $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).$file->getClientOriginalExtension();
+            $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
             $photo->move($tujuan_upload,$photo_name);
             $user->photo = $photo_name;
             $user->save();
