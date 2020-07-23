@@ -24,7 +24,7 @@ class CreateUsersTable extends Migration
             $table->string('contact');
             $table->integer('company_id')->nullable();
             $table->string('address');
-            $table->date('verified_at')->nullable();
+            $table->enum('status', ['unverified', 'verified']);
 
             $table->rememberToken();
             $table->timestamps();

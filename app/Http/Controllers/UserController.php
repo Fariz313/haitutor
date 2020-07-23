@@ -17,22 +17,25 @@ class UserController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        try {
+        try {   
             JWTAuth::factory()->setTTL(14400);
             if (! $token = JWTAuth::attempt($credentials,)) {
                 return response()->json([
+                    'status'    => 'failed',   
                     'error'     => 'invalid_credentials',
                     'message'   => 'Email or Password is Wrong'], 400);
             }
         } catch (JWTException $e) {
             return response()->json([
+                'status'    => 'failed',
                 'error'     => 'could_not_create_token',
                 'message'   => 'Cant create authentication, please try again'], 500);
         }
 
         return response()->json([
-            'status'    => 'logged in',
-            'token'     => $token ], 500);
+            'status'    => 'success',
+            'token'     => $token,
+            'message'   => 'Loggin is successfuly' ], 200);
     }
 
     public function register(Request $request)
@@ -53,7 +56,7 @@ class UserController extends Controller
         if($validator->fails()){
             // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
-                'status'    =>'failed validate',
+                'status'    =>'failed',
                 'error'     =>$validator->errors()
             ],400);
         }
@@ -126,15 +129,14 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:6',
-            'birth_date' => 'required|date',
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255',
+            'password' => 'string|min:6',
+            'birth_date' => 'date',
             'photo' => 'file',
-            'role' => 'in:student,parent,tutor,admin',
-            'contact' => 'required|string|max:20',
-            'company_id' => 'required|integer|max:20',
-            'address' => 'required|string',
+            'contact' => 'string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'string',
 
         ]);
 
@@ -149,13 +151,19 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user = User::findOrFail($userDetail->id);
-            $user->name = $request->get('name');
-            $user->email = $request->get('email');
-            $user->password = Hash::make($request->get('password'));
-            $user->birth_date = $request->get('birth_date');
-            $user->role = $request->get('role');
-            $user->contact = $request->get('contact');
-            $user->company_id = $request->get('company_id');
+            if ($request->input('name')) {
+                $user->name = $request->input('name');
+            }if ($request->input('email')) {
+                $user->email = $request->input('email');
+            }if ($request->input('password')){
+                $user->password = Hash::make($request->get('password'));
+            }if ($request->input('birth_date')) {
+                $user->birth_date = $request->input('birth_date');
+            }if ($request->input('contact')){
+                $user->contact = $request->input('contact');
+            }if ($request->input('company_id')) {
+                $user->company_id = $request->input('company_id');
+            }
             $user->address = $request->get('address');
             $message = "Update Success";
             $user->save();
@@ -268,7 +276,7 @@ class UserController extends Controller
         });
         }catch(\throwable $e){
             return response()->json([
-                'status'=> 'failed reset'],403);
+                'status'=> 'failed sending email'],403);
         }
         return response()->json([
             'status' => 'success',
@@ -284,5 +292,12 @@ class UserController extends Controller
             ]);
 
 
-    }   
+    }
+    
+    public function tes(){
+        $clientIP = \Request::getClientIp(true);
+        return  response()->json([
+            "ip"    =>  $clientIP
+        ]);
+    }
 }
