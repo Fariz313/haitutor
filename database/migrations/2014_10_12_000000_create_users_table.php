@@ -25,6 +25,7 @@ class CreateUsersTable extends Migration
             $table->integer('company_id')->nullable();
             $table->string('address');
             $table->enum('status', ['unverified', 'verified']);
+            $table->integer('balance')->default(0);
 
             $table->rememberToken();
             $table->timestamps();

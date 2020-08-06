@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Ask extends Migration
+class TutorDocument extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,13 @@ class Ask extends Migration
      */
     public function up()
     {
-        Schema::create('ask', function (Blueprint $table) {
+        Schema::create('tutor_doc', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
+            $table->string('Name');
             $table->integer('tutor_id');
-            $table->text('text');
-            $table->date('deleted_at')->nullable();
+            $table->string('file');
+            $table->enum('type',['ijazah','skhu','certificate','other']);
+            $table->enum('status',['unverified','verified']);
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ class Ask extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ask');
+        Schema::dropIfExists('tutor_doc');
     }
 }

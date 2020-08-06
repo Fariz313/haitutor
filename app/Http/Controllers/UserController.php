@@ -10,7 +10,7 @@ use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
-
+use App\TutorDetail;
 class UserController extends Controller
 {
     public function login(Request $request)
@@ -46,7 +46,6 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
             'photo' => 'file',
-            'role' => 'required|in:student,parent,tutor,admin',
             'contact' => 'required|string|max:20',
             'company_id' => 'integer|max:20',
             'address' => 'required|string',
@@ -63,14 +62,14 @@ class UserController extends Controller
         $message = "Upload";
         try {
             $user = User::create([
-                'name' => $request->get('name'),
-                'email' => $request->get('email'),
-                'password' => Hash::make($request->get('password')),
-                'birth_date' => $request->get('birth_date'),
-                'role' => $request->get('role'),
-                'contact' => $request->get('contact'),
-                'company_id' => $request->get('company_id'),
-                'address' => $request->get('address'),
+                'name'          => $request->get('name'),
+                'email'         => $request->get('email'),
+                'password'      => Hash::make($request->get('password')),
+                'birth_date'    => $request->get('birth_date'),
+                'role'          => "student",
+                'contact'       => $request->get('contact'),
+                'company_id'    => $request->get('company_id'),
+                'address'       => $request->get('address'),
             ]);
             try{
                 $photo = $request->file('photo');
@@ -85,6 +84,7 @@ class UserController extends Controller
             }
             $token = JWTAuth::fromUser($user);
         } catch (\Throwable $th) {
+            $user       = 'no user';
             $token      = 'no token';
             $message    = 'Failed To Create User';
             return response()->json(compact('user','token','message'),500);
@@ -94,6 +94,75 @@ class UserController extends Controller
 
         return response()->json(compact('user','token','message'),201);
     }
+
+    public function registerTutor(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'birth_date' => 'required|date',
+            'photo' => 'file',
+            'contact' => 'required|string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'required|string',
+            'biography' => 'required|string',
+
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed',
+                'error'     =>$validator->errors()
+            ],400);
+        }
+        $message = "Upload";
+        try {
+            $user = User::create([
+                'name'          => $request->get('name'),
+                'email'         => $request->get('email'),
+                'password'      => Hash::make($request->get('password')),
+                'birth_date'    => $request->get('birth_date'),
+                'role'          => "tutor",
+                'contact'       => $request->get('contact'),
+                'company_id'    => $request->get('company_id'),
+                'address'       => $request->get('address'),
+            ]);
+            try{
+                $photo = $request->file('photo');
+                $tujuan_upload = 'temp';
+                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
+                $photo->move($tujuan_upload,$photo_name);
+                $user->photo = $photo_name;
+                $detail= new TutorDetail();
+                $detail->user_id = $user->id;
+                if ($request->input('biography')) {
+                    $detail->biography = $request->input('biography');  
+                }$detail->save();
+                $user->save();
+                    $message = "Upload Success";
+            }catch(\throwable $e){
+                    $message = "Upload Success no image";
+            }
+            $token = JWTAuth::fromUser($user);
+        } catch (\Throwable $th) {
+            $user       = 'no user';
+            $token      = 'no token';
+            $message    = 'Failed To Create User';
+            return response()->json(compact('user','token','message'),500);
+        }
+        $detail= new TutorDetail();
+        $detail->user_id = $user->id;
+        if ($request->input('biography')) {
+            $detail->biography = $request->input('biography');  
+        }$detail->save();
+        
+        
+
+        return response()->json(compact('user','token','message'),201);
+    }
+
     public function uploadPhoto(Request $request){
         $validator = Validator::make($request->all(), [
             'photo' => 'required|file',
@@ -154,7 +223,8 @@ class UserController extends Controller
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }if ($request->input('email')) {
-                $user->email = $request->input('email');
+                $user->email    = $request->input('email');
+                $user->status   = 'unverified';
             }if ($request->input('password')){
                 $user->password = Hash::make($request->get('password'));
             }if ($request->input('birth_date')) {
@@ -267,7 +337,7 @@ class UserController extends Controller
                 'message'   => 'user not found'],404);
         }
         try{
-        Mail::send([], [], function ($message) use ($request, $pw)
+        Mail::send([], [], function ($message) use ($request, $pw,$password)
         {
             $message->subject('Contoh Otp');
             $message->to($request->email);
@@ -294,10 +364,26 @@ class UserController extends Controller
 
     }
     
-    public function tes(){
-        $clientIP = \Request::getClientIp(true);
-        return  response()->json([
-            "ip"    =>  $clientIP
-        ]);
+    public function getTutor(Request $request){
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+        if($request->get('search')){
+            $querySearch = $request->get('search');
+            $data   =   User::where('role','tutor')
+                    ->with(array('detail'=>function($query)
+                                {$query->where('status','verified');}))
+                    ->where(function ($where) use ($querySearch){
+                        $where->where('name','LIKE','%'.$querySearch.'%');
+                    })->paginate($paginate);
+            return $data;
+        }
+        $data   =   User::whereHas('detail', function ($q){
+                                    $q->where('status','verified');})
+                          ->where('role','tutor')
+                          ->with('detail')
+                          ->paginate($paginate);
+        return $data;
     }
 }

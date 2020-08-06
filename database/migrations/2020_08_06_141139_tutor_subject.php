@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Ask extends Migration
+class TutorSubject extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,10 @@ class Ask extends Migration
      */
     public function up()
     {
-        Schema::create('ask', function (Blueprint $table) {
+        Schema::create('tutor_subject', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->integer('tutor_id');
-            $table->text('text');
-            $table->date('deleted_at')->nullable();
+            $table->integer('subject_id');
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ class Ask extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ask');
+        Schema::dropIfExists('tutor_subject');
     }
 }
