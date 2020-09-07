@@ -35,7 +35,8 @@ class UserController extends Controller
         return response()->json([
             'status'    => 'success',
             'token'     => $token,
-            'message'   => 'Loggin is successfuly' ], 200);
+            'message'   => 'Loggin is successfuly',
+            'logged'    => 'true' ], 200);
     }
 
     public function register(Request $request)
@@ -363,27 +364,25 @@ class UserController extends Controller
 
 
     }
-    
-    public function getTutor(Request $request){
+
+    public function getAllStudent(Request $request){
         $paginate = 10;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
         if($request->get('search')){
             $querySearch = $request->get('search');
-            $data   =   User::where('role','tutor')
-                    ->with(array('detail'=>function($query)
-                                {$query->where('status','verified');}))
+            $data   =   User::where('role','Student')
                     ->where(function ($where) use ($querySearch){
                         $where->where('name','LIKE','%'.$querySearch.'%');
                     })->paginate($paginate);
             return $data;
         }
-        $data   =   User::whereHas('detail', function ($q){
-                                    $q->where('status','verified');})
-                          ->where('role','tutor')
-                          ->with('detail')
+        $data   =   User::where('role','tutor')
                           ->paginate($paginate);
         return $data;
     }
+
+    
+    
 }

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class TutorDetail extends Migration
+class AdminDetail extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class TutorDetail extends Migration
      */
     public function up()
     {
-        Schema::create('tutor_detail', function (Blueprint $table) {
+        Schema::create('admin_detail', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->text('biography')->nullable();
-            $table->enum('status',['unverified','verified']);
+            $table->string('nip');
+            $table->integer('registrator_id');
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ class TutorDetail extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tutor_detail');
+        Schema::dropIfExists('admin_detail');
     }
 }

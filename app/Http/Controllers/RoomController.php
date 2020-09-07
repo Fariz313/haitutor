@@ -42,7 +42,7 @@ class RoomController extends Controller
             return response()->json([
                 'status'    =>  'success',
                 'message'   =>  'Room Created'
-            ]);
+            ],200);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
