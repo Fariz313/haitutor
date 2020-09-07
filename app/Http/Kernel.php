@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'chat.room'         => \App\Http\Middleware\ChatMiddleware::class,
         'admin.general'     => \App\Http\Middleware\AdminMiddleware::class,
         'cors'              => \App\Http\Middleware\Cors::class,
+        'user.tutor'         => \App\Http\Middleware\TutorMiddleware::class,
     ];
 }

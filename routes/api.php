@@ -25,13 +25,9 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tes', 'UserController@tes');
     
     Route::get('get_tutor', 'TutorController@getTutor');
-    Route::get('get_tutor/unverified', 'TutorController@getUnverifiedTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
 
     Route::get('get_student', 'UserController@getAllStudent');
-    
-    Route::post('tutordoc', 'TutorDocController@store');
-    Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
     
     Route::get('subject','SubjectController@index');
     Route::get('subject/{id}','SubjectController@show');
@@ -111,8 +107,11 @@ Route::middleware(['cors'])->group(function(){
     });
     //--------------------------------------------------
     
-    
-    
+    Route::middleware(['admin.general'])->group(function(){
+        Route::post('tutordoc', 'TutorDocController@store');
+        Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
+    });
+
     Route::prefix('/admin')->group(function () {
         //admin api
         Route::post('/login', 'AdminController@login');
@@ -123,6 +122,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/unverify_tutor/{id}', 'UserController@unverifyTutor');
             Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
+            Route::get('get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+
         });
     
     });
