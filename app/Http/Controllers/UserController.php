@@ -218,6 +218,7 @@ class UserController extends Controller
             ],400);
         }
         $message = "Update";
+        $status = "Success";
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user = User::findOrFail($userDetail->id);
