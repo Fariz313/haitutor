@@ -228,7 +228,7 @@ class UserController extends Controller
                 $user->email    = $request->input('email');
                 $user->status   = 'unverified';
             }if ($request->input('password')){
-                $user->password = Hash::make($request->get('password'));
+                $user->password = Hash::make($request->input('password'));
             }if ($request->input('birth_date')) {
                 $user->birth_date = $request->input('birth_date');
             }if ($request->input('contact')){
