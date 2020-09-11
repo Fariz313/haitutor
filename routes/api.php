@@ -34,6 +34,7 @@ Route::middleware(['cors'])->group(function(){
     Route::post('subject','SubjectController@store');
     Route::put('subject/{id}','SubjectController@update');
     Route::delete('subject/{id}','SubjectController@destroy');
+    Route::get('get_subject','SubjectController@getSubject');
     
     //
     
@@ -107,7 +108,7 @@ Route::middleware(['cors'])->group(function(){
     });
     //--------------------------------------------------
     
-    Route::middleware(['admin.general'])->group(function(){
+    Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
     });
