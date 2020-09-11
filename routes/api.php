@@ -36,6 +36,10 @@ Route::middleware(['cors'])->group(function(){
     Route::delete('subject/{id}','SubjectController@destroy');
     Route::get('get_subject','SubjectController@getSubject');
     
+    Route::get('tutor_subject', 'TutorSubjectController@index');
+    Route::get('tutor_subject/{id}', 'TutorSubjectController@show');
+    Route::get('tutor_by_subject/{subject_id}', 'TutorSubjectController@getTutorBySubject');
+
     //
     
     Route::prefix('/company')->group(function () {

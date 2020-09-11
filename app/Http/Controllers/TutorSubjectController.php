@@ -30,7 +30,7 @@ class TutorSubjectController extends Controller
                         ->orWhere('type','LIKE','%'.$query.'%');
                 } )->paginate($paginate);    
             }else{
-                $data = TutorSubject::select('users.name','subject.name')
+                $data = TutorSubject::select('users.name AS tutor_name','subject.name AS subject_name')
                                     ->join('users','users.id','=','tutor_subject.user_id')
                                     ->join('subject','subject.id','=','tutor_subject.subject_id')
                                     ->paginate($paginate);
@@ -48,7 +48,27 @@ class TutorSubjectController extends Controller
             ]);
         }
     }
-
+    
+    public function getTutorBySubject($subject_id)
+    {
+        $paginate = 10;
+        
+        try {
+            $data = TutorSubject::select('users.id','users.name AS tutor_name','subject.name AS subject_name')
+                            ->join('users','users.id','=','tutor_subject.user_id')
+                            ->join('subject','subject.id','=','tutor_subject.subject_id')
+                            ->where('subject.id', '=', $subject_id)
+                            ->paginate($paginate);
+        
+            return $data;
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
 
     /**
      * Store a newly created resource in storage.
