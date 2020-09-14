@@ -137,10 +137,16 @@ class AdminController extends Controller
                     'error'     => 'invalid_credentials',
                     'message'   => 'Email or Password is Wrong'], 400);
             }
-            return response()->json([
-                'status'    => 'success',
-                'token'     => $token,
-                'message'   => 'Loggin is successfuly' ], 200);
+            $user = JWTAuth::user();
+            if($user->role == "admin"){
+                return response()->json([
+                    'status'    => 'success',
+                    'token'     => $token,
+                    'message'   => 'Loggin is successfuly' ], 200);
+                }
+                return response()->json([
+                    'status'    => 'failed',
+                    'message'   => 'Not Admin' ], 400);    
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    => 'failed',

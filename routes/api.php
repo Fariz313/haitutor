@@ -107,13 +107,13 @@ Route::middleware(['cors'])->group(function(){
     });
     //--------------------------------------------------
     
-    Route::middleware(['admin.general'])->group(function(){
+    Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
     });
 
     Route::prefix('/admin')->group(function () {
-        //admin api
+
         Route::post('/login', 'AdminController@login');
         Route::post('/register', 'AdminController@register');
     
@@ -122,7 +122,13 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/unverify_tutor/{id}', 'UserController@unverifyTutor');
             Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
-            Route::get('get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+            Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');\
+
+            Route::get('/package', 'PackageController@index');
+            Route::post('/package', 'PackageController@store');
+            Route::get('/package/{id}', 'PackageController@show');
+            Route::put('/package/{id}', 'PackageController@update');
+            Route::delete('/package/{id}', 'PackageController@destroy');
 
         });
     
