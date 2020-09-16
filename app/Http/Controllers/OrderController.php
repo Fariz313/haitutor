@@ -59,15 +59,34 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store($package_id)
+    public function store(Request $request, $package_id)
     {
         try{
+            $validator = Validator::make($request->all(), [
+    			'proof'          => 'required|file',
+    		]);
+
+    		if($validator->fails()){
+    			return response()->json([
+                    'status'    =>'failed validate',
+                    'error'     =>$validator->errors()
+                ],400);
+    		}
 
             $data               = new Order();
             $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
             $data->package_id   = $package_id;
             $data->invoice      = Str::random(16);
-	        $data->save();
+            try{
+                $photo = $request->file('proof');
+                $tujuan_upload = 'temp/proof';
+                $photo_name = $data->id.'__'.Str::random(3).$photo->getClientOriginalName();
+                $photo->move($tujuan_upload,$photo_name);
+                $data->proof = $photo_name;
+                $data->save();
+            }catch(\throwable $e){
+                    return "Tidak ada Bukti";
+            }
 
     		return response()->json([
     			'status'	=> 'success',
