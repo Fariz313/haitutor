@@ -115,6 +115,75 @@ class TutorController extends Controller
                           ->paginate($paginate);
         return $data;
     }
+
+    public function registerTutor(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'birth_date' => 'required|date',
+            'photo' => 'file',
+            'contact' => 'required|string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'required|string',
+            'biography' => 'required|string',
+
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed',
+                'error'     =>$validator->errors()
+            ],400);
+        }
+        $message = "Upload";
+        try {
+            $user = User::create([
+                'name'          => $request->get('name'),
+                'email'         => $request->get('email'),
+                'password'      => Hash::make($request->get('password')),
+                'birth_date'    => $request->get('birth_date'),
+                'role'          => "tutor",
+                'contact'       => $request->get('contact'),
+                'company_id'    => $request->get('company_id'),
+                'address'       => $request->get('address'),
+            ]);
+            try{
+                $photo = $request->file('photo');
+                $tujuan_upload = 'temp';
+                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
+                $photo->move($tujuan_upload,$photo_name);
+                $user->photo = $photo_name;
+                $detail= new TutorDetail();
+                $detail->user_id = $user->id;
+                if ($request->input('biography')) {
+                    $detail->biography = $request->input('biography');  
+                }$detail->save();
+                $user->save();
+                    $message = "Upload Success";
+            }catch(\throwable $e){
+                    $message = "Upload Success no image";
+            }
+            $token = JWTAuth::fromUser($user);
+        } catch (\Throwable $th) {
+            $user       = 'no user';
+            $token      = 'no token';
+            $message    = 'Failed To Create User';
+            return response()->json(compact('user','token','message'),500);
+        }
+        $detail= new TutorDetail();
+        $detail->user_id = $user->id;
+        if ($request->input('biography')) {
+            $detail->biography = $request->input('biography');  
+        }$detail->save();
+        
+        
+
+        return response()->json(compact('user','token','message'),201);
+    }
+    
     public function verifyTutor($id)
     {
         try {

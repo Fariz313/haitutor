@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Package extends Migration
+class Order extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class Package extends Migration
      */
     public function up()
     {
-        Schema::create('package', function (Blueprint $table) {
+        Schema::create('order', function (Blueprint $table) {
             $table->id();
-            $table->integer('price');
-            $table->integer('balance');
-            $table->string('name');
             $table->integer('user_id');
+            $table->integer('package_id');
+            $table->string('invoice');
+            $table->enum('status',['pending','failed','completed']);
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class Package extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('package');
+        Schema::dropIfExists('order');
     }
 }
