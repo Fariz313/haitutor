@@ -45,6 +45,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tutor_subject/{id}', 'TutorSubjectController@show');
     Route::get('tutor_by_subject/{subject_id}', 'TutorSubjectController@getTutorBySubject');
 
+    Route::get('/package', 'PackageController@index');
+
     //
     
     Route::prefix('/company')->group(function () {
