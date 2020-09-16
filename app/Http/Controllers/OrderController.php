@@ -7,6 +7,8 @@ use App\Order;
 use App\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use JWTAuth;
+
 
 class OrderController extends Controller
 {
@@ -15,7 +17,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             if($request->get('search')){
@@ -60,12 +62,6 @@ class OrderController extends Controller
     public function store($package_id)
     {
         try{
-    		if($validator->fails()){
-    			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
-                ],400);
-    		}
 
             $data               = new Order();
             $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
