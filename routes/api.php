@@ -40,10 +40,13 @@ Route::middleware(['cors'])->group(function(){
     Route::put('subject/{id}','SubjectController@update');
     Route::delete('subject/{id}','SubjectController@destroy');
     Route::get('get_subject','SubjectController@getSubject');
+    Route::get('subject/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
     
     Route::get('tutor_subject', 'TutorSubjectController@index');
     Route::get('tutor_subject/{id}', 'TutorSubjectController@show');
     Route::post('tutor_subject', 'TutorSubjectController@store');
+    Route::delete('tutor_subject/{id}', 'TutorSubjectController@destroy');
+
     Route::get('tutor_by_subject/{subject_id}', 'TutorSubjectController@getTutorBySubject');
     Route::get('subject_tutor/{tutor_id}', 'TutorSubjectController@getSubjectTutor');
 

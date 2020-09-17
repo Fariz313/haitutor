@@ -219,18 +219,18 @@ class TutorSubjectController extends Controller
               return response([
               	"status"	=> "success",
                   "message"   => "Subject deleted successfully"
-              ]);
+              ], 200);
             } else {
               return response([
                 "status"  => "failed",
                   "message"   => "Failed delete data"
-              ]);
+              ], 500);
             }
         } catch(\Exception $e){
             return response([
             	"status"	=> "failed",
                 "message"   => "Failed deleting"
-            ]);
+            ], 500);
         }
     }
 }

@@ -63,6 +63,25 @@ class SubjectController extends Controller
         }
     }
 
+    public function getUnassignedSubject($tutor_id){
+        try {
+            $subjectModel = new Subject();
+            $data = $subjectModel->getUnassignedSubject($tutor_id);
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  "Get Data Succeeded"
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  $th
+            ]);
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.
