@@ -70,6 +70,27 @@ class TutorSubjectController extends Controller
         }
     }
 
+    public function getSubjectTutor($tutor_id)
+    {
+        $paginate = 10;
+        
+        try {
+            $data = TutorSubject::select('tutor_subject.*', 'subject.*', 'tutor_subject.id as tutor_subject_id')
+                                ->join('users','users.id','=','tutor_subject.user_id')
+                                ->join('subject','subject.id','=','tutor_subject.subject_id')
+                                ->where('users.id', '=', $tutor_id)
+                                ->paginate($paginate);
+        
+            return $data;
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -93,7 +114,7 @@ class TutorSubjectController extends Controller
             $user               = JWTAuth::parseToken()->authenticate();
             $data               = new TutorSubject();
             $data->user_id      = $user->id;
-            $data->type         = $request->input('subject_id');
+            $data->subject_id   = $request->input('subject_id');
 	        $data->save();
 
     		return response()->json([
@@ -105,7 +126,7 @@ class TutorSubjectController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => $e->getMessage()
-            ]);
+            ],500);
         }
     }
 

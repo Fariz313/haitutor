@@ -43,7 +43,9 @@ Route::middleware(['cors'])->group(function(){
     
     Route::get('tutor_subject', 'TutorSubjectController@index');
     Route::get('tutor_subject/{id}', 'TutorSubjectController@show');
+    Route::post('tutor_subject', 'TutorSubjectController@store');
     Route::get('tutor_by_subject/{subject_id}', 'TutorSubjectController@getTutorBySubject');
+    Route::get('subject_tutor/{tutor_id}', 'TutorSubjectController@getSubjectTutor');
 
     Route::get('/package', 'PackageController@index');
 

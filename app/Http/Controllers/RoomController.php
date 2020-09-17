@@ -109,7 +109,10 @@ class RoomController extends Controller
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
                                 },'tutor'=>function($query){
-                                    $query->select('id','name','email');
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
                                 }))->get();
             return $data;                                   
         } catch (\Throwable $th) {
