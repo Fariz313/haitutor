@@ -208,6 +208,32 @@ class TutorController extends Controller
         }   
     }
 
+    public function getTutorBySubject($subject_id)
+    {
+        $paginate = 10;
+        
+        try {
+            $data =  $data = User::select('users.*')->whereHas('detail', function ($q){
+                                $q->where('status','verified');
+                            })
+                            ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
+                            ->where('role','tutor')
+                            ->where('tutor_subject.subject_id',$subject_id)
+                            ->with(array('detail','tutorSubject'=>function($query){
+                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }))
+                            ->paginate($paginate);  
+        
+            return $data;
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
     /**
      * Show the form for creating a new resource.
      *
