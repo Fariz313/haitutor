@@ -59,7 +59,8 @@ class RoomController extends Controller
             if($cekRoom){
                 return response()->json([
                     'status'    =>  'failed',
-                    'message'   =>  'Room aleready created'
+                    'message'   =>  'Room aleready created',
+                    'room_key'  =>  $cekRoom->room_key
                 ]);  
             }if(!$cekTutor){
                 return response()->json([
