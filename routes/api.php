@@ -111,6 +111,12 @@ Route::middleware(['cors'])->group(function(){
             Route::post('/{id}','RoomController@createRoom');
             Route::get('/','RoomController@showRoom');
         });
+
+        Route::prefix('/room_vc')->group(function ()
+        {    
+            Route::get('/', 'RoomVCController@showRoom');
+            Route::post('/{tutor_id}', 'RoomVCController@createRoom');
+        });
     
         Route::middleware(['chat.room'])->group(function(){
             Route::prefix('/{roomkey}')->group(function () {
