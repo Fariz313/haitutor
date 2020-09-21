@@ -19,6 +19,7 @@ class CreateRoomVcTable extends Migration
             $table->string('channel_name');
             $table->integer('user_id');
             $table->integer('tutor_id');
+            $table->enum('status',['open','closed']);
             $table->date('deleted_at');
             $table->date('expired_at');
             $table->timestamps();
