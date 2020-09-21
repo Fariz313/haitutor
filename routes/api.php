@@ -114,7 +114,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/room_vc')->group(function ()
         {    
-            Route::get('/', 'RoomVCController@showRoom');
+            Route::get('/', 'RoomVCController@index');
             Route::post('/{tutor_id}', 'RoomVCController@createRoom');
         });
     

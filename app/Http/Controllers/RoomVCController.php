@@ -18,8 +18,7 @@ class RoomVCController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = RoomVC::where(function ($where) use ($query){
-                    $where->where('room_key','LIKE','%'.$query.'%')
-                        ->orWhere('chat_type','LIKE','%'.$query.'%');
+                    $where->where('status','LIKE','%'.$query.'%');
                 } )->with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
@@ -33,11 +32,7 @@ class RoomVCController extends Controller
                 }))->paginate(10);
             }
                 
-            return response()->json([
-                'status'    =>  'success',
-                'data'      =>  $data,
-                'message'   =>  'Get Data Success'
-            ]);
+            return response()->json($data);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
