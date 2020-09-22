@@ -52,6 +52,8 @@ Route::middleware(['cors'])->group(function(){
 
     Route::get('/package', 'PackageController@index');
 
+    Route::get('/otpView', 'OtpController@showOtp');
+
     //
     
     Route::prefix('/company')->group(function () {
@@ -81,7 +83,8 @@ Route::middleware(['cors'])->group(function(){
         
         Route::prefix('/verify')->group(function () {
             Route::post('/', 'OtpController@verifying');
-            Route::get('/', 'OtpController@createOtpVerification');
+            // Route::get('/', 'OtpController@createOtpVerification');
+            Route::get('/{device_id}', 'OtpController@createOtpVerification');
             Route::get('/email', 'OtpController@sendByEmail');
             Route::get('/sms', 'OtpController@sendBySms');
         });

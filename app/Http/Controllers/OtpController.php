@@ -10,6 +10,7 @@ use App\User;
 use JWTAuth;
 use Mail;
 use Carbon\Carbon;
+use View;
 
 class OtpController extends Controller
 {
@@ -47,7 +48,7 @@ class OtpController extends Controller
 
 
 
-    public function createOtpVerification(Request $request)
+    public function createOtpVerification($device_id)
     {
         try {
             $user           =   JWTAuth::parseToken()->authenticate();
@@ -70,13 +71,19 @@ class OtpController extends Controller
             $data->user_ip  =   $clientIP;
             $data->otp      =   $otp;
             $data->type     =   'verification';
+            $data->device_id = $device_id;
             if($data->save()){
                 try{
                     Mail::send([], [], function ($message) use ($user, $otp)
                     {
-                        $message->subject('Contoh Otp');
+                        $message->subject('Kode OTP Akun Vokanesia');
                         $message->to($user->email);
-                        $message->setBody('<p> Hi!! </p><h1>OTP Anda Adalah</h1><br/><h1><b>'.$otp.'</b></h1>','text/html');
+                        $view = View::make('otpVerification', [
+                            'otp' => $otp
+                        ]);
+
+                        $html = $view->render();
+                        $message->setBody($html,'text/html');
             
                     });
                     return response()->json([
@@ -252,5 +259,10 @@ class OtpController extends Controller
         
     
         
+    }
+
+    public function showOtp(){
+        $otp = '8291821';
+        return view('otpVerification', ['otp' => $otp]);
     }
 }
