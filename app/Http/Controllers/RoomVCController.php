@@ -130,8 +130,8 @@ class RoomVCController extends Controller
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
-                                }))->get();
-            return $data;                                   
+                                }))->paginate(10);
+            return response()->json($data);                                   
         } catch (\Throwable $th) {
             //throw $th;
         }
