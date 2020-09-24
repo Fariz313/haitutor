@@ -17,6 +17,7 @@ class Order extends Migration
             $table->id();
             $table->integer('user_id');
             $table->integer('package_id');
+            $table->integer('proof');
             $table->string('invoice');
             $table->enum('status',['pending','failed','completed']);
             $table->timestamps();
