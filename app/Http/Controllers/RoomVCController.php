@@ -44,13 +44,6 @@ class RoomVCController extends Controller
     public function createRoom($tutor_id)
     {   
 
-        // if(class_exists(RtcTokenBuilder::class)){
-        //     return response()->json([
-        //         'status'    =>  'failed',
-        //         'message'   =>  'ono class es'
-        //     ]);
-        // }
-
         //Agora config
         $appId = "702f2dc020744429a81b562e196e0922";
         $appCertificate = "2bdda327ef1e49a9acbc57158cfeb0a7";
@@ -134,6 +127,47 @@ class RoomVCController extends Controller
             return response()->json($data);                                   
         } catch (\Throwable $th) {
             //throw $th;
+        }
+    }
+
+    public function checkRoom(Request $request)
+    {
+        try {
+            
+            $user                   = JWTAuth::parseToken()->authenticate();
+
+            if ($request->get("tutorid")) {
+                $query              = $request->get("tutorid");
+                $data               = RoomVC::where("user_id", $user->id)
+                                    ->where("tutor_id", $query)
+                                    ->where("status", "open")
+                                    ->where("duration_left", ">", 0)->first();
+
+                if ($data) {
+                    return response()->json([
+                        'status'    => 'success',
+                        'message'   => 'Room exist',
+                        'data'  => $data
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'    => 'failed',
+                        'message'   => 'Room not exist'
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'status'    => 'failed',
+                    'message'   => 'Missing param'
+                ]);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to check video call room',
+                'data'      =>  $th
+            ]);
         }
     }
 }
