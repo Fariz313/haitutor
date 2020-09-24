@@ -310,9 +310,19 @@ class UserController extends Controller
                     })->paginate($paginate);
             return $data;
         }
-        $data   =   User::where('role','tutor')
+        $data   =   User::where('role','student')
                           ->paginate($paginate);
         return $data;
+    }
+    public function getStudent($id){
+        try {
+            //code...
+            $data   =   User::findOrFail($id);
+            return $data;
+        } catch (\Throwable $th) {
+            //throw $th;
+            return "fail";
+        }
     }
 
     

@@ -71,6 +71,13 @@ class TutorController extends Controller
                           ->paginate($paginate);
         return $data;
     }
+    public function showTutor($id){
+        $data   =   User::where('role','tutor')
+                          ->with(array('detail','tutorSubject'=>function($query)
+                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');}))
+                          ->findOrFail($id);
+        return $data;
+    }
     public function getAllTutor(Request $request){
         $paginate = 10;
         if($request->get('paginate')){
@@ -109,7 +116,7 @@ class TutorController extends Controller
             return $data;
         }
         $data   =   User::whereHas('detail', function ($q){
-                                    $q->where('status','verified');})
+                                    $q->where('status','unverified');})
                           ->where('role','tutor')
                           ->with('detail','tutorSubject')
                           ->paginate($paginate);

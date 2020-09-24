@@ -26,12 +26,14 @@ Route::middleware(['cors'])->group(function(){
     
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
+    Route::get('get_tutor/{id}', 'TutorController@showTutor');
 
-    Route::get('ge/all', 'TutorController@getAllTutor');
-    Route::get('get_tutor/all', 'TutorController@getAllTutor');
+    Route::get('get_student', 'UserController@getAllStudent');
+    Route::get('get_student/{id}', 'UserController@getStudent');
 
+    Route::get('/package', 'PackageController@index');
 
-    Route::get('order', 'OrderController@index');
+    Route::get('order', 'OrderController@index');   
     Route::post('order/{id}', 'OrderController@store');
     
     Route::get('subject','SubjectController@index');
@@ -129,7 +131,6 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');\
 
-            Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');
             Route::get('/package/{id}', 'PackageController@show');
             Route::put('/package/{id}', 'PackageController@update');
