@@ -126,6 +126,11 @@ Route::middleware(['cors'])->group(function(){
             Route::post('/{tutor_id}', 'RoomVCController@createRoom');
             Route::get('/cek', 'RoomVCController@checkRoom');
         });
+
+        Route::prefix('/token')->group(function()
+        {
+            Route::post('chat/{tutor_id}', 'TokenTransactionController@chat');
+        });
     
         Route::middleware(['chat.room'])->group(function(){
             Route::prefix('/{roomkey}')->group(function () {
