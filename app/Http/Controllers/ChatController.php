@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use App\Chat;
+use App\RoomChat;
 use Carbon\Carbon;
 
 
@@ -53,6 +54,10 @@ class ChatController extends Controller
             }
             if($requestCount>0){
                 if($data->save()){
+                    $room = RoomChat::where('room_key',$roomkey)->first();
+                    $room->last_message_at = $data->created_at;
+                    $room->save();
+
                     return response()->json([
                         'status'	=> 'succes',
                         'message'	=> 'Success adding chat'
