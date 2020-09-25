@@ -23,6 +23,7 @@ Route::middleware(['cors'])->group(function(){
     Route::post('forgetpassword', 'UserController@forgetPassword');
     Route::get('cek', 'UserController@getAuthenticatedUser');
     Route::get('tes', 'UserController@tes');
+    Route::put('balance', 'UserController@updateBalance');
     
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');

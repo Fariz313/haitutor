@@ -316,6 +316,24 @@ class UserController extends Controller
         return $data;
     }
 
+    public function updateBalance(Request $request)
+    {
+        $message = "Update";
+        $status = "Success";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            $user->balance = $request->input('balance');
+            $message = "Update Balance Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
+        }
+
+        return response()->json(compact('user','status','message'),201);
+    }
+
     
     
 }
