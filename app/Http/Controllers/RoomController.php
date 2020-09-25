@@ -162,4 +162,25 @@ class RoomController extends Controller
             ]);
         }
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $message = "Update Status Room";
+        $status = "Success";
+        try {
+            $room = RoomChat::findOrFail($id);
+            $room->status = $request->input('status');
+            $message = "Update Status Room Succeed";
+            $room->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update Room is Failed';
+        }
+
+        return response()->json([
+            'status'    =>  $status,
+            'message'   =>  $message,
+            'data'      =>  $room
+        ], 201);
+    }
 }
