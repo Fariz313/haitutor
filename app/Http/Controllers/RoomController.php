@@ -61,7 +61,8 @@ class RoomController extends Controller
                 return response()->json([
                     'status'    =>  'failed',
                     'message'   =>  'Room aleready created',
-                    'room_key'  =>  $cekRoom->room_key
+                    'room_key'  =>  $cekRoom->room_key,
+                    'data'      =>  $cekRoom
                 ]);  
             }if(!$cekTutor){
                 return response()->json([
@@ -81,7 +82,9 @@ class RoomController extends Controller
             $data->save();
             return response()->json([
                 'status'    =>  'success',
-                'message'   =>  'Room Created'
+                'message'   =>  'Room Created',
+                'room_key'  =>  $data->room_key,
+                'data'      =>  $data
             ],200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -139,7 +142,8 @@ class RoomController extends Controller
                     return response()->json([
                         'status'    => 'success',
                         'message'   => 'Room exist',
-                        'room_key'  => $data->room_key
+                        'room_key'  => $data->room_key,
+                        'data'      => $data
                     ]);
                 } else {
                     return response()->json([
