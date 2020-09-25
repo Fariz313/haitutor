@@ -106,8 +106,7 @@ class RoomController extends Controller
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   RoomChat::where("status", "open")
-                                ->where('user_id',$user->id)
+            $data   =   RoomChat::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
