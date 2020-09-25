@@ -21,7 +21,9 @@ class CreateRoomVcTable extends Migration
             $table->integer('tutor_id');
             $table->enum('status',['open','closed']);
             $table->date('deleted_at');
-            $table->date('expired_at');
+            $table->integer('expired_at');
+            $table->integer('duration');
+            $table->integer('duration_left');
             $table->timestamps();
         });
     }

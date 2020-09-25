@@ -54,7 +54,8 @@ class RoomController extends Controller
         try {
             $user               =   JWTAuth::parseToken()->authenticate();
             $cekRoom            =   RoomChat::where("user_id",$user->id)
-                                            ->where("tutor_id",$tutor_id)->first();
+                                            ->where("tutor_id",$tutor_id)
+                                            ->where("status", "open")->first();
             $cekTutor           =   User::findOrFail($tutor_id);                                
             if($cekRoom){
                 return response()->json([
@@ -105,7 +106,8 @@ class RoomController extends Controller
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   RoomChat::where('user_id',$user->id)
+            $data   =   RoomChat::where("status", "open")
+                                ->where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
@@ -118,6 +120,47 @@ class RoomController extends Controller
             return $data;                                   
         } catch (\Throwable $th) {
             //throw $th;
+        }
+    }
+
+    public function checkRoom(Request $request)
+    {
+        try {
+
+            $user                   = JWTAuth::parseToken()->authenticate();
+
+            if($request->get("tutorid")){
+                $query              = $request->get("tutorid");
+                $data               = RoomChat::where("user_id", $user->id)
+                                    ->where("tutor_id", $query)
+                                    ->where("status", "open")->first();
+
+                
+                if ($data){
+                    return response()->json([
+                        'status'    => 'success',
+                        'message'   => 'Room exist',
+                        'room_key'  => $data->room_key
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'    => 'failed',
+                        'message'   => 'Room not exist'
+                    ]);
+                }
+            }else {
+                return response()->json([
+                    'status'    => 'failed',
+                    'message'   => 'Missing param'
+                ]);
+            }       
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to check room',
+                'data'      =>  $th
+            ]);
         }
     }
 }
