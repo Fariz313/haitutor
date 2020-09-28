@@ -130,6 +130,7 @@ Route::middleware(['cors'])->group(function(){
         Route::prefix('/token')->group(function()
         {
             Route::post('chat/{tutor_id}', 'TokenTransactionController@chat');
+            Route::post('videocall/{tutor_id}', 'TokenTransactionController@videocall');
         });
     
         Route::middleware(['chat.room'])->group(function(){

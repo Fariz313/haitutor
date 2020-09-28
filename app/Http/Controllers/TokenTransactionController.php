@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Order;
 use App\User;
 use App\RoomChat;
+use App\RoomVC;
 use App\Http\Controllers;
+use App\Libraries\Agora\RtcTokenBuilder;
 use DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -144,6 +146,160 @@ class TokenTransactionController extends Controller
                 'status'    =>  'failed2',
                 'message'   =>  'Unable to create token transaction',
                 'data'      =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function videocall($tutor_id)
+    {
+
+        //Agora config
+        $appId = "702f2dc020744429a81b562e196e0922";
+        $appCertificate = "2bdda327ef1e49a9acbc57158cfeb0a7";
+        $channel_name = Str::random(16);
+        $role = RtcTokenBuilder::RoleAttendee;
+
+        $duration_video_call = 600; // 10 minutes in seconds
+
+        try {
+
+            $current_user                       = JWTAuth::parseToken()->authenticate();
+
+            $checkVCRoom                        = RoomVC::where("user_id", $current_user->id)
+                                                    ->where("tutor_id", $tutor_id)->first();
+            
+            if ($checkVCRoom) {
+
+                // If room exist and duration_left value more than 0 seconds then return video call room
+                // else add duration_left and duration field value
+
+                if ($checkVCRoom->duration_left > 0) {
+                   
+                    return response()->json([
+                        'status'        =>  'success',
+                        'message'       =>  'Video call room open !',
+                        'data'          =>  $checkVCRoom,
+                    ]);   
+                    
+                } else {
+
+                    $student                    = User::findOrFail($current_user->id);
+
+                    if ($current_user->balance == 0) {
+
+                        return response()->json([
+                            'status'            =>  'failed',
+                            'message'           =>  'insufficient token balance'
+                        ]);
+
+                    } else {
+
+                        try {
+                            DB::beginTransaction();
+
+                            $current_user->balance     = $current_user->balance - 1;
+                            $current_user->save();
+
+                            $tutor                     = User::findOrFail($tutor_id);
+                            $tutor->balance            = $tutor->balance + 1;
+                            $tutor->save();
+
+                            $checkVCRoom->status         = "open";
+                            $checkVCRoom->duration       = $checkVCRoom->duration + $duration_video_call;
+                            $checkVCRoom->duration_left  = $checkVCRoom->duration_left + $duration_video_call;
+                            $checkVCRoom->save();
+
+                            DB::commit();
+                            return response()->json([
+                                'status'        =>  'success',
+                                'message'       =>  'Video call duration added !',
+                                'data'          =>  $checkVCRoom,
+                            ]);    
+
+                        } catch (\Throwable $th) {
+                            DB::rollback();
+                            return response()->json([
+                                'status'        =>  'failed',
+                                'message'       =>  'Unable to create token transaction',
+                                'data'          =>  $th->getMessage()
+                            ]);
+                        }
+                    }
+
+                }
+            } else {
+
+                try {
+                    
+                    DB::beginTransaction();
+
+                    $token = RtcTokenBuilder::buildTokenWithUid($appId, $appCertificate, $channel_name, 0, $role, 0);
+
+                    try {
+            
+                        $user               =   JWTAuth::parseToken()->authenticate();
+                       
+                        $cekTutor           =   User::findOrFail($tutor_id);                                  
+                      
+                        if($cekTutor->role!="tutor"){
+                            DB::rollback();
+                            return response()->json([
+                                'status'    =>  'failed',
+                                'message'   =>  'Invalid tutor'
+                            ]);
+                        }
+
+                        $current_user->balance     = $current_user->balance - 1;
+                        $current_user->save();
+
+                        $tutor                     = User::findOrFail($tutor_id);
+                        $tutor->balance            = $tutor->balance + 1;
+                        $tutor->save();
+
+                        $data               =   new RoomVC();
+                        $data->channel_name =   $channel_name;
+                        $data->token        =   $token;
+                        $data->duration     =   $duration_video_call;
+                        $data->duration_left=   $duration_video_call;
+                        $data->tutor_id     =   $tutor_id;
+                        $data->user_id      =   $user->id;
+                        $data->save();
+
+                        DB::commit();
+
+                        return response()->json([
+                            'status'    =>  'success',
+                            'message'   =>  'Room Created',
+                            'data'      =>  $data
+                        ],200);
+                    } catch (\Throwable $th) {
+                        DB::rollback();
+                        return response()->json([
+                            'status'    =>  'failed',
+                            'message'   =>  'Cannot Create Room',
+                            'data'      =>  array(
+                                'token'         => $token,
+                                'channel_name'  => $channel_name
+                            )
+                        ]);
+                    }
+
+                } catch (\Throwable $th) {
+                    DB::rollback();
+                            return response()->json([
+                                'status'        =>  'failed',
+                                'message'       =>  'Unable to create token transaction',
+                                'data'          =>  $th->getMessage()
+                            ]);
+                }
+
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed2',
+                'message'   =>  'Unable to create token transaction',
+                'data'      =>  $th->getMessage()
             ]);
         }
     }
