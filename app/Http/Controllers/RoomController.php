@@ -105,11 +105,49 @@ class RoomController extends Controller
                             }))->first();
         return  $room;
     }
-    public function showRoom()
+    public function showRoom(Request $request)
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   RoomChat::where('user_id',$user->id)
+            if($request->get('search')){
+                $query = $request->get('search');
+                
+                if('student' == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('tutor_table.name','LIKE','%'.$query.'%')
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))->get();
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('user_table.name','LIKE','%'.$query.'%')
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))->get();
+                }
+                return $data;
+            } else {
+                $data   =   RoomChat::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
@@ -119,9 +157,10 @@ class RoomController extends Controller
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
                                 }))->get();
-            return $data;                                   
+                return $data;
+            }
         } catch (\Throwable $th) {
-            //throw $th;
+            return $th;
         }
     }
 
