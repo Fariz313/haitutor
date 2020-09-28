@@ -215,28 +215,43 @@ class TutorController extends Controller
         }   
     }
 
-    public function getTutorBySubject($subject_id)
+    public function getTutorBySubject(Request $request, $subject_id)
     {
         $paginate = 10;
         
         try {
-            $data =  $data = User::select('users.*')->whereHas('detail', function ($q){
-                                $q->where('status','verified');
-                            })
-                            ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
-                            ->where('role','tutor')
-                            ->where('tutor_subject.subject_id',$subject_id)
-                            ->with(array('detail','tutorSubject'=>function($query){
-                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
-                            }))
-                            ->paginate($paginate);  
+            if($request->get('search')){
+                $query = $request->get('search');
+                $data = User::select('users.*')->whereHas('detail', function ($q){
+                            $q->where('status','verified');
+                        })
+                        ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
+                        ->where('role','tutor')
+                        ->where('name','LIKE','%'.$query.'%')
+                        ->where('tutor_subject.subject_id',$subject_id)
+                        ->with(array('detail','tutorSubject'=>function($query){
+                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                        }))
+                        ->paginate($paginate);  
+            } else {
+                $data = User::select('users.*')->whereHas('detail', function ($q){
+                            $q->where('status','verified');
+                        })
+                        ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
+                        ->where('role','tutor')
+                        ->where('tutor_subject.subject_id',$subject_id)
+                        ->with(array('detail','tutorSubject'=>function($query){
+                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                        }))
+                        ->paginate($paginate);  
+            }
         
             return $data;
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
                 'data'      =>  'No Data Picked',
-                'message'   =>  'Get Data Failed'
+                'message'   =>  $th
             ]);
         }
     }
