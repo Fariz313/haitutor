@@ -85,7 +85,7 @@ class TokenTransactionController extends Controller
                                 'status'        =>  'success',
                                 'message'       =>  'Chat reopened !',
                                 'room_key'      =>  $checkRoom->room_key,
-                                'room'          =>  $checkRoom
+                                'data'          =>  $checkRoom
                             ]);
 
                         } catch (\Throwable $th) {
@@ -102,7 +102,7 @@ class TokenTransactionController extends Controller
                         'status'            =>  'failed',
                         'message'           =>  'Room already created and opened',
                         'room_key'          =>  $checkRoom->room_key,
-                        'room'              =>  $checkRoom
+                        'data'              =>  $checkRoom
                     ]);
                 }
             }else {
@@ -128,7 +128,7 @@ class TokenTransactionController extends Controller
                         'status'            =>  'success',
                         'message'           =>  'Room started',
                         'room_key'          =>  $data->room_key,
-                        'room'              =>  $data
+                        'data'              =>  $data
                     ]);
 
                 } catch (\Throwable $th) {
