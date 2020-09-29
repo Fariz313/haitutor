@@ -137,7 +137,7 @@ class RoomController extends Controller
                                 ->where('user_table.name','LIKE','%'.$query.'%')
                                 ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
                                 ->with(array('user'=>function($query){
-                                    $query->select('id','name','email');
+                                    $query->select('id','name','email','photo');
                                 },'tutor'=>function($query){
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){
@@ -150,7 +150,7 @@ class RoomController extends Controller
                 $data   =   RoomChat::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
-                                    $query->select('id','name','email');
+                                    $query->select('id','name','email','photo');
                                 },'tutor'=>function($query){
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){
