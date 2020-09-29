@@ -125,6 +125,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/', 'RoomVCController@index');
             Route::post('/{tutor_id}', 'RoomVCController@createRoom');
             Route::get('/cek', 'RoomVCController@checkRoom');
+            Route::put('/duration/{id}', 'RoomVCController@updateDuration');
         });
 
         Route::prefix('/token')->group(function()

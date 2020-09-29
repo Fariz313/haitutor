@@ -170,4 +170,27 @@ class RoomVCController extends Controller
             ]);
         }
     }
+
+    public function updateDuration(Request $request, $id)
+    {
+        try {
+            
+            $room                   = RoomVC::findOrFail($id);
+            $room->duration_left    = $room->duration_left - $request->input("duration_used");
+            $room->save();
+            
+            return response()->json([
+                'status'            =>  'success',
+                'message'           =>  'Success updating video call duration',
+                'data'              =>  $room
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'            =>  'failed',
+                'message'           =>  'failed to update video call duration',
+                'data'              =>  $th->getMessage()
+            ]);
+        }
+    }
 }
