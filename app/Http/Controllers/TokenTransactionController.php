@@ -120,6 +120,8 @@ class TokenTransactionController extends Controller
                     $data->room_key         =   Str::random(6); 
                     $data->tutor_id         =   $tutor_id;
                     $data->user_id          =   $current_user->id;
+                    $data->status           =   "open";
+                    $data->last_message_at  =   date("Y-m-d H:i:s");
                     $data->save();
 
                     DB::commit();
