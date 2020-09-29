@@ -127,7 +127,9 @@ class RoomController extends Controller
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
-                                }))->get();
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
                 } else {
                     $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
                                 ->where(function($query) use ($user) {
@@ -143,7 +145,9 @@ class RoomController extends Controller
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
-                                }))->get();
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
                 }
                 return $data;
             } else {
@@ -156,7 +160,9 @@ class RoomController extends Controller
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
-                                }))->get();
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
                 return $data;
             }
         } catch (\Throwable $th) {
