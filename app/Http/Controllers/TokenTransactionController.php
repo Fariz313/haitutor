@@ -175,7 +175,7 @@ class TokenTransactionController extends Controller
                 // If room exist and duration_left value more than 0 seconds then return video call room
                 // else add duration_left and duration field value
 
-                if ($checkVCRoom->duration_left > 0) {
+                if ($checkVCRoom->duration_left > 1) {
                    
                     return response()->json([
                         'status'        =>  'success',
@@ -279,10 +279,7 @@ class TokenTransactionController extends Controller
                         return response()->json([
                             'status'    =>  'failed',
                             'message'   =>  'Cannot Create Room',
-                            'data'      =>  array(
-                                'token'         => $token,
-                                'channel_name'  => $channel_name
-                            )
+                            'data'      =>  $th->getMessage()
                         ]);
                     }
 
