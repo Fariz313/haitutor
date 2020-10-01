@@ -57,6 +57,8 @@ Route::middleware(['cors'])->group(function(){
 
     Route::get('/otpView', 'OtpController@showOtp');
 
+    Route::get('/notif', 'NotificationController@store');
+
     //
     
     Route::prefix('/company')->group(function () {
