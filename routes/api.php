@@ -24,6 +24,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('cek', 'UserController@getAuthenticatedUser');
     Route::get('tes', 'UserController@tes');
     Route::put('balance', 'UserController@updateBalance');
+    Route::put('firebase_token', 'UserController@updateFirebaseToken');
     
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
@@ -56,6 +57,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('/package', 'PackageController@index');
 
     Route::get('/otpView', 'OtpController@showOtp');
+
+    Route::get('/notif', 'NotificationController@store');
 
     //
     

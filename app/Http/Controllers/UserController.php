@@ -344,6 +344,25 @@ class UserController extends Controller
         return response()->json(compact('user','status','message'),201);
     }
 
+    public function updateFirebaseToken(Request $request)
+    {
+        $message = "Update Firebase Token Succeed";
+        $status = "Success";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            $user->firebase_token = $request->input('firebase_token');
+            $message = "Update Firebase Token Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
+            $th = $th;
+        }
+
+        return response()->json(compact('user','status','message'),201);
+    }
+
     
     
 }
