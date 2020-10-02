@@ -131,7 +131,7 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/duration/{id}', 'RoomVCController@updateDuration');
             Route::post('/history/{tutor_id}', 'HistoryVCController@createHistory');
             Route::put('/history/{id}', 'HistoryVCController@updateHistory');
-            Route::get('/history', 'HistoryVCController@index');
+            Route::get('/history', 'HistoryVCController@showRoom');
         });
 
         Route::prefix('/token')->group(function()
