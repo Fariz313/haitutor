@@ -13,6 +13,7 @@ use DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
+use FCM;
 
 class TokenTransactionController extends Controller
 {
@@ -80,6 +81,15 @@ class TokenTransactionController extends Controller
                             $checkRoom->status  = "open";
                             $checkRoom->save();
 
+                            $dataNotif = [
+                                "title" => "HaiTutor",
+                                "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
+                                "sender_id" => $current_user->id,
+                                "target_id" => $tutor->id,
+                                'token_recipient' => $tutor->firebase_token
+                            ];
+                            $responseNotif = FCM::pushNotification($dataNotif);
+
                             DB::commit();
                             return response()->json([
                                 'status'        =>  'success',
@@ -123,6 +133,15 @@ class TokenTransactionController extends Controller
                     $data->status           =   "open";
                     $data->last_message_at  =   date("Y-m-d H:i:s");
                     $data->save();
+
+                    $dataNotif = [
+                        "title" => "HaiTutor",
+                        "message" => $current_user->name . " membuka kembali percakapan dengan Anda",
+                        "sender_id" => $current_user->id,
+                        "target_id" => $tutor->id,
+                        'token_recipient' => $tutor->firebase_token
+                    ];
+                    $responseNotif = FCM::pushNotification($dataNotif);
 
                     DB::commit();
 

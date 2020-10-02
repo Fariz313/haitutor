@@ -68,12 +68,12 @@ class ChatController extends Controller
 
                     $dataNotif = [
                         "title" => "HaiTutor",
-                        "message" => "Ada Pesan Masuk",
+                        "message" => "Pesan Masuk dari " . $sender->name,
                         "sender_id" => $sender->id,
                         "target_id" => $target->id,
                         'token_recipient' => $target->firebase_token
                     ];
-                    $responseNotif = FCM::pushNotification($data);
+                    $responseNotif = FCM::pushNotification($dataNotif);
 
                     return response()->json([
                         'status'	=> 'succes',
