@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use FCM;
+use JWTAuth;
 
 class NotificationController extends Controller
 {
@@ -15,7 +17,18 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $data = Notification::get();
+
+            $status = 'Success';
+            $message = "Get All Notification Data Succeed";
+            return response()->json(compact('status','message','data'),200);
+        } catch (\Throwable $th) {
+            $status = 'Failed';
+            $message = $th;
+            $data = '';
+            return response()->json(compact('status','message','data'),500);
+        }
     }
 
     /**
@@ -25,7 +38,7 @@ class NotificationController extends Controller
      */
     public function create()
     {
-        //
+        // 
     }
 
     /**
@@ -36,16 +49,27 @@ class NotificationController extends Controller
      */
     public function store(Request $request)
     {
-        $data = [
-            "title" => "Notif Penting Woyy",
-            "message" => "Harusnya Tetap Bisa",
-            "sender_id" => 19,
-            "target_id" => 30,
-            'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ"
-        ];
-        $response = FCM::pushNotification($data);
-        return $response;
+        try{
+            $data = new Notification();
+            $data->sender_id = JWTAuth::parseToken()->authenticate()->id;
+            $data->target_id = $request->input('target_id');
+            $data->message = $request->input('message');
+            $data->status = $request->input('status');
+            $data->action = $request->input('action');
+            $data->image = $request->input('image');
+	        $data->save();
 
+    		return response()->json([
+    			'status'	=> 'Success',
+    			'message'	=> 'Notification added successfully'
+    		], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -91,5 +115,34 @@ class NotificationController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function getNotifByTargetId($targetId){
+        try {
+            $data = Notification::where('target_id',$targetId)->get();
+
+            $status = 'Success';
+            $message = "Get Notification By Target Succeed";
+            return response()->json(compact('status','message','data'),200);
+        } catch (\Throwable $th) {
+            $status = 'Failed';
+            $message = $th;
+            $data = '';
+            return response()->json(compact('status','message','data'),500);
+        }
+    }
+
+    public function pushNotification(Request $request)
+    {
+        $data = [
+            "title" => "Notif Penting Woyy",
+            "message" => "Harusnya Tetap Bisa",
+            "sender_id" => 19,
+            "target_id" => 30,
+            'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ"
+        ];
+        $response = FCM::pushNotification($data);
+        return $response;
+
     }
 }

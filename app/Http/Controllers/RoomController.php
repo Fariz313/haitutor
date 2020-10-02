@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
+use FCM;
 
 class RoomController extends Controller
 {
@@ -219,8 +220,31 @@ class RoomController extends Controller
         try {
             $room = RoomChat::findOrFail($id);
             $room->status = $request->input('status');
+            $senderId = $request->input('sender_id');
             $message = "Update Status Room Succeed";
             $room->save();
+
+            $sender = $room->user;
+            $target = $room->tutor;
+            if($senderId == $room->tutor->id){
+                $sender = $room->tutor;
+                $target = $room->user;
+            }
+            
+            $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
+            if("open" == $room->status){
+                $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
+            }
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $messageNotif,
+                "sender_id" => $sender->id,
+                "target_id" => $target->id,
+                'token_recipient' => $target->firebase_token
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
         } catch (\Throwable $th) {
             $status      = 'Failed';
             $message    = 'Update Room is Failed';

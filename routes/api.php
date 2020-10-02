@@ -57,17 +57,18 @@ Route::middleware(['cors'])->group(function(){
     Route::get('/package', 'PackageController@index');
 
     Route::get('/otpView', 'OtpController@showOtp');
-
-    Route::get('/notif', 'NotificationController@store');
-
-    //
     
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
         Route::get('/{id}', 'CompanyController@show');
         Route::post('/', 'CompanyController@store');
     });
-    
+
+    Route::prefix('/notif')->group(function () {
+        Route::get('/', 'NotificationController@index');
+        Route::post('/', 'NotificationController@store');
+        Route::get('/target/{targetId}', 'NotificationController@getNotifByTargetId');
+    });
     
     
     //--------------------------------------------------LOGGED IN USER MIDDLEWARE
