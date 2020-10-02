@@ -14,8 +14,8 @@ class FirebaseNotification {
             'data' => [
                 "title" => $data["title"],
                 "message" => $data["message"],
-                "user_id" => $data["user_id"],
-                "tutor_id" => $data["tutor_id"],
+                "sender_id" => $data["sender_id"],
+                "target_id" => $data["target_id"],
             ],
             'to' => $data["token_recipient"]
         ];

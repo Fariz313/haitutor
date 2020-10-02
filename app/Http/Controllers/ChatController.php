@@ -9,6 +9,7 @@ use JWTAuth;
 use App\Chat;
 use App\RoomChat;
 use Carbon\Carbon;
+use FCM;
 
 
 class ChatController extends Controller
@@ -58,9 +59,26 @@ class ChatController extends Controller
                     $room->last_message_at = $data->created_at;
                     $room->save();
 
+                    $target = $room->user;
+                    $sender = $room->tutor;
+                    if($user->id == $room->user_id){
+                        $target = $room->tutor;
+                        $sender = $room->user;
+                    }
+
+                    $dataNotif = [
+                        "title" => "HaiTutor",
+                        "message" => "Ada Pesan Masuk",
+                        "sender_id" => $sender->id,
+                        "target_id" => $target->id,
+                        'token_recipient' => $target->firebase_token
+                    ];
+                    $responseNotif = FCM::pushNotification($data);
+
                     return response()->json([
                         'status'	=> 'succes',
-                        'message'	=> 'Success adding chat'
+                        'message'	=> 'Success adding chat',
+                        'notif'     => $responseNotif
                     ], 201);
                 }
             }else{

@@ -37,10 +37,10 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         $data = [
-            "title" => "Notif Penting A",
+            "title" => "Notif Penting Woyy",
             "message" => "Harusnya Tetap Bisa",
-            "user_id" => 19,
-            "tutor_id" => 30,
+            "sender_id" => 19,
+            "target_id" => 30,
             'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ"
         ];
         $response = FCM::pushNotification($data);
