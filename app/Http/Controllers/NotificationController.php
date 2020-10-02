@@ -38,25 +38,7 @@ class NotificationController extends Controller
      */
     public function create()
     {
-        try{
-            $data = new Notification();
-            $data->sender_id = JWTAuth::parseToken()->authenticate()->id;
-            $data->target_id = $request->input('target_id');
-            $data->message = $request->input('message');
-            $data->user_id = 
-	        $data->save();
-
-    		return response()->json([
-    			'status'	=> 'success',
-    			'message'	=> 'Package added successfully'
-    		], 201);
-
-        } catch(\Exception $e){
-            return response()->json([
-                'status' => 'failed',
-                'message' => $e->getMessage()
-            ]);
-        }
+        // 
     }
 
     /**

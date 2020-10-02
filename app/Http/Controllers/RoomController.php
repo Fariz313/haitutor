@@ -231,9 +231,9 @@ class RoomController extends Controller
                 $target = $room->user;
             }
             
-            $messageNotif = "Percakapan dengan " . $sender->name . " sudah berakhir";
+            $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
             if("open" == $room->status){
-                $messageNotif = "Percakapan dengan " . $sender->name . " dimulai";
+                $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
             }
 
             $dataNotif = [

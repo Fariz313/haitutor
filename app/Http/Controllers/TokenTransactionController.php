@@ -136,7 +136,7 @@ class TokenTransactionController extends Controller
 
                     $dataNotif = [
                         "title" => "HaiTutor",
-                        "message" => $current_user->name . " membuka kembali percakapan dengan Anda",
+                        "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
                         'token_recipient' => $tutor->firebase_token
