@@ -133,7 +133,7 @@ class HistoryVCController extends Controller
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   RoomVC::where('user_id',$user->id)
+            $data   =   HistoryVC::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
@@ -143,9 +143,13 @@ class HistoryVCController extends Controller
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
                                 }))->paginate(10);
-            return response()->json($data);                                   
+            return response()->json($data, 200);                                   
         } catch (\Throwable $th) {
-            //throw $th;
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to check video call room',
+                'data'      =>  $th->getMessage()
+            ], 400);
         }
     }
 
