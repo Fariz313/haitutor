@@ -129,11 +129,56 @@ class HistoryVCController extends Controller
         return  $room;
     }
 
-    public function showRoom()
+    public function showRoom(Request $request)
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   HistoryVC::where('user_id',$user->id)
+
+            if ($request->get("search")) {
+                
+                $query = $request->get("search");
+
+                if ($user->role == "student") {
+                    $data       =   HistoryVC::select('history_vc.*','tutor_table.name as tutor_name')
+                                        ->where(function($query) use ($user) {
+                                            $query->where('user_id',$user->id)
+                                                ->orWhere('tutor_id',$user->id);
+                                        })
+                                        ->where('tutor_table.name','LIKE','%'.$query.'%')
+                                        ->join('users as tutor_table', 'tutor_table.id', '=', 'history_vc.tutor_id')
+                                        ->with(array('user'=>function($query){
+                                            $query->select('id','name','email');
+                                        },'tutor'=>function($query){
+                                            $query->select('id','name','email','photo')
+                                            ->with(array('tutorSubject'=>function($query){
+                                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                            }));
+                                        }))->paginate(10);
+
+                    return response()->json($data, 200);    
+                } else if ($user->role == "tutor") {
+                    $data       =   HistoryVC::select('history_vc.*','user_table.name as user_name')
+                                        ->where(function($query) use ($user) {
+                                            $query->where('user_id',$user->id)
+                                                ->orWhere('tutor_id',$user->id);
+                                        })
+                                        ->where('user_table.name','LIKE','%'.$query.'%')
+                                        ->join('users as user_table', 'user_table.id', '=', 'history_vc.user_id')
+                                        ->with(array('user'=>function($query){
+                                            $query->select('id','name','email', 'photo');
+                                        },'tutor'=>function($query){
+                                            $query->select('id','name','email','photo')
+                                            ->with(array('tutorSubject'=>function($query){
+                                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                            }));
+                                        }))->paginate(10);
+
+                    return response()->json($data, 200);    
+                }
+
+            } else {
+
+                $data   =   HistoryVC::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
@@ -143,7 +188,10 @@ class HistoryVCController extends Controller
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
                                 }))->paginate(10);
-            return response()->json($data, 200);                                   
+                return response()->json($data, 200); 
+
+            }
+
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
