@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['cors'])->group(function(){
 
 
-
+    Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
     Route::post('login', 'UserController@login');
@@ -130,7 +130,6 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');\
-
             Route::post('/package', 'PackageController@store');
             Route::get('/package/{id}', 'PackageController@show');
             Route::put('/package/{id}', 'PackageController@update');

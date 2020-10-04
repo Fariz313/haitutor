@@ -103,18 +103,14 @@ class OrderController extends Controller
     public function verify($id)
     {
         try{
-    		if($validator->fails()){
-    			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
-                ],400);
-    		}
 
             $data               = Order::findOrFail($id);
-            $data->status       = JWTAuth::parseToken()->authenticate()->id;
+            $data_detail        = $data->select('package.balance')->join('package', 'package.id', '=', 'order.package_id')->first();
+            $data->status       = "completed";
             $user               = User::findOrFail($data->user_id);
-            $user->balance      = $user->balance + $data->balance;
+            $user->balance      = $user->balance + $data_detail->balance;
 	        $data->save();
+	        $user->save();
 
     		return response()->json([
     			'status'	=> 'success',
