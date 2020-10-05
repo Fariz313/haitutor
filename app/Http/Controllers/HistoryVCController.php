@@ -31,7 +31,6 @@ class HistoryVCController extends Controller
                     $query->select('id','name','email');
                 }))->paginate(10);
             }
-
             return response()->json($data);
         } catch (\Throwable $th) {
             return response()->json([
@@ -56,7 +55,6 @@ class HistoryVCController extends Controller
                     'error'     =>$validator->errors()
                 ], 400);
             }
-
             $current_user           = JWTAuth::parseToken()->authenticate();
 
             $history                = new HistoryVC();
@@ -96,7 +94,6 @@ class HistoryVCController extends Controller
                     'error'     => $validator->errors()
                 ], 400);
             }
-
             $history            = HistoryVC::findOrFail($id);
 
             $history->duration  = $request->input("duration");
@@ -105,7 +102,7 @@ class HistoryVCController extends Controller
             return response()->json([
                 'status'    =>  'success',
                 'message'   =>  'Video Call history updated'
-            ]);
+            ], 200);
 
         } catch (\Throwable $th) {
             return response()->json([
@@ -195,7 +192,7 @@ class HistoryVCController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
-                'message'   =>  'Failed to check video call room',
+                'message'   =>  'Failed to get video call history',
                 'data'      =>  $th->getMessage()
             ], 400);
         }
@@ -204,7 +201,6 @@ class HistoryVCController extends Controller
     public function checkRoom(Request $request)
     {
         try {
-
             $user                   = JWTAuth::parseToken()->authenticate();
 
             if ($request->get("tutorid")) {
