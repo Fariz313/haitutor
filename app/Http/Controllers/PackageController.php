@@ -154,7 +154,7 @@ class PackageController extends Controller
                 ],400);
     		}
 
-            $data               = Package::findOrFail($id);
+            $data                   = Package::findOrFail($id);
             if ($request->input('name')) {
                 $data->name         = $request->input('name');
             }

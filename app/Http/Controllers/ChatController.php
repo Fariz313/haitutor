@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use App\Chat;
+use App\RoomChat;
 use Carbon\Carbon;
+use FCM;
 
 
 class ChatController extends Controller
@@ -53,9 +55,30 @@ class ChatController extends Controller
             }
             if($requestCount>0){
                 if($data->save()){
+                    $room = RoomChat::where('room_key',$roomkey)->first();
+                    $room->last_message_at = $data->created_at;
+                    $room->save();
+
+                    $target = $room->user;
+                    $sender = $room->tutor;
+                    if($user->id == $room->user_id){
+                        $target = $room->tutor;
+                        $sender = $room->user;
+                    }
+
+                    $dataNotif = [
+                        "title" => "HaiTutor",
+                        "message" => "Pesan Masuk dari " . $sender->name,
+                        "sender_id" => $sender->id,
+                        "target_id" => $target->id,
+                        'token_recipient' => $target->firebase_token
+                    ];
+                    $responseNotif = FCM::pushNotification($dataNotif);
+
                     return response()->json([
                         'status'	=> 'succes',
-                        'message'	=> 'Success adding chat'
+                        'message'	=> 'Success adding chat',
+                        'notif'     => $responseNotif
                     ], 201);
                 }
             }else{
