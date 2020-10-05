@@ -16,10 +16,9 @@ class Rating extends Migration
         Schema::create('rating', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->integer('package_id');
-            $table->integer('proof');
-            $table->string('invoice');
-            $table->enum('status',['pending','failed','completed']);
+            $table->integer('tutor_id');
+            $table->text('comment');
+            $table->integer('rate');
             $table->timestamps();
         });
     }
