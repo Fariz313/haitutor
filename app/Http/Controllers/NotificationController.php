@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use FCM;
 use JWTAuth;
+use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
@@ -119,7 +120,10 @@ class NotificationController extends Controller
 
     public function getNotifByTargetId($targetId){
         try {
-            $data = Notification::where('target_id',$targetId)->get();
+            $tempDate = \Carbon\Carbon::today()->subDays(7);
+            $data = Notification::where('target_id',$targetId)
+                                ->where('created_at', '>=', $tempDate)
+                                ->orderBy('created_at','desc')->get();
 
             $status = 'Success';
             $message = "Get Notification By Target Succeed";
