@@ -23,7 +23,7 @@ class HistoryVCController extends Controller
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
-                }))->paginate(10);    
+                }))->paginate(10);
             }else{
                 $data = HistoryVC::with(array('user'=>function($query){
                     $query->select('id','name','email');
@@ -31,7 +31,7 @@ class HistoryVCController extends Controller
                     $query->select('id','name','email');
                 }))->paginate(10);
             }
-                
+
             return response()->json($data);
         } catch (\Throwable $th) {
             return response()->json([
@@ -42,9 +42,9 @@ class HistoryVCController extends Controller
         }
     }
     public function createHistory(Request $request, $tutor_id)
-    {   
+    {
         try {
-            
+
             $validator = Validator::make($request->all(), [
                 'room_id' => 'required|integer'
             ]);
@@ -56,7 +56,7 @@ class HistoryVCController extends Controller
                     'error'     =>$validator->errors()
                 ], 400);
             }
-            
+
             $current_user           = JWTAuth::parseToken()->authenticate();
 
             $history                = new HistoryVC();
@@ -84,7 +84,7 @@ class HistoryVCController extends Controller
     public function updateHistory(Request $request, $id)
     {
         try {
-            
+
             $validator = Validator::make($request->all(), [
                 'duration' => 'required|integer'
             ]);
@@ -96,7 +96,7 @@ class HistoryVCController extends Controller
                     'error'     => $validator->errors()
                 ], 400);
             }
-            
+
             $history            = HistoryVC::findOrFail($id);
 
             $history->duration  = $request->input("duration");
@@ -135,7 +135,7 @@ class HistoryVCController extends Controller
             $user   =   JWTAuth::parseToken()->authenticate();
 
             if ($request->get("search")) {
-                
+
                 $query = $request->get("search");
 
                 if ($user->role == "student") {
@@ -155,7 +155,7 @@ class HistoryVCController extends Controller
                                             }));
                                         }))->paginate(10);
 
-                    return response()->json($data, 200);    
+                    return response()->json($data, 200);
                 } else if ($user->role == "tutor") {
                     $data       =   HistoryVC::select('history_vc.*','user_table.name as user_name')
                                         ->where(function($query) use ($user) {
@@ -173,7 +173,7 @@ class HistoryVCController extends Controller
                                             }));
                                         }))->paginate(10);
 
-                    return response()->json($data, 200);    
+                    return response()->json($data, 200);
                 }
 
             } else {
@@ -188,7 +188,7 @@ class HistoryVCController extends Controller
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
                                 }))->paginate(10);
-                return response()->json($data, 200); 
+                return response()->json($data, 200);
 
             }
 
@@ -204,7 +204,7 @@ class HistoryVCController extends Controller
     public function checkRoom(Request $request)
     {
         try {
-            
+
             $user                   = JWTAuth::parseToken()->authenticate();
 
             if ($request->get("tutorid")) {
@@ -245,11 +245,11 @@ class HistoryVCController extends Controller
     public function updateDuration(Request $request, $id)
     {
         try {
-            
+
             $room                   = RoomVC::findOrFail($id);
             $room->duration_left    = $room->duration_left - $request->input("duration_used");
             $room->save();
-            
+
             return response()->json([
                 'status'            =>  'success',
                 'message'           =>  'Success updating video call duration',

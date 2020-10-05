@@ -23,7 +23,7 @@ class RoomVCController extends Controller
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
-                }))->paginate(10);    
+                }))->paginate(10);
             }else{
                 $data = RoomVC::with(array('user'=>function($query){
                     $query->select('id','name','email');
@@ -31,7 +31,7 @@ class RoomVCController extends Controller
                     $query->select('id','name','email');
                 }))->paginate(10);
             }
-                
+
             return response()->json($data);
         } catch (\Throwable $th) {
             return response()->json([
@@ -42,7 +42,7 @@ class RoomVCController extends Controller
         }
     }
     public function createRoom($tutor_id)
-    {   
+    {
 
         //Agora config
         $appId = "702f2dc020744429a81b562e196e0922";
@@ -57,13 +57,13 @@ class RoomVCController extends Controller
             $user               =   JWTAuth::parseToken()->authenticate();
             $cekRoom            =   RoomVC::where("user_id",$user->id)
                                             ->where("tutor_id",$tutor_id)->first();
-            $cekTutor           =   User::findOrFail($tutor_id);                                
+            $cekTutor           =   User::findOrFail($tutor_id);
             if($cekRoom){
                 return response()->json([
                     'status'    =>  'success',
                     'message'   =>  'Room aleready created',
                     'data'      =>  $cekRoom
-                ]);  
+                ]);
             }if(!$cekTutor){
                 return response()->json([
                     'status'    =>  'failed',
@@ -117,7 +117,7 @@ class RoomVCController extends Controller
             $user   =   JWTAuth::parseToken()->authenticate();
 
             if ($request->get("search")) {
-                
+
                 $query = $request->get("search");
 
                 if ($user->role == "student") {
@@ -171,7 +171,7 @@ class RoomVCController extends Controller
                                             $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                         }));
                                     }))->paginate(10);
-                return response()->json($data, 200);            
+                return response()->json($data, 200);
             }
 
         } catch (\Throwable $th) {
@@ -186,7 +186,7 @@ class RoomVCController extends Controller
     public function checkRoom(Request $request)
     {
         try {
-            
+
             $user                   = JWTAuth::parseToken()->authenticate();
 
             if ($request->get("tutorid")) {
@@ -227,11 +227,11 @@ class RoomVCController extends Controller
     public function updateDuration(Request $request, $id)
     {
         try {
-            
+
             $room                   = RoomVC::findOrFail($id);
             $room->duration_left    = $room->duration_left - $request->input("duration_used");
             $room->save();
-            
+
             return response()->json([
                 'status'            =>  'success',
                 'message'           =>  'Success updating video call duration',
@@ -244,6 +244,40 @@ class RoomVCController extends Controller
                 'message'           =>  'failed to update video call duration',
                 'data'              =>  $th->getMessage()
             ]);
+        }
+    }
+
+    public function updateToken(Request $request)
+    {
+        try {
+
+            //Agora config
+            $appId = "702f2dc020744429a81b562e196e0922";
+            $appCertificate = "2bdda327ef1e49a9acbc57158cfeb0a7";
+            $channel_name = Str::random(16);
+            $role = RtcTokenBuilder::RoleAttendee;
+
+            $token = RtcTokenBuilder::buildTokenWithUid($appId, $appCertificate, $channel_name, 0, $role, 0);
+
+            $room_id                = $request->input("room_id");
+
+            $room                   = RoomVC::findOrFail($room_id);
+            $room->channel_name     = $channel_name;
+            $room->token            = $token;
+            $room->save();
+
+            return response()->json([
+                'status'    =>  'success',
+                'message'   =>  'Video call room token updated',
+                'data'      =>  $room
+            ],200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Cannot Update Room Token',
+                'data'      =>  $th->getMessage()
+            ], 400);
         }
     }
 }
