@@ -28,6 +28,10 @@ Route::middleware(['cors'])->group(function(){
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
 
+    Route::get('rating', 'RatingController@index');
+    Route::post('rating', 'RatingController@store');
+    Route::delete('rating/{id}', 'RatingController@delete');
+
     Route::get('get_student', 'UserController@getAllStudent');
     Route::get('get_student/{id}', 'UserController@getStudent');
 
