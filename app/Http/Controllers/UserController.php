@@ -180,6 +180,57 @@ class UserController extends Controller
 
         return response()->json(compact('user','status','message'),201);
     }
+    public function updateAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255',
+            'password' => 'string|min:6',
+            'birth_date' => 'date',
+            'photo' => 'file',
+            'contact' => 'string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'string',
+
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed validate',
+                'error'     =>$validator->errors()
+            ],400);
+        }
+        $message = "Update";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            if ($request->input('name')) {
+                $user->name = $request->input('name');
+            }if ($request->input('email')) {
+                $user->email    = $request->input('email');
+                $user->status   = 'unverified';
+            }if ($request->input('password')){
+                $user->password = Hash::make($request->get('password'));
+            }if ($request->input('birth_date')) {
+                $user->birth_date = $request->input('birth_date');
+            }if ($request->input('contact')){
+                $user->contact = $request->input('contact');
+            }if ($request->input('company_id')) {
+                $user->company_id = $request->input('company_id');
+            }
+            $user->address = $request->get('address');
+            $message = "Update Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
+        }
+
+        
+
+        return response()->json(compact('user','status','message'),201);
+    }
 
     public function getAuthenticatedUser()
     {
