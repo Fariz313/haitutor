@@ -129,7 +129,7 @@ class RoomVCController extends Controller
                                     ->where('tutor_table.name','LIKE','%'.$query.'%')
                                     ->join('users as tutor_table', 'tutor_table.id', '=', 'room_vc.tutor_id')
                                     ->with(array('user'=>function($query){
-                                        $query->select('id','name','email');
+                                        $query->select('id','name','email', 'photo');
                                     },'tutor'=>function($query){
                                         $query->select('id','name','email','photo')
                                         ->with(array('tutorSubject'=>function($query){
@@ -164,7 +164,7 @@ class RoomVCController extends Controller
                 $data   =   RoomVC::where('user_id',$user->id)
                                     ->orWhere('tutor_id',$user->id)
                                     ->with(array('user'=>function($query){
-                                        $query->select('id','name','email');
+                                        $query->select('id','name','email', 'photo');
                                     },'tutor'=>function($query){
                                         $query->select('id','name','email','photo')
                                         ->with(array('tutorSubject'=>function($query){
