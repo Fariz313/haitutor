@@ -16,6 +16,12 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    const NotificationStatus = [
+        "NEW"  => 0,
+        "READ" => 1
+    ];
+
     public function index()
     {
         try {
@@ -104,7 +110,23 @@ class NotificationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try{
+            $data = Notification::findOrFail($id);
+            $data->status = $request->input('status');
+	        $data->save();
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Notification Updated',
+                'data'      => $request->input('status')
+    		], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'failed',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -149,5 +171,22 @@ class NotificationController extends Controller
         $response = FCM::pushNotification($data);
         return $response;
 
+    }
+
+    public function markAllAsRead(Request $request){
+        try {
+            $targetId = JWTAuth::parseToken()->authenticate()->id;
+            $data = Notification::where('target_id',$targetId);
+            $data->update(['status' => NotificationController::NotificationStatus["READ"]]);
+
+            $status = 'Success';
+            $message = "Notification Marked All As Read";
+            return response()->json(compact('status','message','data'),200);
+        } catch (\Throwable $th) {
+            $status = 'Failed';
+            $message = $th;
+            $data = '';
+            return response()->json(compact('status','message','data'),500);
+        }
     }
 }

@@ -72,6 +72,8 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'NotificationController@index');
         Route::post('/', 'NotificationController@store');
         Route::get('/target/{targetId}', 'NotificationController@getNotifByTargetId');
+        Route::put('/read/{id}','NotificationController@update');
+        Route::put('/read','NotificationController@markAllAsRead');
     });
 
 
