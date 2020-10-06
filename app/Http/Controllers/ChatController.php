@@ -71,7 +71,8 @@ class ChatController extends Controller
                         "message" => "Pesan Masuk dari " . $sender->name,
                         "sender_id" => $sender->id,
                         "target_id" => $target->id,
-                        'token_recipient' => $target->firebase_token
+                        'token_recipient' => $target->firebase_token,
+                        'save_data' => false
                     ];
                     $responseNotif = FCM::pushNotification($dataNotif);
 

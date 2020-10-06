@@ -14,18 +14,20 @@ class FirebaseNotification {
         ];
 
         try{
-            $dataNotif = new Notification();
-            $dataNotif->sender_id = JWTAuth::parseToken()->authenticate()->id;
-            $dataNotif->target_id = $data["target_id"];
-            $dataNotif->message = $data["message"];
-            $dataNotif->status = 0;
-            if(array_key_exists("action", $data)){
-                $dataNotif->action = $data["action"];
+            if($data["save_data"]){
+                $dataNotif = new Notification();
+                $dataNotif->sender_id = JWTAuth::parseToken()->authenticate()->id;
+                $dataNotif->target_id = $data["target_id"];
+                $dataNotif->message = $data["message"];
+                $dataNotif->status = 0;
+                if(array_key_exists("action", $data)){
+                    $dataNotif->action = $data["action"];
+                }
+                if(array_key_exists("image", $data)){
+                    $dataNotif->image = $data["image"];
+                }
+                $dataNotif->save();
             }
-            if(array_key_exists("image", $data)){
-                $dataNotif->image = $data["image"];
-            }
-	        $dataNotif->save();
     		
             $body = [
                 'data' => [

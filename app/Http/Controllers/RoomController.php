@@ -241,7 +241,8 @@ class RoomController extends Controller
                 "message" => $messageNotif,
                 "sender_id" => $sender->id,
                 "target_id" => $target->id,
-                'token_recipient' => $target->firebase_token
+                'token_recipient' => $target->firebase_token,
+                'save_data' => true
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
 

@@ -86,7 +86,8 @@ class TokenTransactionController extends Controller
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
-                                'token_recipient' => $tutor->firebase_token
+                                'token_recipient' => $tutor->firebase_token,
+                                'save_data' => true
                             ];
                             $responseNotif = FCM::pushNotification($dataNotif);
 
@@ -139,7 +140,8 @@ class TokenTransactionController extends Controller
                         "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
-                        'token_recipient' => $tutor->firebase_token
+                        'token_recipient' => $tutor->firebase_token,
+                        'save_data' => true
                     ];
                     $responseNotif = FCM::pushNotification($dataNotif);
 
