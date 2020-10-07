@@ -126,6 +126,7 @@ class RoomVCController extends Controller
                                         $query->where('user_id',$user->id)
                                             ->orWhere('tutor_id',$user->id);
                                     })
+                                    ->orderBy('updated_at','DESC')
                                     ->where('tutor_table.name','LIKE','%'.$query.'%')
                                     ->join('users as tutor_table', 'tutor_table.id', '=', 'room_vc.tutor_id')
                                     ->with(array('user'=>function($query){
@@ -145,6 +146,7 @@ class RoomVCController extends Controller
                                         $query->where('user_id',$user->id)
                                             ->orWhere('tutor_id',$user->id);
                                     })
+                                    ->orderBy('updated_at','DESC')
                                     ->where('user_table.name','LIKE','%'.$query.'%')
                                     ->join('users as user_table', 'user_table.id', '=', 'room_vc.user_id')
                                     ->with(array('user'=>function($query){
@@ -163,6 +165,7 @@ class RoomVCController extends Controller
             } else {
                 $data   =   RoomVC::where('user_id',$user->id)
                                     ->orWhere('tutor_id',$user->id)
+                                    ->orderBy('updated_at','DESC')
                                     ->with(array('user'=>function($query){
                                         $query->select('id','name','email', 'photo');
                                     },'tutor'=>function($query){
