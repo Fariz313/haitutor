@@ -23,12 +23,16 @@ class HistoryVCController extends Controller
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
+                }, 'room_vc'=>function($query) {
+                    $query->select("*");
                 }))->paginate(10);
             }else{
                 $data = HistoryVC::with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
+                }, 'room_vc'=>function($query) {
+                    $query->select("*");
                 }))->paginate(10);
             }
             return response()->json($data);
@@ -151,6 +155,8 @@ class HistoryVCController extends Controller
                                             ->with(array('tutorSubject'=>function($query){
                                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                             }));
+                                        }, 'room_vc'=>function($query) {
+                                            $query->select("*");
                                         }))->paginate(10);
 
                     return response()->json($data, 200);
@@ -170,6 +176,8 @@ class HistoryVCController extends Controller
                                             ->with(array('tutorSubject'=>function($query){
                                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                             }));
+                                        }, 'room_vc'=>function($query) {
+                                            $query->select("*");
                                         }))->paginate(10);
 
                     return response()->json($data, 200);
@@ -186,6 +194,8 @@ class HistoryVCController extends Controller
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }, 'room_vc'=>function($query) {
+                                        $query->select("*");
                                     }));
                                 }))->paginate(10);
                 return response()->json($data, 200);

@@ -196,7 +196,7 @@ class RoomVCController extends Controller
                 $query              = $request->get("tutorid");
                 $data               = RoomVC::where("user_id", $user->id)
                                     ->where("tutor_id", $query)
-                                    ->where("status", "open")
+                                    // ->where("status", "open")
                                     ->where("duration_left", ">", 0)->first();
 
                 if ($data) {
@@ -233,6 +233,11 @@ class RoomVCController extends Controller
 
             $room                   = RoomVC::findOrFail($id);
             $room->duration_left    = $room->duration_left - $request->input("duration_used");
+
+            if ($room->duration_left == 1) {
+                $room->status       = "close";
+            }
+
             $room->save();
 
             return response()->json([
