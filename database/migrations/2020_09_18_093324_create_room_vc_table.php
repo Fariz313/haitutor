@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class RoomChat extends Migration
+class CreateRoomVcTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,17 @@ class RoomChat extends Migration
      */
     public function up()
     {
-        Schema::create('room_chat', function (Blueprint $table) {
+        Schema::create('room_vc', function (Blueprint $table) {
             $table->id();
-            $table->string('room_key')->unique();
+            $table->string('token');
+            $table->string('channel_name');
             $table->integer('user_id');
             $table->integer('tutor_id');
-            $table->enum('chat_type',['standart','langganan']);
             $table->enum('status',['open','closed']);
-            $table->date('last_message_at')->nullable();
-            $table->date('expired_at')->nullable();
-            $table->date('deleted_at')->nullable();
+            $table->date('deleted_at');
+            $table->integer('expired_at');
+            $table->integer('duration');
+            $table->integer('duration_left');
             $table->timestamps();
         });
     }
@@ -34,6 +35,6 @@ class RoomChat extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('room_chat');
+        Schema::dropIfExists('room_vc');
     }
 }

@@ -45,6 +45,43 @@ class SubjectController extends Controller
         }
     }
 
+    public function getSubject(Request $request){
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+        if($request->get('search')){
+            $query = $request->get('search');
+            $data = Subject::where(function ($where) use ($query){
+                $where->where('name','LIKE','%'.$query.'%')
+                    ->orWhere('type','LIKE','%'.$query.'%');
+            } )->paginate($paginate);    
+            return $data;
+        } else {
+            $data = Subject::paginate($paginate);
+            return $data;
+        }
+    }
+
+    public function getUnassignedSubject($tutor_id){
+        try {
+            $subjectModel = new Subject();
+            $data = $subjectModel->getUnassignedSubject($tutor_id);
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  "Get Data Succeeded"
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  $th
+            ]);
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.

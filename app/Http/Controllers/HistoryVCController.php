@@ -23,15 +23,18 @@ class HistoryVCController extends Controller
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
-                }))->paginate(10);    
+                }, 'room_vc'=>function($query) {
+                    $query->select("*");
+                }))->paginate(10);
             }else{
                 $data = HistoryVC::with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
                     $query->select('id','name','email');
+                }, 'room_vc'=>function($query) {
+                    $query->select("*");
                 }))->paginate(10);
             }
-                
             return response()->json($data);
         } catch (\Throwable $th) {
             return response()->json([
@@ -42,13 +45,13 @@ class HistoryVCController extends Controller
         }
     }
     public function createHistory(Request $request, $tutor_id)
-    {   
+    {
         try {
-            
+
             $validator = Validator::make($request->all(), [
                 'room_id' => 'required|integer'
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json([
                     'status'    =>'failed',
@@ -56,7 +59,6 @@ class HistoryVCController extends Controller
                     'error'     =>$validator->errors()
                 ], 400);
             }
-            
             $current_user           = JWTAuth::parseToken()->authenticate();
 
             $history                = new HistoryVC();
@@ -80,11 +82,11 @@ class HistoryVCController extends Controller
             ], 500);
         }
     }
-    
+
     public function updateHistory(Request $request, $id)
     {
         try {
-            
+
             $validator = Validator::make($request->all(), [
                 'duration' => 'required|integer'
             ]);
@@ -96,7 +98,6 @@ class HistoryVCController extends Controller
                     'error'     => $validator->errors()
                 ], 400);
             }
-            
             $history            = HistoryVC::findOrFail($id);
 
             $history->duration  = $request->input("duration");
@@ -133,9 +134,9 @@ class HistoryVCController extends Controller
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            
+
             if ($request->get("search")) {
-                
+
                 $query = $request->get("search");
 
                 if ($user->role == "student") {
@@ -144,6 +145,7 @@ class HistoryVCController extends Controller
                                             $query->where('user_id',$user->id)
                                                 ->orWhere('tutor_id',$user->id);
                                         })
+                                        ->orderBy('created_at','DESC')
                                         ->where('tutor_table.name','LIKE','%'.$query.'%')
                                         ->join('users as tutor_table', 'tutor_table.id', '=', 'history_vc.tutor_id')
                                         ->with(array('user'=>function($query){
@@ -153,15 +155,18 @@ class HistoryVCController extends Controller
                                             ->with(array('tutorSubject'=>function($query){
                                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                             }));
+                                        }, 'room_vc'=>function($query) {
+                                            $query->select("*");
                                         }))->paginate(10);
 
-                    return response()->json($data, 200);    
+                    return response()->json($data, 200);
                 } else if ($user->role == "tutor") {
                     $data       =   HistoryVC::select('history_vc.*','user_table.name as user_name')
                                         ->where(function($query) use ($user) {
                                             $query->where('user_id',$user->id)
                                                 ->orWhere('tutor_id',$user->id);
                                         })
+                                        ->orderBy('created_at','DESC')
                                         ->where('user_table.name','LIKE','%'.$query.'%')
                                         ->join('users as user_table', 'user_table.id', '=', 'history_vc.user_id')
                                         ->with(array('user'=>function($query){
@@ -171,27 +176,32 @@ class HistoryVCController extends Controller
                                             ->with(array('tutorSubject'=>function($query){
                                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                             }));
+                                        }, 'room_vc'=>function($query) {
+                                            $query->select("*");
                                         }))->paginate(10);
 
-                    return response()->json($data, 200);    
+                    return response()->json($data, 200);
                 }
 
             } else {
 
                 $data   =   HistoryVC::where('user_id',$user->id)
                                 ->orWhere('tutor_id',$user->id)
+                                ->orderBy('created_at','DESC')
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
                                 },'tutor'=>function($query){
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }, 'room_vc'=>function($query) {
+                                        $query->select("*");
                                     }));
                                 }))->paginate(10);
-                return response()->json($data, 200); 
+                return response()->json($data, 200);
 
             }
-                    
+
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
@@ -204,7 +214,6 @@ class HistoryVCController extends Controller
     public function checkRoom(Request $request)
     {
         try {
-            
             $user                   = JWTAuth::parseToken()->authenticate();
 
             if ($request->get("tutorid")) {
@@ -245,11 +254,11 @@ class HistoryVCController extends Controller
     public function updateDuration(Request $request, $id)
     {
         try {
-            
+
             $room                   = RoomVC::findOrFail($id);
             $room->duration_left    = $room->duration_left - $request->input("duration_used");
             $room->save();
-            
+
             return response()->json([
                 'status'            =>  'success',
                 'message'           =>  'Success updating video call duration',

@@ -4,10 +4,10 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class HistoryVC extends Model
+class RoomVC extends Model
 {
-
-    protected $table = "history_vc";
+    
+    protected $table = "room_vc";
 
     public function user()
     {
@@ -17,8 +17,5 @@ class HistoryVC extends Model
     {
         return $this->belongsTo('App\User','tutor_id','id');
     }
-    public function room_vc()
-    {
-        return $this->belongsTo('App\RoomVC', 'room_id', 'id');
-    }
+
 }

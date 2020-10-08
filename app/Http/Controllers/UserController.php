@@ -150,6 +150,7 @@ class UserController extends Controller
             ],400);
         }
         $message = "Update";
+        $status = "Success";
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user = User::findOrFail($userDetail->id);
@@ -159,24 +160,27 @@ class UserController extends Controller
                 $user->email    = $request->input('email');
                 $user->status   = 'unverified';
             }if ($request->input('password')){
-                $user->password = Hash::make($request->get('password'));
+                $user->password = Hash::make($request->input('password'));
             }if ($request->input('birth_date')) {
                 $user->birth_date = $request->input('birth_date');
             }if ($request->input('contact')){
                 $user->contact = $request->input('contact');
             }if ($request->input('company_id')) {
                 $user->company_id = $request->input('company_id');
+            }if ($request->input('address')) {
+                $user->address = $request->input('address');
             }
-            $user->address = $request->get('address');
             $message = "Update Success";
             $user->save();
+            return response()->json(compact('user','status','message'),201);
         } catch (\Throwable $th) {
-            $status      = 'Failed';
+            $status     = 'Failed';
             $message    = 'Update is Failed';
+            $error      = $th;
+            return response()->json(compact('error','status','message'),201);
         }
-        
-        return response()->json(compact('user','status','message'),201);
     }
+
     public function updateById(Request $request,$id)
     {
         $validator = Validator::make($request->all(), [
@@ -419,6 +423,43 @@ class UserController extends Controller
             //throw $th;
             return "fail";
         }
+    }
+
+    public function updateBalance(Request $request)
+    {
+        $message = "Update";
+        $status = "Success";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            $user->balance = $request->input('balance');
+            $message = "Update Balance Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
+        }
+
+        return response()->json(compact('user','status','message'),201);
+    }
+
+    public function updateFirebaseToken(Request $request)
+    {
+        $message = "Update Firebase Token Succeed";
+        $status = "Success";
+        try {
+            $userDetail = UserController::getAuthenticatedUserVariable();
+            $user = User::findOrFail($userDetail->id);
+            $user->firebase_token = $request->input('firebase_token');
+            $message = "Update Firebase Token Success";
+            $user->save();
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update is Failed';
+            $th = $th;
+        }
+
+        return response()->json(compact('user','status','message'),201);
     }
 
     

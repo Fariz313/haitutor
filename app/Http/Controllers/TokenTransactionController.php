@@ -12,6 +12,7 @@ use App\RoomVC;
 use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Notification;
 use JWTAuth;
 use FCM;
 
@@ -29,11 +30,11 @@ class TokenTransactionController extends Controller
                 $query = $request->get('search');
                 $data = Order::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Order::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -58,35 +59,37 @@ class TokenTransactionController extends Controller
                                                 ->where("tutor_id", $tutor_id)->first();
 
             if ($checkRoom) {
-                if ($checkRoom->status == "closed") {    
+                if ($checkRoom->status == "closed") {
                     $student                = User::findOrFail($current_user->id);
-    
+
                     if ($current_user->balance == 0) {
                         return response()->json([
                             'status'            =>  'failed',
                             'message'           =>  'insufficient token balance'
                         ]);
                     } else {
-    
+
                         try {
                             DB::beginTransaction();
-    
+
                             $current_user->balance      = $current_user->balance - 1;
                             $current_user->save();
-    
+
                             $tutor              = User::findOrFail($tutor_id);
                             $tutor->balance     = $tutor->balance + 1;
                             $tutor->save();
 
                             $checkRoom->status  = "open";
                             $checkRoom->save();
-                            
+
                             $dataNotif = [
                                 "title" => "HaiTutor",
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
-                                'token_recipient' => $tutor->firebase_token
+                                "channel_name"   => Notification::CHANNEL_NAMES[0],
+                                'token_recipient' => $tutor->firebase_token,
+                                'save_data' => true
                             ];
                             $responseNotif = FCM::pushNotification($dataNotif);
 
@@ -106,7 +109,7 @@ class TokenTransactionController extends Controller
                                 'data'          =>  $th->getMessage()
                             ]);
                         }
-                    }   
+                    }
                 }else if ($checkRoom->status == "open") {
                     return response()->json([
                         'status'            =>  'failed',
@@ -127,19 +130,21 @@ class TokenTransactionController extends Controller
                     $tutor->save();
 
                     $data                   =   new RoomChat();
-                    $data->room_key         =   Str::random(6); 
+                    $data->room_key         =   Str::random(6);
                     $data->tutor_id         =   $tutor_id;
                     $data->user_id          =   $current_user->id;
                     $data->status           =   "open";
                     $data->last_message_at  =   date("Y-m-d H:i:s");
                     $data->save();
-                    
+
                     $dataNotif = [
                         "title" => "HaiTutor",
                         "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
-                        'token_recipient' => $tutor->firebase_token
+                        "channel_name"   => Notification::CHANNEL_NAMES[0],
+                        'token_recipient' => $tutor->firebase_token,
+                        'save_data' => true
                     ];
                     $responseNotif = FCM::pushNotification($dataNotif);
 
@@ -170,7 +175,7 @@ class TokenTransactionController extends Controller
             ]);
         }
     }
-    
+
     public function videocall(Request $request, $tutor_id)
     {
 
@@ -188,7 +193,7 @@ class TokenTransactionController extends Controller
 
             $checkVCRoom                        = RoomVC::where("user_id", $current_user->id)
                                                     ->where("tutor_id", $tutor_id)->first();
-            
+
             if ($checkVCRoom) {
 
                 // If room exist and duration_left value more than 60 seconds then return video call room
@@ -199,13 +204,13 @@ class TokenTransactionController extends Controller
                 $checkVCRoom->save();
 
                 if ($checkVCRoom->duration_left > 61) {
-                   
+
                     return response()->json([
                         'status'        =>  'success',
                         'message'       =>  'Video call room open !',
                         'data'          =>  $checkVCRoom,
-                    ]);   
-                    
+                    ]);
+
                 } else {
 
                     $student                    = User::findOrFail($current_user->id);
@@ -218,35 +223,46 @@ class TokenTransactionController extends Controller
                         ]);
 
                     } else {
-                        
+
                         $transaction_type          = $request->input("transaction_type");
 
                         if ($transaction_type == "add_duration") {
-                            
+
                             try {
                                 DB::beginTransaction();
-    
+
                                 $current_user->balance     = $current_user->balance - 1;
                                 $current_user->save();
-    
+
                                 $tutor                     = User::findOrFail($tutor_id);
                                 $tutor->balance            = $tutor->balance + 1;
                                 $tutor->save();
-    
+
                                 $duration_used               = $request->input("duration_used");
-    
+
                                 $checkVCRoom->status         = "open";
                                 $checkVCRoom->duration       = $checkVCRoom->duration + $duration_video_call;
                                 $checkVCRoom->duration_left  = $checkVCRoom->duration_left + $duration_video_call;
                                 $checkVCRoom->save();
-    
+
+                                $dataNotif = [
+                                    "title" => "HaiTutor",
+                                    "message" => $current_user->name . " menambah durasi video call dengan Anda",
+                                    "sender_id" => $current_user->id,
+                                    "target_id" => $tutor->id,
+                                    "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                    'token_recipient' => $tutor->firebase_token,
+                                    'save_data' => true
+                                ];
+                                $responseNotif = FCM::pushNotification($dataNotif);
+
                                 DB::commit();
                                 return response()->json([
                                     'status'        =>  'success',
                                     'message'       =>  'Video call duration added !',
                                     'data'          =>  $checkVCRoom,
-                                ]);    
-    
+                                ]);
+
                             } catch (\Throwable $th) {
                                 DB::rollback();
                                 return response()->json([
@@ -255,19 +271,19 @@ class TokenTransactionController extends Controller
                                     'data'          =>  $th->getMessage()
                                 ]);
                             }
-                            
+
                         } else {
-                        
+
                             return response()->json([
                                 'status'        =>  'success2',
                                 'message'       =>  'Video call room open !',
                                 'data'          =>  $checkVCRoom,
-                            ]);        
-                        
+                            ]);
+
                         }
                     }
                 }
-                
+
             } else {
 
                 if ($current_user->balance == 0) {
@@ -278,19 +294,19 @@ class TokenTransactionController extends Controller
                     ]);
 
                 } else {
-                 
+
                     try {
-                    
+
                         DB::beginTransaction();
-    
+
                         $token = RtcTokenBuilder::buildTokenWithUid($appId, $appCertificate, $channel_name, 0, $role, 0);
-    
+
                         try {
-                
+
                             $user               =   JWTAuth::parseToken()->authenticate();
-                           
-                            $cekTutor           =   User::findOrFail($tutor_id);                                  
-                          
+
+                            $cekTutor           =   User::findOrFail($tutor_id);
+
                             if($cekTutor->role!="tutor"){
                                 DB::rollback();
                                 return response()->json([
@@ -298,14 +314,14 @@ class TokenTransactionController extends Controller
                                     'message'   =>  'Invalid tutor'
                                 ]);
                             }
-    
+
                             $current_user->balance     = $current_user->balance - 1;
                             $current_user->save();
-    
+
                             $tutor                     = User::findOrFail($tutor_id);
                             $tutor->balance            = $tutor->balance + 1;
                             $tutor->save();
-    
+
                             $data               =   new RoomVC();
                             $data->channel_name =   $channel_name;
                             $data->token        =   $token;
@@ -314,9 +330,20 @@ class TokenTransactionController extends Controller
                             $data->tutor_id     =   $tutor_id;
                             $data->user_id      =   $user->id;
                             $data->save();
-    
+
+                            $dataNotif = [
+                                "title" => "HaiTutor",
+                                "message" => $current_user->name . " ingin memulai video call dengan Anda",
+                                "sender_id" => $current_user->id,
+                                "target_id" => $tutor->id,
+                                "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                'token_recipient' => $tutor->firebase_token,
+                                'save_data' => true
+                            ];
+                            $responseNotif = FCM::pushNotification($dataNotif);
+
                             DB::commit();
-    
+
                             return response()->json([
                                 'status'    =>  'success',
                                 'message'   =>  'Room Created',
@@ -330,7 +357,7 @@ class TokenTransactionController extends Controller
                                 'data'      =>  $th->getMessage()
                             ]);
                         }
-    
+
                     } catch (\Throwable $th) {
                         DB::rollback();
                         return response()->json([
@@ -338,8 +365,8 @@ class TokenTransactionController extends Controller
                             'message'       =>  'Unable to create token transaction',
                             'data'          =>  $th->getMessage()
                         ]);
-                    }   
-                    
+                    }
+
                 }
 
             }

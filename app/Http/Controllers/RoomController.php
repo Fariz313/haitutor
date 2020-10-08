@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
+use FCM;
 
 class RoomController extends Controller
 {
@@ -54,12 +55,15 @@ class RoomController extends Controller
         try {
             $user               =   JWTAuth::parseToken()->authenticate();
             $cekRoom            =   RoomChat::where("user_id",$user->id)
-                                            ->where("tutor_id",$tutor_id)->first();
+                                            ->where("tutor_id",$tutor_id)
+                                            ->where("status", "open")->first();
             $cekTutor           =   User::findOrFail($tutor_id);                                
             if($cekRoom){
                 return response()->json([
                     'status'    =>  'failed',
-                    'message'   =>  'Room aleready created'
+                    'message'   =>  'Room aleready created',
+                    'room_key'  =>  $cekRoom->room_key,
+                    'data'      =>  $cekRoom
                 ]);  
             }if(!$cekTutor){
                 return response()->json([
@@ -79,7 +83,9 @@ class RoomController extends Controller
             $data->save();
             return response()->json([
                 'status'    =>  'success',
-                'message'   =>  'Room Created'
+                'message'   =>  'Room Created',
+                'room_key'  =>  $data->room_key,
+                'data'      =>  $data
             ],200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -100,20 +106,155 @@ class RoomController extends Controller
                             }))->first();
         return  $room;
     }
-    public function showRoom()
+    public function showRoom(Request $request)
     {
         try {
             $user   =   JWTAuth::parseToken()->authenticate();
-            $data   =   RoomChat::where('user_id',$user->id)
-                                ->orWhere('tutor_id',$user->id)
+            if($request->get('search')){
+                $query = $request->get('search');
+                
+                if('student' == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('tutor_table.name','LIKE','%'.$query.'%')
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email');
                                 },'tutor'=>function($query){
-                                    $query->select('id','name','email');
-                                }))->get();
-            return $data;                                   
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('user_table.name','LIKE','%'.$query.'%')
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
+                }
+                return $data;
+            } else {
+                $data   =   RoomChat::where('user_id',$user->id)
+                                ->orWhere('tutor_id',$user->id)
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo')
+                                    ->with(array('tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->get();
+                return $data;
+            }
         } catch (\Throwable $th) {
-            //throw $th;
+            return $th;
         }
+    }
+
+    public function checkRoom(Request $request)
+    {
+        try {
+
+            $user                   = JWTAuth::parseToken()->authenticate();
+
+            if($request->get("tutorid")){
+                $query              = $request->get("tutorid");
+                $data               = RoomChat::where("user_id", $user->id)
+                                    ->where("tutor_id", $query)
+                                    ->where("status", "open")->first();
+
+                
+                if ($data){
+                    return response()->json([
+                        'status'    => 'success',
+                        'message'   => 'Room exist',
+                        'room_key'  => $data->room_key,
+                        'data'      => $data
+                    ]);
+                } else {
+                    return response()->json([
+                        'status'    => 'failed',
+                        'message'   => 'Room not exist'
+                    ]);
+                }
+            }else {
+                return response()->json([
+                    'status'    => 'failed',
+                    'message'   => 'Missing param'
+                ]);
+            }       
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to check room',
+                'data'      =>  $th
+            ]);
+        }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $message = "Update Status Room";
+        $status = "Success";
+        try {
+            $room = RoomChat::findOrFail($id);
+            $room->status = $request->input('status');
+            $senderId = $request->input('sender_id');
+            $message = "Update Status Room Succeed";
+            $room->save();
+
+            $sender = $room->user;
+            $target = $room->tutor;
+            if($senderId == $room->tutor->id){
+                $sender = $room->tutor;
+                $target = $room->user;
+            }
+            
+            $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
+            if("open" == $room->status){
+                $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
+            }
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $messageNotif,
+                "sender_id" => $sender->id,
+                "target_id" => $target->id,
+                'token_recipient' => $target->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Update Room is Failed';
+        }
+
+        return response()->json([
+            'status'    =>  $status,
+            'message'   =>  $message,
+            'data'      =>  $room
+        ], 201);
     }
 }

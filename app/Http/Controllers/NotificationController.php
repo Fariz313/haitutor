@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use FCM;
 use JWTAuth;
+use Carbon\Carbon;
 
 class NotificationController extends Controller
 {
@@ -15,6 +16,12 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    const NotificationStatus = [
+        "NEW"  => 0,
+        "READ" => 1
+    ];
+
     public function index()
     {
         try {
@@ -103,7 +110,23 @@ class NotificationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try{
+            $data = Notification::findOrFail($id);
+            $data->status = $request->input('status');
+	        $data->save();
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Notification Updated',
+                'data'      => $request->input('status')
+    		], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'failed',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -119,7 +142,10 @@ class NotificationController extends Controller
 
     public function getNotifByTargetId($targetId){
         try {
-            $data = Notification::where('target_id',$targetId)->get();
+            $tempDate = \Carbon\Carbon::today()->subDays(7);
+            $data = Notification::where('target_id',$targetId)
+                                ->where('created_at', '>=', $tempDate)
+                                ->orderBy('created_at','desc')->get();
 
             $status = 'Success';
             $message = "Get Notification By Target Succeed";
@@ -139,10 +165,28 @@ class NotificationController extends Controller
             "message" => "Harusnya Tetap Bisa",
             "sender_id" => 19,
             "target_id" => 30,
-            'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ"
+            'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ",
+            'save_data' => true
         ];
         $response = FCM::pushNotification($data);
         return $response;
 
+    }
+
+    public function markAllAsRead(Request $request){
+        try {
+            $targetId = JWTAuth::parseToken()->authenticate()->id;
+            $data = Notification::where('target_id',$targetId);
+            $data->update(['status' => NotificationController::NotificationStatus["READ"]]);
+
+            $status = 'Success';
+            $message = "Notification Marked All As Read";
+            return response()->json(compact('status','message','data'),200);
+        } catch (\Throwable $th) {
+            $status = 'Failed';
+            $message = $th;
+            $data = '';
+            return response()->json(compact('status','message','data'),500);
+        }
     }
 }
