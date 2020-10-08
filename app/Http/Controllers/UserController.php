@@ -167,17 +167,20 @@ class UserController extends Controller
                 $user->contact = $request->input('contact');
             }if ($request->input('company_id')) {
                 $user->company_id = $request->input('company_id');
+            }if ($request->input('address')) {
+                $user->address = $request->input('address');
             }
-            $user->address = $request->get('address');
             $message = "Update Success";
             $user->save();
+            return response()->json(compact('user','status','message'),201);
         } catch (\Throwable $th) {
-            $status      = 'Failed';
+            $status     = 'Failed';
             $message    = 'Update is Failed';
+            $error      = $th;
+            return response()->json(compact('error','status','message'),201);
         }
-        
-        return response()->json(compact('user','status','message'),201);
     }
+
     public function updateById(Request $request,$id)
     {
         $validator = Validator::make($request->all(), [
