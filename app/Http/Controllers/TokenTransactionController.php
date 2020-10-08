@@ -12,6 +12,7 @@ use App\RoomVC;
 use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Notification;
 use JWTAuth;
 use FCM;
 
@@ -86,6 +87,7 @@ class TokenTransactionController extends Controller
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
+                                "channel_name"   => Notification::CHANNEL_NAMES[0],
                                 'token_recipient' => $tutor->firebase_token,
                                 'save_data' => true
                             ];
@@ -140,6 +142,7 @@ class TokenTransactionController extends Controller
                         "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
+                        "channel_name"   => Notification::CHANNEL_NAMES[0],
                         'token_recipient' => $tutor->firebase_token,
                         'save_data' => true
                     ];
@@ -242,6 +245,17 @@ class TokenTransactionController extends Controller
                                 $checkVCRoom->duration_left  = $checkVCRoom->duration_left + $duration_video_call;
                                 $checkVCRoom->save();
 
+                                $dataNotif = [
+                                    "title" => "HaiTutor",
+                                    "message" => $current_user->name . " menambah durasi video call dengan Anda",
+                                    "sender_id" => $current_user->id,
+                                    "target_id" => $tutor->id,
+                                    "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                    'token_recipient' => $tutor->firebase_token,
+                                    'save_data' => true
+                                ];
+                                $responseNotif = FCM::pushNotification($dataNotif);
+
                                 DB::commit();
                                 return response()->json([
                                     'status'        =>  'success',
@@ -316,6 +330,17 @@ class TokenTransactionController extends Controller
                             $data->tutor_id     =   $tutor_id;
                             $data->user_id      =   $user->id;
                             $data->save();
+
+                            $dataNotif = [
+                                "title" => "HaiTutor",
+                                "message" => $current_user->name . " ingin memulai video call dengan Anda",
+                                "sender_id" => $current_user->id,
+                                "target_id" => $tutor->id,
+                                "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                'token_recipient' => $tutor->firebase_token,
+                                'save_data' => true
+                            ];
+                            $responseNotif = FCM::pushNotification($dataNotif);
 
                             DB::commit();
 
