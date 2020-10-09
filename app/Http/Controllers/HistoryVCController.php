@@ -149,7 +149,7 @@ class HistoryVCController extends Controller
                                         ->where('tutor_table.name','LIKE','%'.$query.'%')
                                         ->join('users as tutor_table', 'tutor_table.id', '=', 'history_vc.tutor_id')
                                         ->with(array('user'=>function($query){
-                                            $query->select('id','name','email');
+                                            $query->select('id','name','email', 'photo');
                                         },'tutor'=>function($query){
                                             $query->select('id','name','email','photo')
                                             ->with(array('tutorSubject'=>function($query){
@@ -189,7 +189,7 @@ class HistoryVCController extends Controller
                                 ->orWhere('tutor_id',$user->id)
                                 ->orderBy('created_at','DESC')
                                 ->with(array('user'=>function($query){
-                                    $query->select('id','name','email');
+                                    $query->select('id','name','email','photo');
                                 },'tutor'=>function($query){
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){

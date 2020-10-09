@@ -25,22 +25,22 @@ class OrderController extends Controller
                 $query = $request->get('search');
                 $data = Order::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Order::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
-            ]);
+            ], 200);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
                 'data'      =>  'No Data Picked',
-                'message'   =>  'Get Data Failed'
-            ]);
+                'message'   =>  $th->getMessage()
+            ], 400);
         }
     }
 
@@ -78,7 +78,7 @@ class OrderController extends Controller
             $data->pos          = Order::POS_STATUS["DEBET"];
             $data->type_code    = Order::TYPE_CODE["PAYMENT_GATEWAY"];
             $data->save();
-            
+
             // Request Transaction with Payment Gateway
             $body = [
                 "merchantCode" => Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"],
@@ -91,7 +91,7 @@ class OrderController extends Controller
                 "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
                 "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
             ];
-    
+
             $responsePayment    = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
 
             // Update Order object with response value
@@ -145,9 +145,44 @@ class OrderController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        //
+        try {
+
+            $user           = JWTAuth::parseToken()->authenticate();
+
+            if ($request->get("search")) {
+
+                $query      = $request->get("search");
+
+                $data       = Order::where('user_id', $user->id)
+                                ->where(function($query) use ($user) {
+                                    $query->select('id','name','email', 'photo');
+                                })
+                                ->orderBy('created_at','DESC')
+                                ->where("detail", 'LIKE',  '%'.$query.'%')
+                                ->paginate(10);
+
+                return response()->json($data, 200);
+
+            } else {
+                $data       = Order::where('user_id', $user->id)
+                                ->where(function($query) use ($user) {
+                                    $query->select('id','name','email', 'photo');
+                                })
+                                ->orderBy('created_at','DESC')
+                                ->paginate(10);
+
+                return response()->json($data, 200);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to get user room',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
     }
 
     /**
@@ -183,7 +218,7 @@ class OrderController extends Controller
     {
         //
     }
-    
+
     public function callbackTransaction(Request $request)
     {
         try{
