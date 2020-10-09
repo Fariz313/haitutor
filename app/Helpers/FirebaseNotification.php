@@ -29,16 +29,30 @@ class FirebaseNotification {
                 $dataNotif->save();
             }
 
-            $body = [
-                'data' => [
-                    "title" => $data["title"],
-                    "message" => $data["message"],
-                    "sender_id" => $data["sender_id"],
-                    "target_id" => $data["target_id"],
-                    "channel_name"  => $data["channel_name"],
-                ],
-                'to' => $data["token_recipient"]
-            ];
+            if ($data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[1]) {
+                $body = [
+                    'data' => [
+                        "title" => $data["title"],
+                        "message" => $data["message"],
+                        "sender_id" => $data["sender_id"],
+                        "target_id" => $data["target_id"],
+                        "channel_name"  => $data["channel_name"],
+                        "duration"      => $data["duration"],
+                    ],
+                    'to' => $data["token_recipient"]
+                ];
+            } else {
+                $body = [
+                    'data' => [
+                        "title" => $data["title"],
+                        "message" => $data["message"],
+                        "sender_id" => $data["sender_id"],
+                        "target_id" => $data["target_id"],
+                        "channel_name"  => $data["channel_name"],
+                    ],
+                    'to' => $data["token_recipient"]
+                ];
+            }
 
             $response = Http::withHeaders($headers)->post('https://fcm.googleapis.com/fcm/send', $body);
 

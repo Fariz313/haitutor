@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\RoomChat;
 use App\User;
+use App\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -26,7 +27,7 @@ class RoomController extends Controller
                     $query->select('id','name','email');
                 },'chat'=>function($query){
                     $query->where('deleted_at',null);
-                }))->paginate(10);    
+                }))->paginate(10);
             }else{
                 $data = RoomChat::with(array('user'=>function($query){
                     $query->select('id','name','email');
@@ -36,7 +37,7 @@ class RoomController extends Controller
                     $query->where('deleted_at',null);
                 }))->paginate(10);
             }
-                
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -57,19 +58,19 @@ class RoomController extends Controller
             $cekRoom            =   RoomChat::where("user_id",$user->id)
                                             ->where("tutor_id",$tutor_id)
                                             ->where("status", "open")->first();
-            $cekTutor           =   User::findOrFail($tutor_id);                                
+            $cekTutor           =   User::findOrFail($tutor_id);
             if($cekRoom){
                 return response()->json([
                     'status'    =>  'failed',
                     'message'   =>  'Room aleready created',
                     'room_key'  =>  $cekRoom->room_key,
                     'data'      =>  $cekRoom
-                ]);  
+                ]);
             }if(!$cekTutor){
                 return response()->json([
                     'status'    =>  'failed',
                     'message'   =>  'Tutor not found'
-                ]);  
+                ]);
             }if($cekTutor->role!="tutor"){
                 return response()->json([
                     'status'    =>  'failed',
@@ -77,7 +78,7 @@ class RoomController extends Controller
                 ]);
             }
             $data               =   new RoomChat();
-            $data->room_key     =   Str::random(6); 
+            $data->room_key     =   Str::random(6);
             $data->tutor_id     =   $tutor_id;
             $data->user_id      =   $user->id;
             $data->save();
@@ -112,7 +113,7 @@ class RoomController extends Controller
             $user   =   JWTAuth::parseToken()->authenticate();
             if($request->get('search')){
                 $query = $request->get('search');
-                
+
                 if('student' == $user->role){
                     $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
                                 ->where(function($query) use ($user) {
@@ -183,7 +184,7 @@ class RoomController extends Controller
                                     ->where("tutor_id", $query)
                                     ->where("status", "open")->first();
 
-                
+
                 if ($data){
                     return response()->json([
                         'status'    => 'success',
@@ -202,7 +203,7 @@ class RoomController extends Controller
                     'status'    => 'failed',
                     'message'   => 'Missing param'
                 ]);
-            }       
+            }
 
         } catch (\Throwable $th) {
             return response()->json([
@@ -230,7 +231,7 @@ class RoomController extends Controller
                 $sender = $room->tutor;
                 $target = $room->user;
             }
-            
+
             $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
             if("open" == $room->status){
                 $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
@@ -241,6 +242,7 @@ class RoomController extends Controller
                 "message" => $messageNotif,
                 "sender_id" => $sender->id,
                 "target_id" => $target->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
                 'token_recipient' => $target->firebase_token,
                 'save_data' => true
             ];
