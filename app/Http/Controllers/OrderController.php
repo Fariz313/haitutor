@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Order;
 use App\User;
+use App\Package;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
-
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
@@ -59,38 +60,51 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, $package_id)
+    public function store($package_id)
     {
         try{
-            $validator = Validator::make($request->all(), [
-    			'proof'          => 'required|file',
-    		]);
 
-    		if($validator->fails()){
-    			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
-                ],400);
-    		}
-
+            // Get Required Object (Order, Package and User)
             $data               = new Order();
-            $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
+            $dataPackage        = Package::findOrFail($package_id);
+            $user               = JWTAuth::parseToken()->authenticate();
+
+            // Fill initial value of Order object
+            $data->user_id      = $user->id;
             $data->package_id   = $package_id;
-            $data->invoice      = Str::random(16);
-            try{
-                $photo = $request->file('proof');
-                $tujuan_upload = 'temp/proof';
-                $photo_name = $data->id.'__'.Str::random(3).$photo->getClientOriginalName();
-                $photo->move($tujuan_upload,$photo_name);
-                $data->proof = $photo_name;
-                $data->save();
-            }catch(\throwable $e){
-                    return "Tidak ada Bukti";
-            }
+            $data->invoice      = "";
+            $data->amount       = $dataPackage->price;
+            $data->detail       = "Pembelian " . $dataPackage->name . " (" . $dataPackage->balance . " Token)";
+            $data->pos          = Order::POS_STATUS["DEBET"];
+            $data->type_code    = Order::TYPE_CODE["PAYMENT_GATEWAY"];
+            $data->save();
+            
+            // Request Transaction with Payment Gateway
+            $body = [
+                "merchantCode" => Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"],
+                "paymentAmount" => $data->amount,
+                "merchantOrderId" => $data->id,
+                "productDetails" => $data->detail,
+                "email" => $user->email,
+                "paymentMethod" => Order::PAYMENT_METHOD["ATM_BERSAMA"],
+                "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
+                "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
+                "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+            ];
+    
+            $responsePayment    = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
+
+            // Update Order object with response value
+            $responseObject      = json_decode($responsePayment);
+
+            $data->va_number    = $responseObject->vaNumber;
+            $data->invoice      = $responseObject->reference;
+            $data->save();
 
     		return response()->json([
     			'status'	=> 'success',
-    			'message'	=> 'Order added successfully'
+                'message'	=> 'Order added successfully',
+                'data'      => $responseObject
     		], 201);
 
         } catch(\Exception $e){
@@ -109,8 +123,8 @@ class OrderController extends Controller
             $data->status       = "completed";
             $user               = User::findOrFail($data->user_id);
             $user->balance      = $user->balance + $data_detail->balance;
-	        $data->save();
-	        $user->save();
+            $data->save();
+            $user->save();
 
     		return response()->json([
     			'status'	=> 'success',
@@ -168,5 +182,55 @@ class OrderController extends Controller
     public function destroy($id)
     {
         //
+    }
+    
+    public function callbackTransaction(Request $request)
+    {
+        try{
+
+            $data = Order::findOrFail($request->input('merchantOrderId'));
+            $data->invoice = $request->input('reference');
+            $data->detail = $request->input('productDetail');
+            $data->amount = $request->input('amount');
+
+            if($request->input('amount')){
+                if('00' == $request->input('resultCode')){
+                    $data->status = 'completed';
+                } else {
+                    $data->status = 'failed';
+                }
+            }
+
+            $data->save();
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Callback Transaction',
+                'data'      => $data
+            ], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function requestTransaction(Request $request){
+        $body = [
+            "merchantCode" => $request->input('merchantCode'),
+            "paymentAmount" => $request->input('paymentAmount'),
+            "merchantOrderId" => $request->input('merchantOrderId'),
+            "productDetails" => $request->input('productDetails'),
+            "email" => $request->input('email'),
+            "paymentMethod" => $request->input('paymentMethod'),
+            "returnUrl" => $request->input('returnUrl'),
+            "callbackUrl" => $request->input('callbackUrl'),
+            "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+        ];
+
+        $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
+        return $response;
     }
 }
