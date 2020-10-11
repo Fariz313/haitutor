@@ -87,7 +87,7 @@ class TokenTransactionController extends Controller
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
-                                "channel_name"   => Notification::CHANNEL_NAMES[0],
+                                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
                                 'token_recipient' => $tutor->firebase_token,
                                 'save_data' => true
                             ];
@@ -142,7 +142,7 @@ class TokenTransactionController extends Controller
                         "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
-                        "channel_name"   => Notification::CHANNEL_NAMES[0],
+                        "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
                         'token_recipient' => $tutor->firebase_token,
                         'save_data' => true
                     ];
@@ -250,7 +250,8 @@ class TokenTransactionController extends Controller
                                     "message" => $current_user->name . " menambah durasi video call dengan Anda",
                                     "sender_id" => $current_user->id,
                                     "target_id" => $tutor->id,
-                                    "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[1],
+                                    "duration"       => 600,
                                     'token_recipient' => $tutor->firebase_token,
                                     'save_data' => true
                                 ];
@@ -336,7 +337,7 @@ class TokenTransactionController extends Controller
                                 "message" => $current_user->name . " ingin memulai video call dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
-                                "channel_name"   => Notification::CHANNEL_NAMES[1],
+                                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[1],
                                 'token_recipient' => $tutor->firebase_token,
                                 'save_data' => true
                             ];
