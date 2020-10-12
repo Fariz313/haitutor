@@ -194,9 +194,8 @@ class TutorController extends Controller
     public function verifyTutor($id)
     {
         try {
-            $tutor          = User::where('role','tutor')->findOrFail($id);
-            $tutor->status  = 'verified';
-            $tutor->save();
+            $tutor          = TutorDetail::where('user_id',$id)->first();
+            $tutor->status  = "verified";
             return $tutor;
         } catch (\Throwable $th) {
             //throw $th;
