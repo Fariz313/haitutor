@@ -82,6 +82,24 @@ class TokenTransactionController extends Controller
                             $checkRoom->status  = "open";
                             $checkRoom->save();
 
+                            $order         = new Order();
+                            $order->user_id       = $current_user->id;
+                            $order->detail        = "Memulai chat dengan ".$tutor->name."";
+                            $order->amount        = 1;
+                            $order->pos           = ORDER::POS_STATUS["KREDIT"];
+                            $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                            $order->status        = "completed";
+                            $order->save();
+
+                            $order_tutor         = new Order();
+                            $order_tutor->user_id       = $tutor->id;
+                            $order_tutor->detail        = $current_user->name." Memulai chat dengan ".$tutor->name."";
+                            $order_tutor->amount        = 1;
+                            $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
+                            $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                            $order_tutor->status        = "completed";
+                            $order_tutor->save();
+
                             $dataNotif = [
                                 "title" => "HaiTutor",
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
@@ -136,6 +154,26 @@ class TokenTransactionController extends Controller
                     $data->status           =   "open";
                     $data->last_message_at  =   date("Y-m-d H:i:s");
                     $data->save();
+
+                    $order         = new Order();
+                    $order->user_id       = $current_user->id;
+                    $order->detail        = "Memulai chat dengan ".$tutor->name."";
+                    $order->amount        = 1;
+                    $order->pos           = ORDER::POS_STATUS["KREDIT"];
+                    $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                    $order->status        = "completed";
+                    $order->save();
+
+                    $order_tutor         = new Order();
+                    $order_tutor->user_id       = $tutor->id;
+                    $order_tutor->detail        = $current_user->name." Memulai chat dengan ".$tutor->name."";
+                    $order_tutor->amount        = 1;
+                    $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
+                    $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                    $order_tutor->status        = "completed";
+                    $order_tutor->save();
+
+                    DB::commit();
 
                     $dataNotif = [
                         "title" => "HaiTutor",
@@ -245,6 +283,24 @@ class TokenTransactionController extends Controller
                                 $checkVCRoom->duration_left  = $checkVCRoom->duration_left + $duration_video_call;
                                 $checkVCRoom->save();
 
+                                $order         = new Order();
+                                $order->user_id       = $current_user->id;
+                                $order->detail        = "Menambah durasi video call dengan ".$tutor->name."";
+                                $order->amount        = 1;
+                                $order->pos           = ORDER::POS_STATUS["KREDIT"];
+                                $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                                $order->status        = "completed";
+                                $order->save();
+
+                                $order_tutor         = new Order();
+                                $order_tutor->user_id       = $tutor->id;
+                                $order_tutor->detail        = $current_user->name." Menambah durasi videoc call anda";
+                                $order_tutor->amount        = 1;
+                                $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
+                                $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                                $order_tutor->status        = "completed";
+                                $order_tutor->save();
+
                                 $dataNotif = [
                                     "title" => "HaiTutor",
                                     "message" => $current_user->name . " menambah durasi video call dengan Anda",
@@ -331,6 +387,24 @@ class TokenTransactionController extends Controller
                             $data->tutor_id     =   $tutor_id;
                             $data->user_id      =   $user->id;
                             $data->save();
+
+                            $order         = new Order();
+                            $order->user_id       = $current_user->id;
+                            $order->detail        = "Memulai video call ".$tutor->name."";
+                            $order->amount        = 1;
+                            $order->pos           = ORDER::POS_STATUS["KREDIT"];
+                            $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                            $order->status        = "completed";
+                            $order->save();
+
+                            $order_tutor         = new Order();
+                            $order_tutor->user_id       = $tutor->id;
+                            $order_tutor->detail        = $current_user->name." Memulai video call dengan anda";
+                            $order_tutor->amount        = 1;
+                            $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
+                            $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
+                            $order_tutor->status        = "completed";
+                            $order_tutor->save();
 
                             $dataNotif = [
                                 "title" => "HaiTutor",
