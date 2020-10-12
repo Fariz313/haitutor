@@ -44,7 +44,7 @@ class Order extends Model
     }
     public function user()
     {
-        return $this->belongTo('App\User');
+        return $this->hasOne('App\User','id','user_id');
     }
 
 }

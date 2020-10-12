@@ -27,9 +27,7 @@ class OrderController extends Controller
                     $where->where('name','LIKE','%'.$query.'%');
                 } )->paginate(10);
             }else{
-                $data = Order::with(array('user'=>function($query){
-                    $query->select('name');
-                }))->paginate(10);
+                $data = Order::with(array('user','package'))->paginate(10);
             }
 
             return response()->json([
