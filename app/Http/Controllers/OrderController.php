@@ -161,7 +161,7 @@ class OrderController extends Controller
                                     $query->select("id", "price", "balance", "name");
                                 }))
                                 ->orderBy('created_at','DESC')
-                                ->where("type_code", $type_code)
+                                ->where("type_code", 'LIKE', '%'.$type_code.'%')
                                 ->where("detail", 'LIKE',  '%'.$query.'%')
                                 ->paginate(10);
 
