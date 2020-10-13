@@ -154,7 +154,7 @@ class OrderController extends Controller
             if ($request->get("type") || $request->get("search")) {
 
                 $query      = $request->get("search");
-                $type_code  = $request->get("type");
+                $type_code  = str_replace('"', '', $request->get("type"));
 
                 $data       = Order::where('user_id', $user->id)
                                 ->with(array('package' => function ($query) {
