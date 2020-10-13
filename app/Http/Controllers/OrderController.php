@@ -151,15 +151,17 @@ class OrderController extends Controller
 
             $user           = JWTAuth::parseToken()->authenticate();
 
-            if ($request->get("search")) {
+            if ($request->get("type") || $request->get("search")) {
 
                 $query      = $request->get("search");
+                $type_code  = $request->get("type");
 
                 $data       = Order::where('user_id', $user->id)
-                                ->where(function($query) use ($user) {
-                                    $query->select('id','name','email', 'photo');
-                                })
+                                ->with(array('package' => function ($query) {
+                                    $query->select("id", "price", "balance", "name");
+                                }))
                                 ->orderBy('created_at','DESC')
+                                ->where("type_code", $type_code)
                                 ->where("detail", 'LIKE',  '%'.$query.'%')
                                 ->paginate(10);
 
@@ -170,6 +172,9 @@ class OrderController extends Controller
                                 ->where(function($query) use ($user) {
                                     $query->select('id','name','email', 'photo');
                                 })
+                                ->with(array('package' => function ($query) {
+                                    $query->select("id", "price", "balance", "name");
+                                }))
                                 ->orderBy('created_at','DESC')
                                 ->paginate(10);
 
@@ -179,7 +184,7 @@ class OrderController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
-                'message'   =>  'Failed to get user room',
+                'message'   =>  'Failed to get order historyu',
                 'data'      =>  $th->getMessage()
             ],400);
         }
