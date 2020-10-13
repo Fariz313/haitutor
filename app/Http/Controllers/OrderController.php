@@ -60,7 +60,7 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store($package_id)
+    public function store(Request $request, $package_id)
     {
         try{
 
@@ -86,7 +86,7 @@ class OrderController extends Controller
                 "merchantOrderId" => $data->id,
                 "productDetails" => $data->detail,
                 "email" => $user->email,
-                "paymentMethod" => Order::PAYMENT_METHOD["ATM_BERSAMA"],
+                "paymentMethod" => $request->input('payment_method'),
                 "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
                 "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
                 "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
@@ -102,7 +102,7 @@ class OrderController extends Controller
             $data->save();
 
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
                 'message'	=> 'Order added successfully',
                 'data'      => $responseObject
     		], 201);
