@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Order;
 use App\User;
 use App\Package;
+use App\PaymentMethod;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -68,10 +69,12 @@ class OrderController extends Controller
             $data               = new Order();
             $dataPackage        = Package::findOrFail($package_id);
             $user               = JWTAuth::parseToken()->authenticate();
+            $paymentMethod      = PaymentMethod::where('code', $request->input('payment_method'))->first();
 
             // Fill initial value of Order object
             $data->user_id      = $user->id;
             $data->package_id   = $package_id;
+            $data->method_id    = $paymentMethod->id;
             $data->invoice      = "";
             $data->amount       = $dataPackage->price;
             $data->detail       = "Pembelian " . $dataPackage->name . " (" . $dataPackage->balance . " Token)";
@@ -96,8 +99,14 @@ class OrderController extends Controller
 
             // Update Order object with response value
             $responseObject      = json_decode($responsePayment);
-
-            $data->va_number    = $responseObject->vaNumber;
+            $isUseVA             = in_array($paymentMethod->code, Order::NON_VA);
+            
+            if($isUseVA){
+                $data->va_number    = $responseObject->paymentUrl;
+            } else {
+                $data->va_number    = $responseObject->vaNumber;
+            }
+            
             $data->invoice      = $responseObject->reference;
             $data->save();
 
@@ -105,13 +114,13 @@ class OrderController extends Controller
     			'status'	=> 'Success',
                 'message'	=> 'Order added successfully',
                 'data'      => $responseObject
-    		], 201);
+            ], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
     public function verify($id)
