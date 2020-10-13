@@ -50,5 +50,9 @@ class Order extends Model
     {
         return $this->hasOne('App\User','id','user_id');
     }
+    public function payment_method()
+    {
+        return $this->hasOne('App\PaymentMethod', 'id', 'method_id');
+    }
 
 }

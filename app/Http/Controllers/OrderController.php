@@ -102,13 +102,13 @@ class OrderController extends Controller
             // Update Order object with response value
             $responseObject      = json_decode($responsePayment);
             $isUseVA             = in_array($paymentMethod->code, Order::NON_VA);
-            
+
             if($isUseVA){
                 $data->va_number    = $responseObject->paymentUrl;
             } else {
                 $data->va_number    = $responseObject->vaNumber;
             }
-            
+
             $data->invoice      = $responseObject->reference;
             $data->save();
 
@@ -192,6 +192,35 @@ class OrderController extends Controller
 
                 return response()->json($data, 200);
             }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to get order historyu',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
+    }
+
+    public function showById($id)
+    {
+        try {
+
+            $data       = Order::findOrFail($id);
+
+            $data       = Order::where('id', $id)
+                            ->with(array('package' => function ($query) {
+                                $query->select("id", "price", "balance", "name");
+                            }))
+                            ->with(array('payment_method' => function ($query) {
+                                $query->select('id', 'name', 'code');
+                            }))->first();
+
+            return response()->json([
+                'status'    => "success",
+                'message'   => "Success fetch order",
+                'data'      => $data
+            ], 200);
 
         } catch (\Throwable $th) {
             return response()->json([
