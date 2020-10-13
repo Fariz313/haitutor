@@ -7,10 +7,12 @@ use App\Order;
 use App\User;
 use App\Package;
 use App\PaymentMethod;
+use App\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use Illuminate\Support\Facades\Http;
+use FCM;
 
 class OrderController extends Controller
 {
@@ -113,7 +115,8 @@ class OrderController extends Controller
     		return response()->json([
     			'status'	=> 'Success',
                 'message'	=> 'Order added successfully',
-                'data'      => $responseObject
+                'data'      => $responseObject,
+                'order'     => $data
             ], 201);
 
         } catch(\Exception $e){
@@ -237,10 +240,12 @@ class OrderController extends Controller
     {
         try{
 
-            $data = Order::findOrFail($request->input('merchantOrderId'));
-            $data->invoice = $request->input('reference');
-            $data->detail = $request->input('productDetail');
-            $data->amount = $request->input('amount');
+            $data           = Order::findOrFail($request->input('merchantOrderId'));
+            $dataUser       = User::findOrFail($data->user_id);
+
+            $data->invoice  = $request->input('reference');
+            $data->detail   = $request->input('productDetail');
+            $data->amount   = $request->input('amount');
 
             if($request->input('amount')){
                 if('00' == $request->input('resultCode')){
@@ -251,6 +256,17 @@ class OrderController extends Controller
             }
 
             $data->save();
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $data->detail . " berhasil",
+                "sender_id" => 0,
+                "target_id" => $dataUser->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                'token_recipient' => $dataUser->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
 
     		return response()->json([
     			'status'	=> 'Success',
@@ -281,5 +297,24 @@ class OrderController extends Controller
 
         $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
         return $response;
+    }
+
+    public function getAllPaymentMethod()
+    {
+        try {
+            $data = PaymentMethod::get();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  $th->getMessage()
+            ], 400);
+        }
     }
 }
