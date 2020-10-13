@@ -38,6 +38,10 @@ class Order extends Model
         "OVO"           => "OV"
     );
 
+    const NON_VA = array(
+        "VC", "BK", "OV"
+    );
+
     public function package()
     {
         return $this->hasOne('App\Package','id','package_id');

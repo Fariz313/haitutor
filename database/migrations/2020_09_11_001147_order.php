@@ -17,8 +17,14 @@ class Order extends Migration
             $table->id();
             $table->integer('user_id');
             $table->integer('package_id');
-            $table->integer('proof');
+            $table->integer('method_id')->nullable();
             $table->string('invoice');
+            $table->string('va_number')->nullable();
+            $table->string('proof')->nullable();
+            $table->string('detail')->nullable();
+            $table->integer('amount')->nullable();
+            $table->integer('pos')->nullable();
+            $table->integer('type_code')->nullable();    
             $table->enum('status',['pending','failed','completed']);
             $table->timestamps();
         });
