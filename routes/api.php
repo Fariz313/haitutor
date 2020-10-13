@@ -31,7 +31,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
 
     Route::get('rating', 'RatingController@index');
-    Route::post('rating', 'RatingController@store');
+    Route::post('rating/{id}', 'RatingController@store');
     Route::delete('rating/{id}', 'RatingController@delete');
 
     Route::get('get_student', 'UserController@getAllStudent');
@@ -173,7 +173,7 @@ Route::middleware(['cors'])->group(function(){
         Route::post('/register', 'AdminController@register');
 
         Route::middleware(['admin.general'])->group(function(){
-            Route::put('/verify_tutor/{id}', 'UserController@verifyTutor');
+            Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
             Route::put('/unverify_tutor/{id}', 'UserController@unverifyTutor');
             Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');

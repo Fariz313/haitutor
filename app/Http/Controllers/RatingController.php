@@ -59,10 +59,10 @@ class RatingController extends Controller
      */
     public function store(Request $request,$id)
     {
-        try{
+        // try{
     		$validator = Validator::make($request->all(), [
     			'comment'          => 'required|string',
-				'rate'	=> 'required|integer|max:1',
+				'rate'	=> 'required|integer|max:5',
     		]);
 
     		if($validator->fails()){
@@ -73,6 +73,7 @@ class RatingController extends Controller
     		}
 
             $data                  = new Rating();
+            return JWTAuth::parseToken()->authenticate();
             $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
             $data->tutor_id        = $id;
             $data->comment         = $request->input('comment');
@@ -84,12 +85,12 @@ class RatingController extends Controller
     			'message'	=> 'Rating added successfully'
     		], 201);
 
-        } catch(\Exception $e){
-            return response()->json([
-                'status' => 'failed',
-                'message' => $e->getMessage()
-            ]);
-        }
+        // } catch(\Exception $e){
+        //     return response()->json([
+        //         'status' => 'failed',
+        //         'message' => $e->getMessage()
+        //     ]);
+        // }
     }
 
     /**
