@@ -271,6 +271,7 @@ class OrderController extends Controller
 
             $data           = Order::findOrFail($request->input('merchantOrderId'));
             $dataUser       = User::findOrFail($data->user_id);
+            $dataPackage    = Package::findOrFail($data->package_id);
 
             $data->invoice  = $request->input('reference');
             $data->detail   = $request->input('productDetail');
@@ -291,8 +292,9 @@ class OrderController extends Controller
                 "message" => $data->detail . " berhasil",
                 "sender_id" => 0,
                 "target_id" => $dataUser->id,
-                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
                 'token_recipient' => $dataUser->firebase_token,
+                'amount' => $dataPackage->balance,
                 'save_data' => true
             ];
             $responseNotif = FCM::pushNotification($dataNotif);

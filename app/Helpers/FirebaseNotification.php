@@ -45,6 +45,18 @@ class FirebaseNotification {
                     ],
                     'to' => $data["token_recipient"]
                 ];
+            } else if ($data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[4]) {
+                $body = [
+                    'data' => [
+                        "title" => $data["title"],
+                        "message" => $data["message"],
+                        "sender_id" => $data["sender_id"],
+                        "target_id" => $data["target_id"],
+                        "channel_name"  => $data["channel_name"],
+                        "amount"      => $data["amount"],
+                    ],
+                    'to' => $data["token_recipient"]
+                ];
             } else {
                 $body = [
                     'data' => [

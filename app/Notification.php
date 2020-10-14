@@ -12,6 +12,7 @@ class Notification extends Model
         0 => "CHANNEL_CHAT",
         1 => "CHANNEL_VIDEO_CALL",
         2 => "CHANNEL_ROOM",
-        3 => "CHANNEL_VERIFICATION"
+        3 => "CHANNEL_VERIFICATION",
+        4 => "CHANNEL_PAYMENT_SUCCESS"
     );
 }
