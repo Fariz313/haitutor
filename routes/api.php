@@ -26,6 +26,9 @@ Route::middleware(['cors'])->group(function(){
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
 
+    Route::get('getArticle','ArticleController@getArticle');
+    Route::post('article','ArticleController@store');
+
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
