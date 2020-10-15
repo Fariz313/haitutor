@@ -277,6 +277,8 @@ class OrderController extends Controller
             $data->detail   = $request->input('productDetail');
             $data->amount   = $request->input('amount');
 
+            $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+
             if($request->input('amount')){
                 if('00' == $request->input('resultCode')){
                     $data->status = 'completed';
@@ -286,6 +288,7 @@ class OrderController extends Controller
             }
 
             $data->save();
+            $dataUser->save();
 
             $dataNotif = [
                 "title" => "HaiTutor",
