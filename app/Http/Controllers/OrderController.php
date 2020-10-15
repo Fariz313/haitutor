@@ -26,11 +26,22 @@ class OrderController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Order::where(function ($where) use ($query){
+                $dataRaw = Order::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%');
-                } )->paginate(10);
+                } );
             }else{
-                $data = Order::with(array('user','package'))->paginate(10);
+                $dataRaw = Order::with(array('user','package'));
+            }
+            if($request->get('filter')){
+                if($request->get('filter') == "pending"){
+                    $data = $dataRaw->where('status','pending')->paginate(10);
+                }else if($request->get('filter') == "completed"){
+                    $data = $dataRaw->where('status','completed')->paginate(10);
+                }else{
+                    $data = $dataRaw->paginate(10);
+                }
+            }else{
+                $data = $dataRaw->paginate(10);
             }
 
             return response()->json([
@@ -208,6 +219,8 @@ class OrderController extends Controller
 
             $data       = Order::findOrFail($id);
 
+            $non_va     = Order::NON_VA;
+
             $data       = Order::where('id', $id)
                             ->with(array('package' => function ($query) {
                                 $query->select("id", "price", "balance", "name");
@@ -215,6 +228,15 @@ class OrderController extends Controller
                             ->with(array('payment_method' => function ($query) {
                                 $query->select('id', 'name', 'code');
                             }))->first();
+
+            for ($i=0; $i < sizeof($non_va); $i++) {
+                if ($data->payment_method->code == $non_va[$i]) {
+                    $data->payment_method->is_va = "true";
+                    break;
+                } else {
+                    $data->payment_method->is_va = "false";
+                }
+            }
 
             return response()->json([
                 'status'    => "success",

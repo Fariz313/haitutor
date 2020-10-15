@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Rating;
+use App\Report;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
-class RatingController extends Controller
+class ReportController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -20,13 +20,11 @@ class RatingController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Rating::where(function ($where) use ($query){
+                $data = Report::where(function ($where) use ($query){
                     $where->where('coment','LIKE','%'.$query.'%');
-                })->groupBy('tutor_id')->avg('rate')->paginate(10);    
+                })->paginate(10);    
             }else{
-                $data = Rating::selectRaw('tutor_id,AVG(rate) average')
-                ->groupBy('tutor_id')
-                ->get();
+                $data = Report::paginate(10);
             }
             
             return response()->json([
@@ -59,12 +57,12 @@ class RatingController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request,$id)
+    public function store(Request $request,$id,$roomkey)
     {
         try{
     		$validator = Validator::make($request->all(), [
     			'comment'   => 'required|string',
-				'rate'	    => 'required|integer|max:5',
+				'category'	=> 'required',
     		]);
 
     		if($validator->fails()){
@@ -74,16 +72,16 @@ class RatingController extends Controller
                 ],400);
     		}
 
-            $data                  = new Rating();
+            $data                  = new Report();
             $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
             $data->tutor_id        = $id;
             $data->comment         = $request->input('comment');
-            $data->rate            = $request->input('rate');
+            $data->category        = $request->input('category');
 	        $data->save();
 
     		return response()->json([
     			'status'	=> 'success',
-    			'message'	=> 'Rating added successfully'
+    			'message'	=> 'Report added successfully'
     		], 201);
 
         } catch(\Exception $e){
@@ -103,7 +101,7 @@ class RatingController extends Controller
     public function show($id)
     {
         try {
-            $data = Rating::where('id',$id)->first();
+            $data = Report::where('id',$id)->first();
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
