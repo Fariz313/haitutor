@@ -58,7 +58,7 @@ class TutorController extends Controller
                                         {$query->where('status','verified');},
                                         'tutorSubject'=>function($query)
                                         {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                                        'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                                        'rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                                             ->groupBy('tutor_id');},))
                             ->where(function ($where) use ($querySearch){
                                 $where->where('name','LIKE','%'.$querySearch.'%');
@@ -70,7 +70,7 @@ class TutorController extends Controller
                           ->where('role','tutor')
                           ->with(array('detail','tutorSubject'=>function($query)
                           {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                          'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                          'rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                             ->groupBy('tutor_id');},))
                           ->paginate($paginate);
         return $data;
@@ -78,7 +78,9 @@ class TutorController extends Controller
     public function showTutor($id){
         $data   =   User::where('role','tutor')
                           ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');}))
+                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
+                          'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                            ->groupBy('tutor_id');},))
                           ->findOrFail($id);
         return $data;
     }
@@ -92,7 +94,7 @@ class TutorController extends Controller
             $data           =User::where('role','tutor')
                             ->with(array('detail','tutorSubject'=>function($query)
                             {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                            'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                            'rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                                 ->groupBy('tutor_id');},))
                             ->where(function ($where) use ($querySearch){
                                 $where->where('name','LIKE','%'.$querySearch.'%');
@@ -101,7 +103,7 @@ class TutorController extends Controller
         }
         $data   =   User::where('role','tutor')
                           ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},'rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                             ->groupBy('tutor_id');},))
                           ->paginate($paginate);
         return $data;
@@ -116,7 +118,7 @@ class TutorController extends Controller
             $data           = User::where('role','tutor')
                             ->with(array('detail'=>function($query)
                                         {$query->where('status','unverified');},
-                                        'tutorSubject','rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                                        'tutorSubject','rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                                             ->groupBy('tutor_id');},))
                             ->where(function ($where) use ($querySearch){
                                 $where->where('name','LIKE','%'.$querySearch.'%');
@@ -126,7 +128,7 @@ class TutorController extends Controller
         $data   =   User::whereHas('detail', function ($q){
                                     $q->where('status','unverified');})
                           ->where('role','tutor')
-                          ->with(array('detail','tutorSubject','rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
+                          ->with(array('detail','tutorSubject','rating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
                             ->groupBy('tutor_id');}))
                           ->paginate($paginate);
         return $data;
