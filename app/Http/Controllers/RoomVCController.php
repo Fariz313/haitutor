@@ -45,8 +45,8 @@ class RoomVCController extends Controller
     {
 
         //Agora config
-        $appId = "702f2dc020744429a81b562e196e0922";
-        $appCertificate = "2bdda327ef1e49a9acbc57158cfeb0a7";
+        $appId = RoomVC::AGORA_APP_ID;
+        $appCertificate = RoomVC::AGORA_APP_CERFITICATE;
         $channel_name = Str::random(16);
         $role = RtcTokenBuilder::RoleAttendee;
 

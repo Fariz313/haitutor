@@ -43,9 +43,12 @@ Route::middleware(['cors'])->group(function(){
     Route::get('/package', 'PackageController@index');
 
     Route::get('order', 'OrderController@index');
+    Route::get('order/{id}', 'OrderController@showById');
+    Route::get('order-user', 'OrderController@show');
     Route::post('order/{id}', 'OrderController@store');
     Route::post('callback', 'OrderController@callbackTransaction');
     Route::post('request/order', 'OrderController@requestTransaction');
+    Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
 
     Route::get('subject','SubjectController@index');
     Route::get('subject/{id}','SubjectController@show');

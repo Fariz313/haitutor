@@ -19,8 +19,8 @@ class Order extends Model
     );
 
     const DUITKU_ATTRIBUTES = array(
-        "MERCHANT_CODE" => "D7147",
-        "MERCHANT_KEY"  => "c885da6a4bbf4b6af33dd42af80f0f5d",
+        "MERCHANT_CODE" => "D7176",
+        "MERCHANT_KEY"  => "e5739c71cb0ed538c749e127233e2c12",
         "RETURN_URL"    => "https://haitutor.id/restfull_api/api/callback",
         "CALLBACK_URL"  => "https://haitutor.id/restfull_api/api/callback"
     );
@@ -33,9 +33,13 @@ class Order extends Model
         "CIMB_VA"       => "B1",
         "ATM_BERSAMA"   => "A1",
         "BNI_VA"        => "I1",
-        "MAYBANK_BA"    => "VA",
+        "MAYBANK_VA"    => "VA",
         "RITEL"         => "FT",
         "OVO"           => "OV"
+    );
+
+    const NON_VA = array(
+        "VC", "BK", "OV"
     );
 
     public function package()
@@ -45,6 +49,10 @@ class Order extends Model
     public function user()
     {
         return $this->hasOne('App\User','id','user_id');
+    }
+    public function payment_method()
+    {
+        return $this->hasOne('App\PaymentMethod', 'id', 'method_id');
     }
 
 }

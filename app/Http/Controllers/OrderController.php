@@ -6,10 +6,13 @@ use Illuminate\Http\Request;
 use App\Order;
 use App\User;
 use App\Package;
+use App\PaymentMethod;
+use App\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use Illuminate\Support\Facades\Http;
+use FCM;
 
 class OrderController extends Controller
 {
@@ -60,7 +63,7 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store($package_id)
+    public function store(Request $request, $package_id)
     {
         try{
 
@@ -68,10 +71,12 @@ class OrderController extends Controller
             $data               = new Order();
             $dataPackage        = Package::findOrFail($package_id);
             $user               = JWTAuth::parseToken()->authenticate();
+            $paymentMethod      = PaymentMethod::where('code', $request->input('payment_method'))->first();
 
             // Fill initial value of Order object
             $data->user_id      = $user->id;
             $data->package_id   = $package_id;
+            $data->method_id    = $paymentMethod->id;
             $data->invoice      = "";
             $data->amount       = $dataPackage->price;
             $data->detail       = "Pembelian " . $dataPackage->name . " (" . $dataPackage->balance . " Token)";
@@ -86,7 +91,7 @@ class OrderController extends Controller
                 "merchantOrderId" => $data->id,
                 "productDetails" => $data->detail,
                 "email" => $user->email,
-                "paymentMethod" => Order::PAYMENT_METHOD["ATM_BERSAMA"],
+                "paymentMethod" => $request->input('payment_method'),
                 "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
                 "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
                 "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
@@ -96,22 +101,29 @@ class OrderController extends Controller
 
             // Update Order object with response value
             $responseObject      = json_decode($responsePayment);
+            $isUseVA             = in_array($paymentMethod->code, Order::NON_VA);
 
-            $data->va_number    = $responseObject->vaNumber;
+            if($isUseVA){
+                $data->va_number    = $responseObject->paymentUrl;
+            } else {
+                $data->va_number    = $responseObject->vaNumber;
+            }
+
             $data->invoice      = $responseObject->reference;
             $data->save();
 
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
                 'message'	=> 'Order added successfully',
-                'data'      => $responseObject
-    		], 201);
+                'data'      => $responseObject,
+                'order'     => $data
+            ], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
     public function verify($id)
@@ -151,15 +163,17 @@ class OrderController extends Controller
 
             $user           = JWTAuth::parseToken()->authenticate();
 
-            if ($request->get("search")) {
+            if ($request->get("type") || $request->get("search")) {
 
                 $query      = $request->get("search");
+                $type_code  = str_replace('"', '', $request->get("type"));
 
                 $data       = Order::where('user_id', $user->id)
-                                ->where(function($query) use ($user) {
-                                    $query->select('id','name','email', 'photo');
-                                })
+                                ->with(array('package' => function ($query) {
+                                    $query->select("id", "price", "balance", "name");
+                                }))
                                 ->orderBy('created_at','DESC')
+                                ->where("type_code", 'LIKE', '%'.$type_code.'%')
                                 ->where("detail", 'LIKE',  '%'.$query.'%')
                                 ->paginate(10);
 
@@ -170,6 +184,9 @@ class OrderController extends Controller
                                 ->where(function($query) use ($user) {
                                     $query->select('id','name','email', 'photo');
                                 })
+                                ->with(array('package' => function ($query) {
+                                    $query->select("id", "price", "balance", "name");
+                                }))
                                 ->orderBy('created_at','DESC')
                                 ->paginate(10);
 
@@ -179,7 +196,36 @@ class OrderController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
-                'message'   =>  'Failed to get user room',
+                'message'   =>  'Failed to get order historyu',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
+    }
+
+    public function showById($id)
+    {
+        try {
+
+            $data       = Order::findOrFail($id);
+
+            $data       = Order::where('id', $id)
+                            ->with(array('package' => function ($query) {
+                                $query->select("id", "price", "balance", "name");
+                            }))
+                            ->with(array('payment_method' => function ($query) {
+                                $query->select('id', 'name', 'code');
+                            }))->first();
+
+            return response()->json([
+                'status'    => "success",
+                'message'   => "Success fetch order",
+                'data'      => $data
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to get order historyu',
                 'data'      =>  $th->getMessage()
             ],400);
         }
@@ -223,10 +269,12 @@ class OrderController extends Controller
     {
         try{
 
-            $data = Order::findOrFail($request->input('merchantOrderId'));
-            $data->invoice = $request->input('reference');
-            $data->detail = $request->input('productDetail');
-            $data->amount = $request->input('amount');
+            $data           = Order::findOrFail($request->input('merchantOrderId'));
+            $dataUser       = User::findOrFail($data->user_id);
+
+            $data->invoice  = $request->input('reference');
+            $data->detail   = $request->input('productDetail');
+            $data->amount   = $request->input('amount');
 
             if($request->input('amount')){
                 if('00' == $request->input('resultCode')){
@@ -237,6 +285,17 @@ class OrderController extends Controller
             }
 
             $data->save();
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $data->detail . " berhasil",
+                "sender_id" => 0,
+                "target_id" => $dataUser->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                'token_recipient' => $dataUser->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
 
     		return response()->json([
     			'status'	=> 'Success',
@@ -267,5 +326,24 @@ class OrderController extends Controller
 
         $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
         return $response;
+    }
+
+    public function getAllPaymentMethod()
+    {
+        try {
+            $data = PaymentMethod::get();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  $th->getMessage()
+            ], 400);
+        }
     }
 }

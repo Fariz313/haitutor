@@ -16,7 +16,11 @@ class FirebaseNotification {
         try{
             if($data["save_data"]){
                 $dataNotif = new Notification();
-                $dataNotif->sender_id = JWTAuth::parseToken()->authenticate()->id;
+                if($data["sender_id"] == 0){
+                    $dataNotif->sender_id = 0;
+                } else {
+                    $dataNotif->sender_id = JWTAuth::parseToken()->authenticate()->id;
+                }
                 $dataNotif->target_id = $data["target_id"];
                 $dataNotif->message = $data["message"];
                 $dataNotif->status = 0;
