@@ -26,11 +26,22 @@ class OrderController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Order::where(function ($where) use ($query){
+                $dataRaw = Order::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%');
-                } )->paginate(10);
+                } );
             }else{
-                $data = Order::with(array('user','package'))->paginate(10);
+                $dataRaw = Order::with(array('user','package'));
+            }
+            if($request->get('filter')){
+                if($request->get('filter') == "pending"){
+                    $data = $dataRaw->where('status','pending')->paginate(10);
+                }else if($request->get('filter') == "completed"){
+                    $data = $dataRaw->where('status','completed')->paginate(10);
+                }else{
+                    $data = $dataRaw->paginate(10);
+                }
+            }else{
+                $data = $dataRaw->paginate(10);
             }
 
             return response()->json([

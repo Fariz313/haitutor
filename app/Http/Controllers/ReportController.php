@@ -57,7 +57,7 @@ class ReportController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request,$id)
+    public function store(Request $request,$id,$roomkey)
     {
         try{
     		$validator = Validator::make($request->all(), [
@@ -76,7 +76,7 @@ class ReportController extends Controller
             $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
             $data->tutor_id        = $id;
             $data->comment         = $request->input('comment');
-            $data->category            = $request->input('category');
+            $data->category        = $request->input('category');
 	        $data->save();
 
     		return response()->json([
