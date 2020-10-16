@@ -232,10 +232,9 @@ class TutorController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = User::select('users.*')->whereHas('detail', function ($q){
-                            $q->where('status','verified');
-                        })
+                $data = User::select('users.*')
                         ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
+                        ->where('status','verified')
                         ->where('role','tutor')
                         ->where('name','LIKE','%'.$query.'%')
                         ->where('tutor_subject.subject_id',$subject_id)
@@ -244,10 +243,9 @@ class TutorController extends Controller
                         }))
                         ->paginate($paginate);  
             } else {
-                $data = User::select('users.*')->whereHas('detail', function ($q){
-                            $q->where('status','verified');
-                        })
+                $data = User::select('users.*')
                         ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
+                        ->where('status','verified')
                         ->where('role','tutor')
                         ->where('tutor_subject.subject_id',$subject_id)
                         ->with(array('detail','tutorSubject'=>function($query){
