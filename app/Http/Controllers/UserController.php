@@ -359,7 +359,19 @@ class UserController extends Controller
             $expires_at = date('d M Y h:i', $payload->get('exp')); 
 
             if($user->role == User::ROLE["TUTOR"]){
-                $tutor = TutorDetail::where('user_id',$user->id)->first();
+                $tutor = User::where('id', $user->id)
+                        ->with(array(
+                            'detail', 
+                            'tutorSubject'=>function($query){
+                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }, 'rating'=>function($query){
+                                $query->selectRaw('tutor_id,AVG(rate) average')
+                                ->groupBy('tutor_id');
+                            }, 'tutorDoc'=>function($query){
+                                $query->get();
+                            }
+                            ))->first();
+
                 return response()->json([
                     'status'    => 'Success',
                     'token'     => $expires_at,
