@@ -11,6 +11,11 @@ class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
 
+    const ROLE = array(
+        "TUTOR" => "tutor",
+        "STUDENT" => "student"
+    );
+
     /**
      * The attributes that are mass assignable.
      *

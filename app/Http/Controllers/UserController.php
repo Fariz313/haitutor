@@ -292,6 +292,22 @@ class UserController extends Controller
             $payload = JWTAuth::parseToken()->getPayload();
             $expires_at = date('d M Y h:i', $payload->get('exp')); 
 
+            if($user->role == User::ROLE["TUTOR"]){
+                $tutor = TutorDetail::where('user_id',$user->id)->first();
+                return response()->json([
+                    'status'    => 'Success',
+                    'token'     => $expires_at,
+                    'user'      => $user,
+                    'tutor'     => $tutor
+                ], 200);
+            } else {
+                return response()->json([
+                    'status'    => 'Success',
+                    'token'     => $expires_at,
+                    'user'      => $user
+                ], 200);
+            }
+
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
 
             return response()->json([
@@ -311,12 +327,8 @@ class UserController extends Controller
                 'token' => 'token_absent'],403);
 
         }
-        
-        return response()->json([
-            'status'=> 'Success',
-            'token' => $expires_at,
-            'user'  => $user],200);
     }
+    
     public function getAuthenticatedUserVariable()
     {
         try {
