@@ -78,6 +78,7 @@ class TutorDocController extends Controller
 
             $data               = new TutorDoc();
             $data->name         = $request->input('name');
+            $data->type         = $request->input('type');
             $data->tutor_id     = $user->id;
             
             $file = $request->file('file');
