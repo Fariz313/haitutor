@@ -210,7 +210,7 @@ class TutorController extends Controller
             $tutor->save();
             return response()->json([
                 'status'    =>  'success',
-                'message'   =>  'Success unverify tutor',
+                'message'   =>  'Success verify tutor',
                 'data'      =>  $tutor
             ]);
         } catch (\Throwable $th) {
