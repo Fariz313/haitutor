@@ -17,11 +17,11 @@ class UserController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        try {   
+        try {
             JWTAuth::factory()->setTTL(14400);
-            if (! $token = JWTAuth::attempt($credentials,)) {
+            if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'status'    => 'failed',   
+                    'status'    => 'failed',
                     'error'     => 'invalid_credentials',
                     'message'   => 'Email or Password is Wrong'], 400);
             }
@@ -91,7 +91,7 @@ class UserController extends Controller
             return response()->json(compact('user','token','message'),500);
         }
 
-        
+
 
         return response()->json(compact('user','token','message'),201);
     }
@@ -136,7 +136,7 @@ class UserController extends Controller
                 $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
                 $photo->move($tujuan_upload,$photo_name);
                 $user->photo = $photo_name;
-                
+
                 $message = "Upload Success";
             }catch(\throwable $e){
                 $message = "Upload Success no image";
@@ -147,7 +147,7 @@ class UserController extends Controller
             $detail->user_id    = $user->id;
             $detail->status     = 'unverified';
             $detail->biography  = '-';
-            
+
             $detail->save();
 
             $token = JWTAuth::fromUser($user);
@@ -341,7 +341,7 @@ class UserController extends Controller
             $message    = 'Update is Failed';
         }
 
-        
+
 
         return response()->json(compact('user','status','message'),201);
     }
@@ -349,19 +349,19 @@ class UserController extends Controller
     public function getAuthenticatedUser()
     {
         try {
-            
+
             if (! $user = JWTAuth::parseToken()->authenticate()) {
                 return response()->json([
                     'status'=> 'failed login',
                     'token' => 'user_not_found'], 404);
             }
             $payload = JWTAuth::parseToken()->getPayload();
-            $expires_at = date('d M Y h:i', $payload->get('exp')); 
+            $expires_at = date('d M Y h:i', $payload->get('exp'));
 
             if($user->role == User::ROLE["TUTOR"]){
                 $tutor = User::where('id', $user->id)
                         ->with(array(
-                            'detail', 
+                            'detail',
                             'tutorSubject'=>function($query){
                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                             }, 'rating'=>function($query){
@@ -410,7 +410,7 @@ class UserController extends Controller
     public function getAuthenticatedUserVariable()
     {
         try {
-            
+
             if (! $user = JWTAuth::parseToken()->authenticate()) {
                 return response()->json([
                     'status'=> 'failed login',
@@ -552,6 +552,6 @@ class UserController extends Controller
         return response()->json(compact('user','status','message'),201);
     }
 
-    
-    
+
+
 }
