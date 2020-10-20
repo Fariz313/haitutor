@@ -367,8 +367,11 @@ class UserController extends Controller
                             }, 'rating'=>function($query){
                                 $query->selectRaw('tutor_id,AVG(rate) average')
                                 ->groupBy('tutor_id');
-                            }, 'tutorDoc'=>function($query){
-                                $query->get();
+                            }
+                            , 'tutorDoc'=>function($query){
+                                $query->where(function($q) {
+                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->groupBy('type'));
+                                });
                             }
                             ))->first();
 
