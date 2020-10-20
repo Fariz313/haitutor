@@ -28,11 +28,11 @@ class TutorController extends Controller
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('email','LIKE','%'.$query.'%')
                         ->orWhere('address','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = User::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -177,7 +177,7 @@ class TutorController extends Controller
                 $detail= new TutorDetail();
                 $detail->user_id = $user->id;
                 if ($request->input('biography')) {
-                    $detail->biography = $request->input('biography');  
+                    $detail->biography = $request->input('biography');
                 }$detail->save();
                 $user->save();
                     $message = "Upload Success";
@@ -194,41 +194,58 @@ class TutorController extends Controller
         $detail= new TutorDetail();
         $detail->user_id = $user->id;
         if ($request->input('biography')) {
-            $detail->biography = $request->input('biography');  
+            $detail->biography = $request->input('biography');
         }$detail->save();
-        
-        
+
+
 
         return response()->json(compact('user','token','message'),201);
     }
-    
+
     public function verifyTutor($id)
     {
         try {
-            $tutor          = TutorDetail::where('user_id',$id)->first();
+            $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
             $tutor->status  = "verified";
-            return $tutor;
+            $tutor->save();
+            return response()->json([
+                'status'    =>  'success',
+                'message'   =>  'Success verify tutor',
+                'data'      =>  $tutor
+            ]);
         } catch (\Throwable $th) {
-            //throw $th;
-        }   
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to verify tutor',
+                'data'      =>  $th->getMessage()
+            ]);
+        }
     }
 
     public function unverifyTutor($id)
     {
         try {
-            $tutor          = User::where('role','tutor')->findOrFail($id);
+            $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
             $tutor->status  = 'unverified';
             $tutor->save();
-            return $tutor;
+            return response()->json([
+                'status'    =>  'success',
+                'message'   =>  'Success unverify tutor',
+                'data'      =>  $tutor
+            ]);
         } catch (\Throwable $th) {
-            //throw $th;
-        }   
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to unverify tutor',
+                'data'      =>  $th->getMessage()
+            ]);
+        }
     }
 
     public function getTutorBySubject(Request $request, $subject_id)
     {
         $paginate = 10;
-        
+
         try {
             if($request->get('search')){
                 $query = $request->get('search');
@@ -241,7 +258,7 @@ class TutorController extends Controller
                         ->with(array('detail','tutorSubject'=>function($query){
                             $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                         }))
-                        ->paginate($paginate);  
+                        ->paginate($paginate);
             } else {
                 $data = User::select('users.*')
                         ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
@@ -251,9 +268,9 @@ class TutorController extends Controller
                         ->with(array('detail','tutorSubject'=>function($query){
                             $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                         }))
-                        ->paginate($paginate);  
+                        ->paginate($paginate);
             }
-        
+
             return $data;
         } catch (\Throwable $th) {
             return response()->json([

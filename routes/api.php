@@ -26,7 +26,9 @@ Route::middleware(['cors'])->group(function(){
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
 
-    Route::get('getArticle','ArticleController@getArticle');
+    Route::get('faq','AskController@getAllFAQ');
+
+    Route::get('article','ArticleController@getArticle');
     Route::post('article','ArticleController@store');
 
     Route::get('get_tutor', 'TutorController@getTutor');
@@ -89,7 +91,7 @@ Route::middleware(['cors'])->group(function(){
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
         Route::post('tutordoc/{id}', 'TutorDocController@update');
     });
-    
+
     //--------------------------------------------------LOGGED IN USER MIDDLEWARE
     Route::middleware(['jwt.verify'])->group(function(){
 
@@ -180,7 +182,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::middleware(['admin.general'])->group(function(){
             Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
-            Route::put('/unverify_tutor/{id}', 'UserController@unverifyTutor');
+            Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
             Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
