@@ -231,10 +231,10 @@ class OrderController extends Controller
 
             for ($i=0; $i < sizeof($non_va); $i++) {
                 if ($data->payment_method->code == $non_va[$i]) {
-                    $data->payment_method->is_va = "true";
+                    $data->payment_method->is_va = "false";
                     break;
                 } else {
-                    $data->payment_method->is_va = "false";
+                    $data->payment_method->is_va = "true";
                 }
             }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Ask;
 use App\FileAsk;
+use App\Faq;
 use JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -24,11 +25,11 @@ class AskController extends Controller
                 $query = $request->get('search');
                 $data = Ask::where(function ($where) use ($query){
                 $where->where('text','LIKE','%'.$query.'%');
-                })->paginate(10);    
+                })->paginate(10);
             }else{
                 $data = Ask::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -43,7 +44,24 @@ class AskController extends Controller
         }
     }
 
-    
+    public function getAllFAQ(){
+        try{
+            $data = Faq::all();
+           return response()->json([
+             'status'    =>  'success',
+             'data'      =>  $data,
+             'message'   =>  'Get Data Success'
+        ]);
+        }catch(\Throwable $th){
+              return response()->json([
+               'status'    =>  'failed',
+               'data'      =>  [],
+               'message'   =>  'Get Data Failed'
+           ]);
+        }
+
+    }
+
     public function getMyAsk()
     {
         $data   =   Ask::with('fileAsk')->with('answer.fileAsk')->find(17);
@@ -76,7 +94,7 @@ class AskController extends Controller
             $data->text             = $request->input('text');
             $data->tutor_id         = $tutor_id;
             $data->user_id          = $user->id;
-            if($request->hasFile('file')){     
+            if($request->hasFile('file')){
                 try {
                     $dataFile       = new FileAsk();
                     $file           = $request->file('file');
@@ -110,8 +128,8 @@ class AskController extends Controller
                 ], 201);
 
             }
-            
-            
+
+
         } catch(\Exception $e){
             return response()->json([
                 'status' => 'failed',
