@@ -359,7 +359,8 @@ class UserController extends Controller
             $expires_at = date('d M Y h:i', $payload->get('exp')); 
 
             if($user->role == User::ROLE["TUTOR"]){
-                $tutor = User::where('id', $user->id)
+                $userId = $user->id;
+                $tutor = User::where('id', $userId)
                         ->with(array(
                             'detail', 
                             'tutorSubject'=>function($query){
@@ -368,9 +369,9 @@ class UserController extends Controller
                                 $query->selectRaw('tutor_id,AVG(rate) average')
                                 ->groupBy('tutor_id');
                             }
-                            , 'tutorDoc'=>function($query){
-                                $query->where(function($q) {
-                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->groupBy('type'));
+                            , 'tutorDoc'=>function($query) use ($userId){
+                                $query->where(function($q) use ($userId) {
+                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->where('tutor_id', $userId)->groupBy('type'));
                                 });
                             }
                             ))->first();

@@ -90,13 +90,13 @@ class TutorDocController extends Controller
 	        $data->save();
 
     		return response()->json([
-    			'status'	=> 'success',
-    			'message'	=> 'Company added successfully'
+    			'status'	=> 'Success',
+    			'message'	=> 'Document added successfully'
     		], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
             ]);
         }

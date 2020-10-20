@@ -84,7 +84,11 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/read','NotificationController@markAllAsRead');
     });
 
-
+    Route::middleware(['user.tutor'])->group(function(){
+        Route::post('tutordoc', 'TutorDocController@store');
+        Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
+    });
+    
     //--------------------------------------------------LOGGED IN USER MIDDLEWARE
     Route::middleware(['jwt.verify'])->group(function(){
 
@@ -167,11 +171,6 @@ Route::middleware(['cors'])->group(function(){
 
     });
     //--------------------------------------------------
-
-    Route::middleware(['user.tutor'])->group(function(){
-        Route::post('tutordoc', 'TutorDocController@store');
-        Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
-    });
 
     Route::prefix('/admin')->group(function () {
 
