@@ -66,7 +66,7 @@ class TutorDocController extends Controller
     		$validator = Validator::make($request->all(), [
     			'name'          => 'required|string|max:255',
                 'file'			=> 'file',
-                'type'          => 'in:ijazah,skhu,certificare,other'
+                'type'          => 'in:ijazah,cv,certificate,other'
     		]);
 
     		if($validator->fails()){
@@ -91,7 +91,8 @@ class TutorDocController extends Controller
 
     		return response()->json([
     			'status'	=> 'Success',
-    			'message'	=> 'Document added successfully'
+                'message'	=> 'Document added successfully',
+                'data'      => $data
     		], 201);
 
         } catch(\Exception $e){
@@ -133,7 +134,46 @@ class TutorDocController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try{
+            $user = JWTAuth::parseToken()->authenticate();
+            $validator = Validator::make($request->all(), [
+    			'name'          => 'required|string|max:255',
+                'file'			=> 'file',
+                'type'          => 'in:ijazah,cv,certificate,other'
+            ]);
+
+    		if($validator->fails()){
+    			return response()->json([
+                    'status'    =>'failed validate',
+                    'error'     =>$validator->errors()
+                ],400);
+            }
+
+            $data               = TutorDoc::findOrFail($id);
+            $data->name         = $request->input('name');
+            $data->type         = $request->input('type');
+            $data->tutor_id     = $user->id;
+            
+            $file = $request->file('file');
+            $tujuan_upload = 'tempdoc';
+            $file_name = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
+            $file->move($tujuan_upload,$file_name);
+            $data->file = $file_name;
+            
+            $data->save();
+            
+            return response()->json([
+                'status'	=> 'Success',
+                'message'	=> 'Document updated successfully',
+                'data'      => $data
+            ], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**

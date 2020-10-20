@@ -87,6 +87,7 @@ Route::middleware(['cors'])->group(function(){
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
+        Route::post('tutordoc/{id}', 'TutorDocController@update');
     });
     
     //--------------------------------------------------LOGGED IN USER MIDDLEWARE
