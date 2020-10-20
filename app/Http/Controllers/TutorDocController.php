@@ -190,18 +190,18 @@ class TutorDocController extends Controller
 
             if($delete){
               return response([
-              	"status"	=> "success",
+                  "status"	=> "Success",
                   "message"   => "Document deleted successfully"
               ]);
             } else {
               return response([
-                "status"  => "failed",
+                  "status"  => "Failed",
                   "message"   => "Failed delete document"
               ]);
             }
         } catch(\Exception $e){
             return response([
-            	"status"	=> "failed",
+                "status"	=> "Failed",
                 "message"   => $e->getMessage()
             ]);
         }
