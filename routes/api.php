@@ -26,9 +26,9 @@ Route::middleware(['cors'])->group(function(){
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
 
-    Route::get('getFaq','AskController@getAllFAQ');
+    Route::get('faq','AskController@getAllFAQ');
 
-    Route::get('getArticle','ArticleController@getArticle');
+    Route::get('article','ArticleController@getArticle');
     Route::post('article','ArticleController@store');
 
     Route::get('get_tutor', 'TutorController@getTutor');
@@ -192,7 +192,7 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/package/{id}', 'PackageController@destroy');
             Route::get('/room','RoomController@index');
             Route::put('/user/{id}', 'UserController@updateById');
-
+            Route::delete('/user/{id}', 'UserController@destroy');
 
         });
 

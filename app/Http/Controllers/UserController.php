@@ -568,6 +568,32 @@ class UserController extends Controller
         return response()->json(compact('user','status','message'),201);
     }
 
+    public function destroy($id)
+    {
+        try {
+            // $user = User::findOrFail($id);
 
+            // $user->deleted_at = date("Y-m-d");
+            // $user->save();
+            $delete = User::where("id", $id)->delete();
 
+            if($delete){
+                return response([
+                    "status"	=> "success",
+                    "message"   => "Success delete user"
+                ]);
+            } else {
+                return response([
+                    "status"    => "failed",
+                    "message"   => "Failed to delete data"
+                ]);
+            }
+
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "success",
+                "message"   => "failed to delete user"
+            ]);
+        }
+    }
 }
