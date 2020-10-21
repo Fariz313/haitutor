@@ -285,14 +285,26 @@ class UserController extends Controller
             }if ($request->input('company_id')) {
                 $user->company_id = $request->input('company_id');
             }
-            $user->address = $request->get('address');
-            $message = "Update Success";
+            if ($request->input('address')) {
+                $user->address = $request->input('address');
+            }
+
             $user->save();
+
+            return response()->json([
+                'status'    => 'success',
+                'message'   => "Success update user",
+                'user'      => $user
+            ],200);
+
         } catch (\Throwable $th) {
-            $status      = 'Failed';
-            $message    = 'Update is Failed';
+            return response()->json([
+                'status'    => 'failed',
+                'message'   => "Failed to update user",
+                'user'      => $user,
+                'data'      => $th->getMessage()
+            ],400);
         }
-        return response()->json(compact('user','status','message'),201);
     }
     public function updateAdmin(Request $request)
     {

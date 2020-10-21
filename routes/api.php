@@ -191,6 +191,7 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/package/{id}', 'PackageController@update');
             Route::delete('/package/{id}', 'PackageController@destroy');
             Route::get('/room','RoomController@index');
+            Route::put('/user/{id}', 'UserController@updateById');
 
 
         });
