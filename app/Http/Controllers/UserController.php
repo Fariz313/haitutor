@@ -575,7 +575,14 @@ class UserController extends Controller
 
             // $user->deleted_at = date("Y-m-d");
             // $user->save();
-            $delete = User::where("id", $id)->delete();
+
+            $user = User::where("id", $id)->first();
+
+            if ($user->role == "tutor") {
+                $user->room_vc()->delete();
+            }
+
+            $delete = $user->delete();
 
             if($delete){
                 return response([
