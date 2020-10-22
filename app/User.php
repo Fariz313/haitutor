@@ -67,4 +67,16 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany('App\RoomVC','tutor_id');
     }
+
+    public function room_chat()
+    {
+        return $this->hasMany('App\RoomChat','tutor_id');
+
+    }
+
+    public function history_vc()
+    {
+        return $this->hasMany('App\HistoryVC','tutor_id');
+
+    }
 }

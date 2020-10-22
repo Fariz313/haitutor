@@ -580,6 +580,8 @@ class UserController extends Controller
 
             if ($user->role == "tutor") {
                 $user->room_vc()->delete();
+                $user->room_chat()->delete();
+                $user->history_vc()->delete();
             }
 
             $delete = $user->delete();
