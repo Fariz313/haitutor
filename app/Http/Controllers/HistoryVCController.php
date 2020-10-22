@@ -194,9 +194,9 @@ class HistoryVCController extends Controller
                                     $query->select('id','name','email','photo')
                                     ->with(array('tutorSubject'=>function($query){
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                        }));
                                     }, 'room_vc'=>function($query) {
                                         $query->select("*");
-                                    }));
                                 }))->paginate(10);
                 return response()->json($data, 200);
 
