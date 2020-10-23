@@ -53,42 +53,35 @@ class ChatController extends Controller
                     ], 501);
                 }
             }
-            if($requestCount>0){
-                if($data->save()){
-                    $room = RoomChat::where('room_key',$roomkey)->first();
-                    $room->last_message_at = $data->created_at;
-                    $room->save();
 
-                    $target = $room->user;
-                    $sender = $room->tutor;
-                    if($user->id == $room->user_id){
-                        $target = $room->tutor;
-                        $sender = $room->user;
-                    }
+            if($data->save()){
+                $room = RoomChat::where('room_key',$roomkey)->first();
+                $room->last_message_at = $data->created_at;
+                $room->save();
 
-                    $dataNotif = [
-                        "title" => "HaiTutor",
-                        "message" => "Pesan Masuk dari " . $sender->name,
-                        "sender_id" => $sender->id,
-                        "target_id" => $target->id,
-                        'token_recipient' => $target->firebase_token,
-                        'save_data' => false
-                    ];
-                    $responseNotif = FCM::pushNotification($dataNotif);
-
-                    return response()->json([
-                        'status'	=> 'succes',
-                        'message'	=> 'Success adding chat',
-                        'notif'     => $responseNotif
-                    ], 201);
+                $target = $room->user;
+                $sender = $room->tutor;
+                if($user->id == $room->user_id){
+                    $target = $room->tutor;
+                    $sender = $room->user;
                 }
-            }else{
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => "Pesan Masuk dari " . $sender->name,
+                    "sender_id" => $sender->id,
+                    "target_id" => $target->id,
+                    'token_recipient' => $target->firebase_token,
+                    'save_data' => false
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
                 return response()->json([
-                    'status'	=> 'failed',
-                    'message'	=> 'no input'
-                ], 400);
+                    'status'	=> 'Success',
+                    'message'	=> 'Success adding chat',
+                    'notif'     => $responseNotif
+                ], 201);
             }
-            
             
         } catch(\Exception $e){
             return response()->json([
