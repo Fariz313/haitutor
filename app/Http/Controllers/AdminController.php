@@ -29,11 +29,11 @@ class AdminController extends Controller
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('email','LIKE','%'.$query.'%')
                         ->orWhere('address','LIKE','%'.$query.'%');
-                        } )->where('role','admin')->paginate(10);    
+                        } )->where('role','admin')->paginate(10);
             }else{
                 $data = User::where('role','admin')->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -50,7 +50,7 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        
+
     }
 
     /**
@@ -71,7 +71,7 @@ class AdminController extends Controller
             'address'       => 'required|string',
             'nip'           => 'required|string|unique:admin_detail',
         ]);
-        
+
         if($validator->fails()){
             return response()->json([
                 'status'    =>'failed',
@@ -115,7 +115,7 @@ class AdminController extends Controller
             return response()->json(compact('user','token','message'),500);
         }
 
-        
+
 
         return response()->json(compact('user','user_detail','token','message'),201);
     }
@@ -128,12 +128,12 @@ class AdminController extends Controller
      */
     public function login(Request $request)
     {
-        try {   
+        try {
             $credentials = $request->only('email', 'password');
             JWTAuth::factory()->setTTL(14400);
-            if (! $token = JWTAuth::attempt($credentials,)) {
+            if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'status'    => 'failed',   
+                    'status'    => 'failed',
                     'error'     => 'invalid_credentials',
                     'message'   => 'Email or Password is Wrong'], 400);
             }
@@ -146,7 +146,7 @@ class AdminController extends Controller
                 }
                 return response()->json([
                     'status'    => 'failed',
-                    'message'   => 'Not Admin' ], 400);    
+                    'message'   => 'Not Admin' ], 400);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    => 'failed',
