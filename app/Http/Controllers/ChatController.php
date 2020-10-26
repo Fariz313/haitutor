@@ -32,8 +32,11 @@ class ChatController extends Controller
     		}
             $requestCount           =   0;
             $data                   = new Chat();
+            $message                = "";
+
             if ($request->input('text')) {
                 $data->text         = $request->input('text');
+                $message            = $request->input('text');
                 $requestCount       +=   1;
             }
             $data->user_id          = $user->id;
@@ -42,6 +45,7 @@ class ChatController extends Controller
                 try {
                     $requestCount   +=   1;
                     $file           = $request->file('file');
+                    $message        = "Photo";
                     $tujuan_upload  = 'temp/chat';
                     $data->save();
                     $file_name      = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
@@ -57,8 +61,6 @@ class ChatController extends Controller
 
             if($data->save()){
                 $room = RoomChat::where('room_key',$roomkey)->first();
-                $room->last_message_at = $data->created_at;
-                $room->save();
 
                 $target = $room->user;
                 $sender = $room->tutor;
@@ -66,6 +68,11 @@ class ChatController extends Controller
                     $target = $room->tutor;
                     $sender = $room->user;
                 }
+                
+                $room->last_message_at = $data->created_at;
+                $room->last_message = $message;
+                $room->last_sender = $sender->id;
+                $room->save();
 
                 $dataNotif = [
                     "title" => "HaiTutor",
