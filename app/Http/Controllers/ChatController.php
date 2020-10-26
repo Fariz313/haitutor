@@ -75,8 +75,8 @@ class ChatController extends Controller
                 $room->save();
 
                 $dataNotif = [
-                    "title" => "HaiTutor",
-                    "message" => "Pesan Masuk dari " . $sender->name,
+                    "title" => $sender->name,
+                    "message" => $message,
                     "sender_id" => $sender->id,
                     "target_id" => $target->id,
                     'token_recipient' => $target->firebase_token,

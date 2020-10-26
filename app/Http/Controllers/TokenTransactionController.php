@@ -105,7 +105,7 @@ class TokenTransactionController extends Controller
                                 "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                                 "sender_id" => $current_user->id,
                                 "target_id" => $tutor->id,
-                                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
                                 'token_recipient' => $tutor->firebase_token,
                                 'save_data' => true
                             ];
@@ -180,7 +180,7 @@ class TokenTransactionController extends Controller
                         "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
-                        "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                        "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
                         'token_recipient' => $tutor->firebase_token,
                         'save_data' => true
                     ];

@@ -242,7 +242,7 @@ class RoomController extends Controller
                 "message" => $messageNotif,
                 "sender_id" => $sender->id,
                 "target_id" => $target->id,
-                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[0],
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
                 'token_recipient' => $target->firebase_token,
                 'save_data' => true
             ];
