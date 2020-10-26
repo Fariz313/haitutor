@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use JWTAuth;
 use App\Chat;
 use App\RoomChat;
+use App\Notification;
 use Carbon\Carbon;
 use FCM;
 
@@ -37,7 +38,7 @@ class ChatController extends Controller
             }
             $data->user_id          = $user->id;
             $data->room_key         = $roomkey;
-            if($request->hasFile('file')){     
+            if($request->hasFile('file')){
                 try {
                     $requestCount   +=   1;
                     $file           = $request->file('file');
@@ -47,7 +48,7 @@ class ChatController extends Controller
                     $file->move($tujuan_upload,$file_name);
                     $data->file     =   $tujuan_upload.'/'.$file_name;
                 } catch (\Throwable $th) {
-                    return response()->json([   
+                    return response()->json([
                         'status'	=> 'failed',
                         'message'	=> 'failed adding ask with image'
                     ], 501);
@@ -72,6 +73,7 @@ class ChatController extends Controller
                     "sender_id" => $sender->id,
                     "target_id" => $target->id,
                     'token_recipient' => $target->firebase_token,
+                    "channel_name" => Notification::CHANNEL_NOTIF_NAMES[0],
                     'save_data' => false
                 ];
                 $responseNotif = FCM::pushNotification($dataNotif);
@@ -79,10 +81,13 @@ class ChatController extends Controller
                 return response()->json([
                     'status'	=> 'Success',
                     'message'	=> 'Success adding chat',
-                    'notif'     => $responseNotif
+                    'data'     => array(
+                        "notif" => $responseNotif,
+                        "url_image" => $data->file
+                    )
                 ], 201);
             }
-            
+
         } catch(\Exception $e){
             return response()->json([
                 'status' => 'failed',
