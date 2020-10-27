@@ -23,6 +23,8 @@ class RoomChat extends Migration
             $table->string('last_message')->nullable();
             $table->integer('last_sender')->nullable();
             $table->date('last_message_at')->nullable();
+            $table->enum('last_message_readed', ['false', 'true']);
+            $table->date('last_message_readed_at')->nullable();
             $table->date('expired_at')->nullable();
             $table->date('deleted_at')->nullable();
             $table->timestamps();

@@ -68,10 +68,12 @@ class ChatController extends Controller
                     $target = $room->tutor;
                     $sender = $room->user;
                 }
-                
+
                 $room->last_message_at = $data->created_at;
                 $room->last_message = $message;
                 $room->last_sender = $sender->id;
+                $room->last_message_readed = "false";
+                $room->last_message_readed_at = null;
                 $room->save();
 
                 $dataNotif = [
@@ -116,6 +118,42 @@ class ChatController extends Controller
             return reponse()->json([
                 'status'    =>  'success',
                 'message'   =>  'Chat is Deleted'],500);
+        }
+    }
+
+    public function updateReadedMessage($roomKey)
+    {
+        try {
+
+            $status     = "";
+            $message    = "";
+
+            $user       = JWTAuth::parseToken()->authenticate();
+            $room_chat  = RoomChat::where("room_key", $roomKey)->firstOrFail();
+
+            if ($user->id != $room_chat->last_sender) {
+                $room_chat->last_message_readed     = "true";
+                $room_chat->last_message_readed_at  = Carbon::now();
+                $room_chat->save();
+
+                $status     = "success";
+                $message    = "Message readed !";
+
+            } else {
+                $status     = "failed";
+                $message    = "It's your chat";
+            }
+
+            return response()->json([
+                'status'    =>  $status,
+                'message'   =>  $message
+            ],200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'success',
+                'data'      => $th->getMessage(),
+                'message'   =>  'Failed to read message'],500);
         }
     }
 }
