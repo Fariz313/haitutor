@@ -168,6 +168,7 @@ Route::middleware(['cors'])->group(function(){
                 Route::post('/','ChatController@store');
                 Route::get('/','RoomController@getMyRoom');
                 Route::delete('/{id}','ChatController@destroy');
+                Route::put('/', 'ChatController@updateReadedMessage');
             });
         });
 
