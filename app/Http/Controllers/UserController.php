@@ -71,6 +71,7 @@ class UserController extends Controller
                 'contact'       => $request->get('contact'),
                 'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
+                'jenjang'       => $request->get('jenjang')
             ]);
             try{
                 $photo = $request->file('photo');
@@ -84,16 +85,14 @@ class UserController extends Controller
                     $message = "Upload Success no image";
             }
             $token = JWTAuth::fromUser($user);
+
+            return response()->json(compact('user','token','message'),201);
         } catch (\Throwable $th) {
             $user       = 'no user';
             $token      = 'no token';
             $message    = 'Failed To Create User';
             return response()->json(compact('user','token','message'),500);
         }
-
-
-
-        return response()->json(compact('user','token','message'),201);
     }
 
     public function registerTutor(Request $request)
@@ -222,19 +221,28 @@ class UserController extends Controller
             $user = User::findOrFail($userDetail->id);
             if ($request->input('name')) {
                 $user->name = $request->input('name');
-            }if ($request->input('email')) {
+            }
+            if ($request->input('email')) {
                 $user->email    = $request->input('email');
                 $user->status   = 'unverified';
-            }if ($request->input('password')){
+            }
+            if ($request->input('password')){
                 $user->password = Hash::make($request->input('password'));
-            }if ($request->input('birth_date')) {
+            }
+            if ($request->input('birth_date')) {
                 $user->birth_date = $request->input('birth_date');
-            }if ($request->input('contact')){
+            }
+            if ($request->input('contact')){
                 $user->contact = $request->input('contact');
-            }if ($request->input('company_id')) {
+            }
+            if ($request->input('company_id')) {
                 $user->company_id = $request->input('company_id');
-            }if ($request->input('address')) {
+            }
+            if ($request->input('address')) {
                 $user->address = $request->input('address');
+            }
+            if ($request->input('jenjang')) {
+                $user->address = $request->input('jenjang');
             }
             $message = "Update Success";
             $user->save();

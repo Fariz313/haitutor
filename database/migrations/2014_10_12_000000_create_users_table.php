@@ -21,11 +21,13 @@ class CreateUsersTable extends Migration
             $table->date('birth_date');
             $table->string('photo')->nullable();
             $table->enum('role', ['student', 'parent', 'tutor', 'admin']);
+            $table->string('jenjang')->nullable();
             $table->string('contact');
             $table->integer('company_id')->nullable();
             $table->string('address');
             $table->enum('status', ['unverified', 'verified']);
             $table->integer('balance')->default(0);
+            $table->string('firebase_token')->nullable();
 
             $table->rememberToken();
             $table->timestamps();
