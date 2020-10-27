@@ -242,7 +242,7 @@ class UserController extends Controller
                 $user->address = $request->input('address');
             }
             if ($request->input('jenjang')) {
-                $user->address = $request->input('jenjang');
+                $user->jenjang = $request->input('jenjang');
             }
             $message = "Update Success";
             $user->save();
