@@ -50,7 +50,7 @@ class UserController extends Controller
             'contact' => 'required|string|max:20',
             'company_id' => 'integer|max:20',
             'address' => 'required|string',
-
+            'jenjang' => 'integer|max:20'
         ]);
 
         if($validator->fails()){
@@ -204,7 +204,7 @@ class UserController extends Controller
             'contact' => 'string|max:20',
             'company_id' => 'integer|max:20',
             'address' => 'string',
-
+            'jenjang' => 'integer'
         ]);
 
         if($validator->fails()){
