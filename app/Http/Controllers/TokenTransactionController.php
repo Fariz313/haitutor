@@ -413,6 +413,7 @@ class TokenTransactionController extends Controller
                                 "target_id" => $tutor->id,
                                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[1],
                                 'token_recipient' => $tutor->firebase_token,
+                                "duration"       => null,
                                 'save_data' => true
                             ];
                             $responseNotif = FCM::pushNotification($dataNotif);
