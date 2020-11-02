@@ -172,6 +172,33 @@ class RoomController extends Controller
         }
     }
 
+    public function showById($id)
+    {
+        try {
+
+            $data   = RoomChat::where("id", $id)->with(array('user'=>function($query){
+                $query->select('id','name','email','photo');
+            },'tutor'=>function($query){
+                $query->select('id','name','email','photo')
+                ->with(array('tutorSubject'=>function($query){
+                    $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                }));
+            }))->firstOrFail();
+
+            return response()->json([
+                "status"    => "success",
+                "message"   => "Success fetch room chat",
+                "data"      => $data
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "status"    => "failed",
+                "message"   => "Failed fetch room chat",
+            ], 400);
+        }
+    }
+
     public function checkRoom(Request $request)
     {
         try {
