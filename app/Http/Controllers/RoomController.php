@@ -286,4 +286,57 @@ class RoomController extends Controller
             'data'      =>  $room
         ], 201);
     }
+
+    public function destroy($id)
+    {
+        try {
+            $room = RoomChat::where("id", $id)->first();
+
+            $room->chat()->delete();
+            $delete = $room->delete();
+
+            if ($delete) {
+                return response([
+                    "status"	=> "success",
+                    "message"   => "Success delete room chat"
+                ], 200);
+            } else {
+                return response([
+                    "status"    => "failed",
+                    "message"   => "Failed to delete data"
+                ], 400);
+            }
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to delete room chat",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function updateStatusByAdmin($id)
+    {
+        try {
+            $room = RoomChat::where("id", $id)->first();
+            if ($room->status == "open") {
+                $room->status = "closed";
+            } else {
+                $room->status = "open";
+            }
+
+            $room->save();
+
+            return response([
+                "status"	=> "success",
+                "message"   => "Success update room chat status"
+            ], 200);
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to update room chat status",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
 }
