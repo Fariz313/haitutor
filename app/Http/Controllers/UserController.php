@@ -73,6 +73,9 @@ class UserController extends Controller
                 'address'       => $request->get('address'),
                 'jenjang'       => $request->get('jenjang')
             ]);
+
+            $user->makeVisible(['password']);
+
             try{
                 $photo = $request->file('photo');
                 $tujuan_upload = 'temp';
@@ -128,6 +131,8 @@ class UserController extends Controller
                 'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
             ]);
+
+            $user->makeVisible(['password']);
 
             try{
                 $photo = $request->file('photo');
