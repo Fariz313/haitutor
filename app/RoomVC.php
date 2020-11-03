@@ -20,5 +20,9 @@ class RoomVC extends Model
     {
         return $this->belongsTo('App\User','tutor_id','id');
     }
+    public function history_vc()
+    {
+        return $this->hasMany('App\HistoryVC','room_id');
+    }
 
 }
