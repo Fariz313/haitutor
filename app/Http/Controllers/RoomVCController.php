@@ -288,4 +288,57 @@ class RoomVCController extends Controller
             ], 400);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $room = RoomVC::where("id", $id)->first();
+
+            $room->history_vc()->delete();
+            $delete = $room->delete();
+
+            if ($delete) {
+                return response([
+                    "status"	=> "success",
+                    "message"   => "Success delete room video call room"
+                ], 200);
+            } else {
+                return response([
+                    "status"    => "failed",
+                    "message"   => "Failed to delete data"
+                ], 400);
+            }
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to delete video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function updateStatusByAdmin($id)
+    {
+        try {
+            $room = RoomVC::where("id", $id)->first();
+            if ($room->status == "open") {
+                $room->status = "closed";
+            } else {
+                $room->status = "open";
+            }
+
+            $room->save();
+
+            return response([
+                "status"	=> "success",
+                "message"   => "Success update video call room status"
+            ], 200);
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to update video call room status",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
 }
