@@ -249,6 +249,9 @@ class UserController extends Controller
             if ($request->input('jenjang')) {
                 $user->jenjang = $request->input('jenjang');
             }
+
+            $user->makeVisible(['password']);
+
             $message = "Update Success";
             $user->save();
             return response()->json(compact('user','status','message'),201);

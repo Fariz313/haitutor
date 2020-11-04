@@ -195,6 +195,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/room/{id}', 'RoomController@showById');
             Route::put('/room/{id}', 'RoomController@updateStatusByAdmin');
             Route::delete('/room/{id}', 'RoomController@destroy');
+            Route::get('/room_vc','RoomVCController@index');
             Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
             Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
             Route::put('/user/{id}', 'UserController@updateById');
