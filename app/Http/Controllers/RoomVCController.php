@@ -341,4 +341,30 @@ class RoomVCController extends Controller
             ], 400);
         }
     }
+
+    public function showById($id)
+    {
+        try {
+            $data   =   RoomVC::where('id',$id)
+                                    ->with(array('user'=>function($query){
+                                        $query->select('id','name','email', 'photo');
+                                    },'tutor'=>function($query){
+                                        $query->select('id','name','email','photo')
+                                        ->with(array('tutorSubject'=>function($query){
+                                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                        }));
+                                    }))->firstOrFail();
+                return response()->json([
+                    "status" => "success",
+                    "message"   => "Success fetch video call room",
+                    "data"   => $data
+                ],200);
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to get video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
 }
