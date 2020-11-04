@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Information;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -619,6 +620,20 @@ class UserController extends Controller
                 "status"	=> "success",
                 "message"   => "failed to delete user"
             ]);
+        }
+    }
+
+    public function getInformation(Request $request)
+    {
+        $message = "Get Informations Succeeded";
+        $status = "Success";
+        try {
+            $data = Information::get();
+            return response()->json(compact('data','status','message'),200);
+        } catch (\Throwable $th) {
+            $status      = 'Failed';
+            $message    = 'Get Informations Failed';
+            return response()->json(compact('data','status','message'),500);
         }
     }
 }
