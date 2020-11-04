@@ -72,6 +72,8 @@ Route::middleware(['cors'])->group(function(){
 
     Route::get('/otpView', 'OtpController@showOtp');
 
+    Route::get('info', 'UserController@getInformation');
+
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
         Route::get('/{id}', 'CompanyController@show');
