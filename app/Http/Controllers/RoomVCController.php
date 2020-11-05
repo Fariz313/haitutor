@@ -320,9 +320,9 @@ class RoomVCController extends Controller
     public function updateStatusByAdmin($id)
     {
         try {
-            $room = RoomVC::where("id", $id)->first();
+            $room = RoomVC::where("id", $id)->firstOrFail();
             if ($room->status == "open") {
-                $room->status = "closed";
+                $room->status = "close";
             } else {
                 $room->status = "open";
             }
