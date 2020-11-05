@@ -37,10 +37,15 @@ class OrderController extends Controller
                     $data = $dataRaw->where('status','pending')->paginate(10);
                 }else if($request->get('filter') == "completed"){
                     $data = $dataRaw->where('status','completed')->paginate(10);
-                }else{
+                } else if ($request->get('filter') == "failed") {
+                    $data = $dataRaw->where('status','failed')->paginate(10);
+                } else {
                     $data = $dataRaw->paginate(10);
                 }
-            }else{
+            }else if ($request->get('invoice')) {
+                $query = $request->get('invoice');
+                $data = $dataRaw->where('invoice','LIKE', '%'.$query.'%')->paginate(10);
+            } else {
                 $data = $dataRaw->paginate(10);
             }
 
