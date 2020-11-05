@@ -18,7 +18,7 @@ class RoomVCController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = RoomVC::where(function ($where) use ($query){
-                    $where->where('status','LIKE','%'.$query.'%');
+                    $where->where('channel_name','LIKE','%'.$query.'%');
                 } )->with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
