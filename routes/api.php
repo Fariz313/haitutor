@@ -204,6 +204,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/user/{id}', 'UserController@updateById');
             Route::delete('/user/{id}', 'UserController@destroy');
 
+            Route::delete('/order/{id}', 'OrderController@destroy');
+
         });
 
     });
