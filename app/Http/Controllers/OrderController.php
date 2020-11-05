@@ -284,7 +284,31 @@ class OrderController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+
+            $data           = Order::where("id", $id)->firstOrfail();
+
+            $delete         = $data->delete();
+
+            if ($delete) {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'Delete order history success'
+                ],200);
+            } else {
+                return response()->json([
+                    'status'    =>  'failed',
+                    'message'   =>  'Failed to delete order history'
+                ],400);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to delete order history',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
     }
 
     public function callbackTransaction(Request $request)
