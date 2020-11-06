@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/haitutor/public_html/backend-educhat/rest-api
+    - git -C $DEPLOYPATH pull origin master
