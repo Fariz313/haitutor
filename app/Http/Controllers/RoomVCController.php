@@ -18,7 +18,7 @@ class RoomVCController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = RoomVC::where(function ($where) use ($query){
-                    $where->where('status','LIKE','%'.$query.'%');
+                    $where->where('channel_name','LIKE','%'.$query.'%');
                 } )->with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
@@ -320,9 +320,9 @@ class RoomVCController extends Controller
     public function updateStatusByAdmin($id)
     {
         try {
-            $room = RoomVC::where("id", $id)->first();
+            $room = RoomVC::where("id", $id)->firstOrFail();
             if ($room->status == "open") {
-                $room->status = "closed";
+                $room->status = "close";
             } else {
                 $room->status = "open";
             }
