@@ -479,7 +479,28 @@ class OrderController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'Failed',
-                'data'      =>  'Failed to data',
+                'data'      =>  'Failed to get data',
+                'message'   =>  $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function detailHistoryToken($id)
+    {
+        try {
+
+            $data = Order::where("id", $id)->firstOrFail();
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'Failed to get detail history token',
                 'message'   =>  $th->getMessage()
             ], 400);
         }
