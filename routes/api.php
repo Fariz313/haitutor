@@ -202,6 +202,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/user/{id}', 'UserController@updateById');
             Route::delete('/user/{id}', 'UserController@destroy');
 
+            // Dashboard
+            Route::get('/statistics', 'AdminController@dashboard');
         });
 
     });
