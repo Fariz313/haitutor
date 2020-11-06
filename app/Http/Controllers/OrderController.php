@@ -37,10 +37,15 @@ class OrderController extends Controller
                     $data = $dataRaw->where('status','pending')->paginate(10);
                 }else if($request->get('filter') == "completed"){
                     $data = $dataRaw->where('status','completed')->paginate(10);
-                }else{
+                } else if ($request->get('filter') == "failed") {
+                    $data = $dataRaw->where('status','failed')->paginate(10);
+                } else {
                     $data = $dataRaw->paginate(10);
                 }
-            }else{
+            }else if ($request->get('invoice')) {
+                $query = $request->get('invoice');
+                $data = $dataRaw->where('invoice','LIKE', '%'.$query.'%')->paginate(10);
+            } else {
                 $data = $dataRaw->paginate(10);
             }
 
@@ -284,7 +289,31 @@ class OrderController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+
+            $data           = Order::where("id", $id)->firstOrfail();
+
+            $delete         = $data->delete();
+
+            if ($delete) {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'Delete order history success'
+                ],200);
+            } else {
+                return response()->json([
+                    'status'    =>  'failed',
+                    'message'   =>  'Failed to delete order history'
+                ],400);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to delete order history',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
     }
 
     public function callbackTransaction(Request $request)

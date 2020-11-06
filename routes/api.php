@@ -203,6 +203,11 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
             Route::put('/user/{id}', 'UserController@updateById');
             Route::delete('/user/{id}', 'UserController@destroy');
+            Route::delete('/order/{id}', 'OrderController@destroy');
+
+            // Dashboard
+            Route::get('/statistics', 'AdminController@dashboard');
+            
 
         });
 
