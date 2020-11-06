@@ -207,6 +207,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
             Route::delete('/order/{id}', 'OrderController@destroy');
 
+            Route::get('/order-token', 'OrderController@historyToken');
+
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
 
