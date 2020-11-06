@@ -204,11 +204,14 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
             Route::put('/user/{id}', 'UserController@updateById');
             Route::delete('/user/{id}', 'UserController@destroy');
+            Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
             Route::delete('/order/{id}', 'OrderController@destroy');
+
+            Route::get('/order-token', 'OrderController@historyToken');
 
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
-            
+
 
         });
 
