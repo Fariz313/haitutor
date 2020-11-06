@@ -453,4 +453,35 @@ class OrderController extends Controller
             ], 400);
         }
     }
+
+    public function historyToken(Request $request)
+    {
+
+        $internal_type = Order::TYPE_CODE["INTERNAL"];
+
+        try {
+
+            if ($request->get('search')) {
+                $query = $request->get('search');
+
+                $data = Order::where('detail', 'LIKE', '%'.$query.'%')->paginate(10);
+
+            } else {
+                $data = Order::where('type_code', $internal_type)->paginate(10);
+            }
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'Failed to data',
+                'message'   =>  $th->getMessage()
+            ], 400);
+        }
+    }
 }
