@@ -72,16 +72,23 @@ class AdminController extends Controller
                                 ->where('created_at', '>=', $tempDate)
                                 ->get();
 
+            $active_user_in_transaction_today = Order::select('user_id')
+                                ->where('type_code', 1)
+                                ->where('status', 'completed')
+                                ->where('created_at', '>=', $tempDate)->distinct()->get();
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Get Dashboard Statistics Succeeded',
                 'data'      => [
-                    'count_active_room_chat'            => count($active_room_chat),
-                    'count_active_user_in_room_chat'    => count($active_user_in_room_chat),
-                    'count_active_room_vidcall'         => count($active_room_vidcall),
-                    'count_active_user_in_room_vidcall' => count($active_user_in_room_vidcall),
-                    'count_transaction_today'           => count($transaction_today),
-                    'count_report_today'                => 0
+                    'count_active_room_chat'                => count($active_room_chat),
+                    'count_active_user_in_room_chat'        => count($active_user_in_room_chat),
+                    'count_active_room_vidcall'             => count($active_room_vidcall),
+                    'count_active_user_in_room_vidcall'     => count($active_user_in_room_vidcall),
+                    'count_transaction_today'               => count($active_user_in_transaction_today),
+                    'count_active_user_in_transaction_today'=> count($transaction_today),
+                    'count_report_today'                    => 0,
+                    'count_active_user_in_report_today'     => 0
                 ]], 200);
         } catch (\Exception $e) {
             return response()->json([
