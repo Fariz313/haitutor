@@ -316,6 +316,57 @@ class OrderController extends Controller
         }
     }
 
+    public function manualVerifyOrder($id)
+    {
+        try {
+            $data           = Order::findOrFail($id);
+            $dataUser       = User::findOrFail($data->user_id);
+            $dataPackage    = Package::findOrFail($data->package_id);
+
+            // $data->invoice  = $request->input('reference');
+            // $data->detail   = $request->input('productDetail');
+            // $data->amount   = $request->input('amount');
+
+            $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+            $data->status      = 'completed';
+            // if($request->input('amount')){
+            //     if('00' == $request->input('resultCode')){
+            //         $data->status = 'completed';
+            //     } else {
+            //         $data->status = 'failed';
+            //     }
+            // }
+
+            $data->save();
+            $dataUser->save();
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $data->detail . " berhasil",
+                "sender_id" => 0,
+                "target_id" => $dataUser->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
+                'token_recipient' => $dataUser->firebase_token,
+                'amount' => $dataPackage->balance,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Order verified',
+                'data'      => $data
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Failed to manual verify order',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
+    }
+
+
     public function callbackTransaction(Request $request)
     {
         try{
