@@ -208,6 +208,7 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/order/{id}', 'OrderController@destroy');
 
             Route::get('/order-token', 'OrderController@historyToken');
+            Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
 
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
