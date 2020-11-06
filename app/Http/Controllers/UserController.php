@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AppVersion;
 use App\Information;
 use App\User;
 use Illuminate\Http\Request;
@@ -634,6 +635,29 @@ class UserController extends Controller
             $status      = 'Failed';
             $message    = 'Get Informations Failed';
             return response()->json(compact('data','status','message'),500);
+        }
+    }
+
+    public function checkUpdate($versionCode)
+    {
+        $message = "Check Version Succeeded";
+        $status = "Success";
+        try {
+            $lastData = AppVersion::all()->last();
+            $mustUpdate = AppVersion::select('type')->where('versionCode', '>', $versionCode)->distinct()->pluck('type')->toArray();
+            if (count($mustUpdate) > 0 && in_array(1, $mustUpdate)){
+                $lastData->type = 1;
+            } else {
+                $lastData->type = 0;
+            }
+
+            $data = $lastData;
+            return response()->json(compact('data','status','message'),200);
+        } catch (\Exception $e) {
+            $status    = 'Failed';
+            $message   = 'Get Dashboard Statistics Failed';
+            $error     = $e->getMessage();
+            return response()->json(compact('error','status','message'),500);
         }
     }
 }
