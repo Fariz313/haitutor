@@ -197,13 +197,18 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/room/{id}', 'RoomController@showById');
             Route::put('/room/{id}', 'RoomController@updateStatusByAdmin');
             Route::delete('/room/{id}', 'RoomController@destroy');
+            Route::get('/room_vc','RoomVCController@index');
+            Route::get('/room_vc/{id}','RoomVCController@showById');
             Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
             Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
             Route::put('/user/{id}', 'UserController@updateById');
             Route::delete('/user/{id}', 'UserController@destroy');
+            Route::delete('/order/{id}', 'OrderController@destroy');
 
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
+            
+
         });
 
     });

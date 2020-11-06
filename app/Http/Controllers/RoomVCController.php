@@ -18,7 +18,7 @@ class RoomVCController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = RoomVC::where(function ($where) use ($query){
-                    $where->where('status','LIKE','%'.$query.'%');
+                    $where->where('channel_name','LIKE','%'.$query.'%');
                 } )->with(array('user'=>function($query){
                     $query->select('id','name','email');
                 },'tutor'=>function($query){
@@ -320,9 +320,9 @@ class RoomVCController extends Controller
     public function updateStatusByAdmin($id)
     {
         try {
-            $room = RoomVC::where("id", $id)->first();
+            $room = RoomVC::where("id", $id)->firstOrFail();
             if ($room->status == "open") {
-                $room->status = "closed";
+                $room->status = "close";
             } else {
                 $room->status = "open";
             }
@@ -337,6 +337,32 @@ class RoomVCController extends Controller
             return response([
                 "status"	=> "failed",
                 "message"   => "failed to update video call room status",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function showById($id)
+    {
+        try {
+            $data   =   RoomVC::where('id',$id)
+                                    ->with(array('user'=>function($query){
+                                        $query->select('id','name','email', 'photo');
+                                    },'tutor'=>function($query){
+                                        $query->select('id','name','email','photo')
+                                        ->with(array('tutorSubject'=>function($query){
+                                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                        }));
+                                    }))->firstOrFail();
+                return response()->json([
+                    "status" => "success",
+                    "message"   => "Success fetch video call room",
+                    "data"   => $data
+                ],200);
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to get video call room",
                 "data"      => $th->getMessage()
             ], 400);
         }
