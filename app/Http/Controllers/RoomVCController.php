@@ -409,7 +409,29 @@ class RoomVCController extends Controller
     public function cancelNotifRequestJoinRoom($room_id)
     {
         try {
-            //code...
+
+            $room  =  RoomVC::findOrFail($room_id);
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+            $tutor = User::findOrFail($room->tutor_id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $current_user->name . " batal memasuki room video call dengan anda",
+                "sender_id" => $current_user->id,
+                "target_id" => $tutor->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[6],
+                'token_recipient' => $tutor->firebase_token,
+                'save_data' => false
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                "status" => "success",
+                "message"   => "Success send request join video call room",
+                "data"   => null
+            ],200);
+
         } catch (\Throwable $th) {
             return response([
                 "status"	=> "failed",
@@ -417,5 +439,10 @@ class RoomVCController extends Controller
                 "data"      => $th->getMessage()
             ], 400);
         }
+    }
+
+    public function FunctionName(Type $var = null)
+    {
+        # code...
     }
 }
