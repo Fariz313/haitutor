@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\RoomVC;
 use App\User;
+use App\Notification;
+use FCM;
 use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -363,6 +365,55 @@ class RoomVCController extends Controller
             return response([
                 "status"	=> "failed",
                 "message"   => "failed to get video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function sendNotifRequestJoinRoom($room_id)
+    {
+        try {
+
+
+            $room  =  RoomVC::findOrFail($room_id);
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+            $tutor = User::findOrFail($room->tutor_id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $current_user->name . " memasuki room video call dengan anda",
+                "sender_id" => $current_user->id,
+                "target_id" => $tutor->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[5],
+                'token_recipient' => $tutor->firebase_token,
+                'save_data' => false
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                "status" => "success",
+                "message"   => "Success send request join video call room",
+                "data"   => null
+            ],200);
+
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to send notif join video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function cancelNotifRequestJoinRoom($room_id)
+    {
+        try {
+            //code...
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to send notif join video call room",
                 "data"      => $th->getMessage()
             ], 400);
         }

@@ -158,6 +158,9 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/history/{id}', 'HistoryVCController@updateHistory');
             Route::get('/history', 'HistoryVCController@showRoom');
             Route::put('/token', 'RoomVCController@updateToken');
+
+            Route::post('request/{room_id}', 'RoomVCController@sendNotifRequestJoinRoom');
+            Route::post('cancel/{room_id}', 'RoomVCController@cancelNotifRequestJoinRoom');
         });
 
         Route::prefix('/token')->group(function()
