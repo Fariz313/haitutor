@@ -28,23 +28,27 @@ class OrderController extends Controller
                 $query = $request->get('search');
                 $dataRaw = Order::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%');
-                } );
+                })->where('type_code', '1');
             }else{
-                $dataRaw = Order::with(array('user','package'));
+                $dataRaw = Order::where('type_code', '1')->with(array('user','package'));
             }
             if($request->get('filter')){
                 if($request->get('filter') == "pending"){
-                    $data = $dataRaw->where('status','pending')->paginate(10);
+                    $data = $dataRaw->where('status','pending')
+                                    ->where('type_code', '1')->paginate(10);
                 }else if($request->get('filter') == "completed"){
-                    $data = $dataRaw->where('status','completed')->paginate(10);
+                    $data = $dataRaw->where('status','completed')
+                                    ->where('type_code', '1')->paginate(10);
                 } else if ($request->get('filter') == "failed") {
-                    $data = $dataRaw->where('status','failed')->paginate(10);
+                    $data = $dataRaw->where('status','failed')
+                                    ->where('type_code', '1')->paginate(10);
                 } else {
                     $data = $dataRaw->paginate(10);
                 }
             }else if ($request->get('invoice')) {
                 $query = $request->get('invoice');
-                $data = $dataRaw->where('invoice','LIKE', '%'.$query.'%')->paginate(10);
+                $data = $dataRaw->where('invoice','LIKE', '%'.$query.'%')
+                                    ->where('type_code', '1')->paginate(10);
             } else {
                 $data = $dataRaw->paginate(10);
             }
