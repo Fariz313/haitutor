@@ -378,15 +378,22 @@ class RoomVCController extends Controller
             $room  =  RoomVC::findOrFail($room_id);
 
             $current_user = JWTAuth::parseToken()->authenticate();
-            $tutor = User::findOrFail($room->tutor_id);
+
+            if ($current_user->role == "student") {
+                $user_opponent = User::findOrFail($room->tutor_id); // Tutor
+            } else if ($current_user->role == "tutor"){
+                $user_opponent = User::findOrFail($room->user_id); // Student
+            } else {
+                $user_opponent = User::findOrFail($room->tutor_id);
+            }
 
             $dataNotif = [
                 "title" => "HaiTutor",
                 "message" => $current_user->name . " memasuki room video call dengan anda",
                 "sender_id" => $current_user->id,
-                "target_id" => $tutor->id,
+                "target_id" => $user_opponent->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[5],
-                'token_recipient' => $tutor->firebase_token,
+                'token_recipient' => $user_opponent->firebase_token,
                 'save_data' => false
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
@@ -413,17 +420,26 @@ class RoomVCController extends Controller
             $room  =  RoomVC::findOrFail($room_id);
 
             $current_user = JWTAuth::parseToken()->authenticate();
-            $tutor = User::findOrFail($room->tutor_id);
+
+            if ($current_user->role == "student") {
+                $user_opponent = User::findOrFail($room->tutor_id); // Tutor
+            } else if ($current_user->role == "tutor"){
+                $user_opponent = User::findOrFail($room->user_id); // Student
+            } else {
+                $user_opponent = User::findOrFail($room->tutor_id);
+            }
+
 
             $dataNotif = [
                 "title" => "HaiTutor",
                 "message" => $current_user->name . " batal memasuki room video call dengan anda",
                 "sender_id" => $current_user->id,
-                "target_id" => $tutor->id,
+                "target_id" => $user_opponent->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[6],
-                'token_recipient' => $tutor->firebase_token,
+                'token_recipient' => $user_opponent->firebase_token,
                 'save_data' => false
             ];
+
             $responseNotif = FCM::pushNotification($dataNotif);
 
             return response()->json([
