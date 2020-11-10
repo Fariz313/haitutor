@@ -84,7 +84,8 @@ class PackageController extends Controller
 
     		return response()->json([
     			'status'	=> 'success',
-    			'message'	=> 'Package added successfully'
+                'message'	=> 'Package added successfully',
+                'data'      => $data
     		], 201);
 
         } catch(\Exception $e){
