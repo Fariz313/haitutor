@@ -32,6 +32,25 @@ class ArticleController extends Controller {
          }       
     }
 
+    public function getOne($id)
+    {
+        try {
+            $data   =   Article::findOrFail($id);  
+            
+            return response()->json([
+                'status'    =>  'success',
+                'message'   =>  'Get Data Success',
+                'data'      =>  $data
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
     public function store(Request $request)
     {
         try{
@@ -68,7 +87,62 @@ class ArticleController extends Controller {
 
     		return response()->json([
     			'status'	=> 'success',
-    			'message'	=> 'Article added successfully'
+                'message'	=> 'Article added successfully',
+                'data'      => $data
+    		], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try{
+    		$validator = Validator::make($request->all(), [
+    			'content'   => 'string',
+				'title'	    => 'string',
+				'image'	    => 'file',
+    		]);
+
+    		if($validator->fails()){
+    			return response()->json([
+                    'status'    =>'failed validate',
+                    'error'     =>$validator->errors()
+                ],400);
+    		}
+
+            $data                   = Article::findOrFail($id);
+            if ($request->input('content')) {
+                $data->content         = $request->input('content');
+            }
+            if ($request->input('title')) {
+                $data->title        = $request->input('title');
+            }
+            if ($request->input('image')) {
+                try{
+                    $photo = $request->file('image');
+                    $tujuan_upload = 'temp/article';
+                    $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
+                    $photo->move($tujuan_upload,$photo_name);
+                    $data->image = $photo_name;
+                    
+                }catch(\throwable $e){
+                    return response()->json([
+                        'status'	=> 'failed',
+                        'message'	=> 'image not uploaded'
+                    ], 400);
+                }
+            }
+	        $data->save();
+
+    		return response()->json([
+    			'status'	=> 'success',
+                'message'	=> 'Article updated successfully',
+                'data'      => $data
     		], 201);
 
         } catch(\Exception $e){

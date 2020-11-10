@@ -30,6 +30,9 @@ Route::middleware(['cors'])->group(function(){
 
     Route::get('article','ArticleController@getArticle');
     Route::post('article','ArticleController@store');
+    Route::put('article/{id}','ArticleController@update');
+    Route::get('article/{id}','ArticleController@getOne');
+    Route::delete('article/{id}','ArticleController@destroy');
 
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
