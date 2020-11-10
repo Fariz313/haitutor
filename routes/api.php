@@ -161,6 +161,7 @@ Route::middleware(['cors'])->group(function(){
 
             Route::post('request/{room_id}', 'RoomVCController@sendNotifRequestJoinRoom');
             Route::post('cancel/{room_id}', 'RoomVCController@cancelNotifRequestJoinRoom');
+            Route::post('reject/{room_id}', 'RoomVCController@rejectNotifRequestJoinRoom');
         });
 
         Route::prefix('/token')->group(function()

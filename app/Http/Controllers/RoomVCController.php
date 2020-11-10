@@ -394,7 +394,8 @@ class RoomVCController extends Controller
                 "target_id" => $user_opponent->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[5],
                 'token_recipient' => $user_opponent->firebase_token,
-                'save_data' => false
+                'save_data' => false,
+                'room_vc'   => $room
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
 
@@ -437,7 +438,8 @@ class RoomVCController extends Controller
                 "target_id" => $user_opponent->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[6],
                 'token_recipient' => $user_opponent->firebase_token,
-                'save_data' => false
+                'save_data' => false,
+                'room_vc'   => $room
             ];
 
             $responseNotif = FCM::pushNotification($dataNotif);
@@ -457,8 +459,48 @@ class RoomVCController extends Controller
         }
     }
 
-    public function FunctionName(Type $var = null)
+    public function rejectNotifRequestJoinRoom($room_id)
     {
-        # code...
+        try {
+
+            $room  =  RoomVC::findOrFail($room_id);
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            if ($current_user->role == "student") {
+                $user_opponent = User::findOrFail($room->tutor_id); // Tutor
+            } else if ($current_user->role == "tutor"){
+                $user_opponent = User::findOrFail($room->user_id); // Student
+            } else {
+                $user_opponent = User::findOrFail($room->tutor_id);
+            }
+
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $current_user->name . " menolak memasuki room video call dengan anda",
+                "sender_id" => $current_user->id,
+                "target_id" => $user_opponent->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[7],
+                'token_recipient' => $user_opponent->firebase_token,
+                'save_data' => false,
+                "room_vc"   => $room
+            ];
+
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                "status" => "success",
+                "message"   => "Success send request join video call room",
+                "data"   => null
+            ],200);
+
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to send notif join video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
     }
 }
