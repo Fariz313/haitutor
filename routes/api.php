@@ -46,6 +46,12 @@ Route::middleware(['cors'])->group(function(){
     Route::get('information/{id}','InformationController@getOne');
     Route::delete('information/{id}','InformationController@destroy');
 
+    Route::get('faq','FaqController@getAll');
+    Route::post('faq','FaqController@store');
+    Route::put('faq/{id}','FaqController@update');
+    Route::get('faq/{id}','FaqController@getOne');
+    Route::delete('faq/{id}','FaqController@destroy');
+
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
