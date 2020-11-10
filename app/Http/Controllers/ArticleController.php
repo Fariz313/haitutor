@@ -12,16 +12,25 @@ use Illuminate\Support\Str;
 
 class ArticleController extends Controller {
     
-    public function getArticle(){
+    public function getArticle(Request $request){
     
          try{
            
-           $artikel_data = Article::all()->take(5);
-           
-           return response()->json([
-               "status"=>"sukses",
-               "data"=>$artikel_data
-               ],200);
+            if($request->get('search')){
+                $query = $request->get('search');
+                $data = Article::where(function ($where) use ($query){
+                    $where->where('title','LIKE','%'.$query.'%')
+                        ->orWhere('content','LIKE','%'.$query.'%');
+                } )->paginate(10);    
+            }else{
+                $data = Article::paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ]);
         
          }catch(\Throwable $e){
              
