@@ -89,6 +89,12 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/read','NotificationController@markAllAsRead');
     });
 
+    Route::prefix('/report')->group(function()
+    {
+        Route::get('/', 'ReportController@index');
+        Route::post('/', 'ReportController@store');
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
