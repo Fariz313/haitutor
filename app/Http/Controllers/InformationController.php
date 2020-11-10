@@ -3,27 +3,27 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Article;
+use App\Information;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
 
 
-class ArticleController extends Controller {
+class InformationController extends Controller {
     
-    public function getArticle(Request $request){
+    public function getAll(Request $request){
     
          try{
            
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Article::where(function ($where) use ($query){
-                    $where->where('title','LIKE','%'.$query.'%')
-                        ->orWhere('content','LIKE','%'.$query.'%');
+                $data = Information::where(function ($where) use ($query){
+                    $where->where('variable','LIKE','%'.$query.'%')
+                        ->orWhere('value','LIKE','%'.$query.'%');
                 } )->paginate(10);    
             }else{
-                $data = Article::paginate(10);
+                $data = Information::paginate(10);
             }
             
             return response()->json([
@@ -44,7 +44,7 @@ class ArticleController extends Controller {
     public function getOne($id)
     {
         try {
-            $data   =   Article::findOrFail($id);  
+            $data   =   Information::findOrFail($id);  
             
             return response()->json([
                 'status'    =>  'success',
@@ -64,9 +64,8 @@ class ArticleController extends Controller {
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'content'   => 'required|string',
-				'title'	    => 'required|string',
-				'image'	    => 'required|file',
+    			'variable'   => 'required|string',
+				'value'	    => 'required|string',
     		]);
 
     		if($validator->fails()){
@@ -76,27 +75,14 @@ class ArticleController extends Controller {
                 ],400);
     		}
 
-            $data                  = new Article();
-            $data->title           = $request->input('title');
-            $data->content         = $request->input('content');
-            try{
-                $photo = $request->file('image');
-                $tujuan_upload = 'temp/article';
-                $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $data->image = $photo_name;
-                
-            }catch(\throwable $e){
-                return response()->json([
-                    'status'	=> 'failed',
-                    'message'	=> 'image not uploaded'
-                ], 400);
-            }
+            $data                  = new Information();
+            $data->variable        = $request->input('variable');
+            $data->value           = $request->input('value');
             $data->save();
 
     		return response()->json([
     			'status'	=> 'success',
-                'message'	=> 'Article added successfully',
+                'message'	=> 'Information added successfully',
                 'data'      => $data
     		], 201);
 
@@ -112,9 +98,8 @@ class ArticleController extends Controller {
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'content'   => 'string',
-				'title'	    => 'string',
-				'image'	    => 'file',
+    			'variable'   => 'string',
+				'value'	    => 'string',
     		]);
 
     		if($validator->fails()){
@@ -124,33 +109,18 @@ class ArticleController extends Controller {
                 ],400);
     		}
 
-            $data                   = Article::findOrFail($id);
-            if ($request->input('content')) {
-                $data->content         = $request->input('content');
+            $data                   = Information::findOrFail($id);
+            if ($request->input('variable')) {
+                $data->variable         = $request->input('variable');
             }
-            if ($request->input('title')) {
-                $data->title        = $request->input('title');
-            }
-            if ($request->input('image')) {
-                try{
-                    $photo = $request->file('image');
-                    $tujuan_upload = 'temp/article';
-                    $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                    $photo->move($tujuan_upload,$photo_name);
-                    $data->image = $photo_name;
-                    
-                }catch(\throwable $e){
-                    return response()->json([
-                        'status'	=> 'failed',
-                        'message'	=> 'image not uploaded'
-                    ], 400);
-                }
+            if ($request->input('value')) {
+                $data->value        = $request->input('value');
             }
 	        $data->save();
 
     		return response()->json([
     			'status'	=> 'success',
-                'message'	=> 'Article updated successfully',
+                'message'	=> 'Information updated successfully',
                 'data'      => $data
     		], 201);
 
@@ -166,12 +136,12 @@ class ArticleController extends Controller {
     {
         try{
 
-            $delete = Article::findOrFail($id)->delete();
+            $delete = Information::findOrFail($id)->delete();
 
             if($delete){
               return response([
               	"status"	=> "success",
-                  "message"   => "Article deleted successfully"
+                  "message"   => "Information deleted successfully"
               ]);
             } else {
               return response([
