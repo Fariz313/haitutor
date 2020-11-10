@@ -28,13 +28,13 @@ class ReportController extends Controller
             }
             
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
                 'message'   =>  'Get Data Failed'
             ]);
@@ -57,38 +57,27 @@ class ReportController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request,$id,$roomkey)
+    public function store(Request $request)
     {
         try{
-    		$validator = Validator::make($request->all(), [
-    			'comment'   => 'required|string',
-				'category'	=> 'required',
-    		]);
-
-    		if($validator->fails()){
-    			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
-                ],400);
-    		}
-
-            $data                  = new Report();
-            $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
-            $data->tutor_id        = $id;
-            $data->comment         = $request->input('comment');
-            $data->category        = $request->input('category');
+            $data               = new Report();
+            $data->sender_id    = JWTAuth::parseToken()->authenticate()->id;
+            $data->target_id    = $request->input('target_id');
+            $data->issue_id     = $request->input('issue_id');
+            $data->information  = $request->input('information');
+            $data->read         = Report::ReportStatus["NEW"];
 	        $data->save();
 
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
     			'message'	=> 'Report added successfully'
     		], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -103,13 +92,13 @@ class ReportController extends Controller
         try {
             $data = Report::where('id',$id)->first();
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'Failed to pick',
+                'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
                 'message'   =>  'Get Data Failed'
             ]);
