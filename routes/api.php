@@ -40,6 +40,12 @@ Route::middleware(['cors'])->group(function(){
     Route::get('appVersion/{id}','AppVersionController@getOne');
     Route::delete('appVersion/{id}','AppVersionController@destroy');
 
+    Route::get('information','InformationController@getAll');
+    Route::post('information','InformationController@store');
+    Route::put('information/{id}','InformationController@update');
+    Route::get('information/{id}','InformationController@getOne');
+    Route::delete('information/{id}','InformationController@destroy');
+
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
