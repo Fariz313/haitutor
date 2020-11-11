@@ -306,7 +306,23 @@ class AdminController extends Controller
                 $user->address = $request->input('address');
             }
 
+            $admin_detail = AdminDetail::where("user_id", $id)->firstOrFail();
+
+            if ($request->input('nip')) {
+                $admin_detail->nip = $request->input('nip');
+            }
+
+            DB::beginTransaction();
+
+            $admin_detail->save();
             $user->save();
+
+            DB::commit();
+
+            $user = User::where("id", $id)->with(array("admin_detail" => function($query)
+            {
+                $query->select("*");
+            }))->first();
 
             return response()->json([
                 'status'    => 'success',
@@ -314,11 +330,13 @@ class AdminController extends Controller
                 'user'      => $user
             ],200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
+            DB::rollback();
             return response()->json([
                 'status'    => 'failed',
                 'message'   => "Admin not found"
             ],400);
         }catch (\Throwable $th) {
+            DB::rollback();
             return response()->json([
                 'status'    => 'failed',
                 'message'   => "Failed to update admin",
