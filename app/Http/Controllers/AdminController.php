@@ -226,7 +226,7 @@ class AdminController extends Controller
                 "status"	=> "failed",
                 "message"   => "Success fetch admin",
                 "data"      => $admin
-            ], 400);
+            ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
             DB::rollback();
