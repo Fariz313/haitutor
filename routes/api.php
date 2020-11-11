@@ -222,8 +222,8 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/order-token', 'OrderController@historyToken');
             Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
 
-            Route::get('/article','ArticleController@getArticle');
-            Route::post('.article','ArticleController@store');
+            Route::get('/article','ArticleController@getAll');
+            Route::post('/article','ArticleController@store');
             Route::put('/article/{id}','ArticleController@update');
             Route::get('/article/{id}','ArticleController@getOne');
             Route::delete('/article/{id}','ArticleController@destroy');
