@@ -95,6 +95,7 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
     });
+    Route::get('/reportIssue', 'ReportController@getReportIssue');
 
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');

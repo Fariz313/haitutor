@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Report;
+use App\ReportIssue;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -138,5 +139,24 @@ class ReportController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function getReportIssue(Request $request)
+    {
+        try {
+            $data = ReportIssue::get();
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
     }
 }
