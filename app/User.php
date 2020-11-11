@@ -79,4 +79,9 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany('App\HistoryVC','tutor_id');
 
     }
+
+    public function admin_detail()
+    {
+        return $this->hasOne('App\AdminDetail');
+    }
 }

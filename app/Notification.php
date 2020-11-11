@@ -13,6 +13,9 @@ class Notification extends Model
         1 => "CHANNEL_VIDEO_CALL",
         2 => "CHANNEL_ROOM",
         3 => "CHANNEL_VERIFICATION",
-        4 => "CHANNEL_PAYMENT_SUCCESS"
+        4 => "CHANNEL_PAYMENT_SUCCESS",
+        5 => "CHANNEL_REQUEST_JOIN_VIDEO_CALL_ROOM",
+        6 => "CHANNEL_CANCEL_REQUEST_JOIN_VIDEO_CALL_ROOM",
+        7 => "CHANNEL_REJECT_REQUEST_JOIN_VIDEO_CALL_ROOM"
     );
 }

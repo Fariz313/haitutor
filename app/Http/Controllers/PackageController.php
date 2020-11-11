@@ -24,9 +24,11 @@ class PackageController extends Controller
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('price','LIKE','%'.$query.'%')
                         ->orWhere('balance','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )
+                ->with(['user'])
+                ->paginate(10);    
             }else{
-                $data = Package::paginate(10);
+                $data = Package::with(['user'])->paginate(10);
             }
             
             return response()->json([
@@ -105,7 +107,7 @@ class PackageController extends Controller
     public function show($id)
     {
         try {
-            $data   =   Package::findOrFail($id);  
+            $data   =   Package::where('id', $id)->with(['user'])->first();  
             
             return response()->json([
                 'status'    =>  'success',
