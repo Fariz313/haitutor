@@ -246,6 +246,9 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/faq/{id}','FaqController@getOne');
             Route::delete('/faq/{id}','FaqController@destroy');
 
+            Route::get('/user/admin/', 'AdminController@index');
+            Route::delete('/user/admin/{id}', 'AdminController@destroyAdmin');
+
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
 

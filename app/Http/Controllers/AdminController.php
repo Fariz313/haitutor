@@ -15,6 +15,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
+use DB;
 
 class AdminController extends Controller
 {
@@ -23,7 +24,7 @@ class AdminController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             if($request->get('search')){
@@ -240,8 +241,59 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroyAdmin($id)
     {
-        //
+
+        try {
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            if ($current_user->id == $id) {
+
+                return response([
+                    "status"	=> "failed",
+                    "message"   => "You can't delete yourself"
+                ], 400);
+
+            } else {
+
+                $admin = User::where("id", $id)->firstOrFail();
+
+                if ($admin->role == "admin") {
+                    $delete_detail = AdminDetail::where("user_id", $id)->firstOrFail();
+
+                    DB::beginTransaction();
+
+                    $delete_detail->delete();
+                    $admin->delete();
+
+                    DB::commit();
+                    return response([
+                        "status"	=> "success",
+                        "message"   => "Success delete admin"
+                    ], 200);
+
+                } else {
+                    return response([
+                        "status"	=> "failed",
+                        "message"   => "You're not deleting admin"
+                    ], 400);
+                }
+            }
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
+            DB::rollback();
+            return response([
+                "status"	=> "failed",
+                "message"   => "Admin not found"
+            ], 400);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to delete admin",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
     }
 }
