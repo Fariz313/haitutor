@@ -284,7 +284,10 @@ class AdminController extends Controller
             ],400);
         }
         try {
-            $user = User::findOrFail($id);
+            $user = User::where("id", $id)->with(array("admin_detail" => function($query)
+            {
+                $query->select("*");
+            }))->first();
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }if ($request->input('email')) {
