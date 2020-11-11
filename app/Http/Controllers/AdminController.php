@@ -211,7 +211,10 @@ class AdminController extends Controller
     {
         try {
 
-            $admin = User::findOrFail($id);
+            $admin = User::where("id", $id)->with(array("admin_detail" => function($query)
+            {
+                $query->select("*");
+            }))->first();
 
             return response([
                 "status"	=> "failed",
