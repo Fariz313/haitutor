@@ -207,9 +207,32 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function showAdmin($id)
     {
-        //
+        try {
+
+            $admin = User::findOrFail($id);
+
+            return response([
+                "status"	=> "failed",
+                "message"   => "Success fetch admin",
+                "data"      => $admin
+            ], 400);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
+            DB::rollback();
+            return response([
+                "status"	=> "failed",
+                "message"   => "Admin not found"
+            ], 400);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response([
+                "status"	=> "failed",
+                "message"   => "failed to get admin by id",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
     }
 
     /**
@@ -230,9 +253,68 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function updateAdmin(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255',
+            'password' => 'string|min:6',
+            'birth_date' => 'date',
+            'photo' => 'file',
+            'contact' => 'string|max:20',
+            'company_id' => 'integer|max:20',
+            'address' => 'string',
+
+        ]);
+
+        if($validator->fails()){
+            // return response()->json($validator->errors()->toJson(), 400);
+            return response()->json([
+                'status'    =>'failed validate',
+                'error'     =>$validator->errors()
+            ],400);
+        }
+        try {
+            $user = User::findOrFail($id);
+            if ($request->input('name')) {
+                $user->name = $request->input('name');
+            }if ($request->input('email')) {
+                $user->email    = $request->input('email');
+                $user->status   = 'unverified';
+            }if ($request->input('password')){
+                $user->password = Hash::make($request->get('password'));
+            }if ($request->input('birth_date')) {
+                $user->birth_date = $request->input('birth_date');
+            }if ($request->input('contact')){
+                $user->contact = $request->input('contact');
+            }if ($request->input('company_id')) {
+                $user->company_id = $request->input('company_id');
+            }
+            if ($request->input('address')) {
+                $user->address = $request->input('address');
+            }
+
+            $user->save();
+
+            return response()->json([
+                'status'    => 'success',
+                'message'   => "Success update admin",
+                'user'      => $user
+            ],200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
+            return response()->json([
+                'status'    => 'failed',
+                'message'   => "Admin not found"
+            ],400);
+        }catch (\Throwable $th) {
+            return response()->json([
+                'status'    => 'failed',
+                'message'   => "Failed to update admin",
+                'user'      => $user,
+                'data'      => $th->getMessage()
+            ],400);
+        }
+
     }
 
     /**
