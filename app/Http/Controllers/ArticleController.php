@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class ArticleController extends Controller {
     
-    public function getArticle(Request $request){
+    public function getAll(Request $request){
     
          try{
            
