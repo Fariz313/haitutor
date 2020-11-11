@@ -33,9 +33,15 @@ class AdminController extends Controller
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('email','LIKE','%'.$query.'%')
                         ->orWhere('address','LIKE','%'.$query.'%');
-                        } )->where('role','admin')->paginate(10);
+                        } )->where('role','admin')->with(array("admin_detail" => function($query)
+                        {
+                            $query->select("*");
+                        }))->paginate(10);
             }else{
-                $data = User::where('role','admin')->paginate(10);
+                $data = User::where('role','admin')->with(array("admin_detail" => function($query)
+                {
+                    $query->select("*");
+                }))->paginate(10);
             }
 
             return response()->json([
@@ -220,7 +226,7 @@ class AdminController extends Controller
                 "status"	=> "failed",
                 "message"   => "Success fetch admin",
                 "data"      => $admin
-            ], 400);
+            ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
             DB::rollback();
