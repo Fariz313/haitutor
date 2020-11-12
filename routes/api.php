@@ -259,6 +259,13 @@ Route::middleware(['cors'])->group(function(){
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
 
+            //Subject
+            Route::get('subject','SubjectController@index');
+            Route::get('subject/{id}','SubjectController@show');
+            Route::post('subject','SubjectController@store');
+            Route::put('subject/{id}','SubjectController@update');
+            Route::post('subject/icon/{id}','SubjectController@updateIcon');
+            Route::delete('subject/{id}','SubjectController@destroy');
 
         });
 
