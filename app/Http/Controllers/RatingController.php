@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Rating;
+use App\User;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
+use DB;
 
 class RatingController extends Controller
 {
@@ -22,13 +25,13 @@ class RatingController extends Controller
                 $query = $request->get('search');
                 $data = Rating::where(function ($where) use ($query){
                     $where->where('coment','LIKE','%'.$query.'%');
-                })->groupBy('tutor_id')->avg('rate')->paginate(10);    
+                })->groupBy('tutor_id')->avg('rate')->paginate(10);
             }else{
                 $data = Rating::selectRaw('tutor_id,AVG(rate) average')
                 ->groupBy('tutor_id')
                 ->get();
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -50,7 +53,7 @@ class RatingController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -72,7 +75,11 @@ class RatingController extends Controller
                     'status'    =>'failed validate',
                     'error'     =>$validator->errors()
                 ],400);
-    		}
+            }
+
+            $user = User::findOrFail($id);
+
+            DB::beginTransaction();
 
             $data                  = new Rating();
             $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
@@ -81,15 +88,23 @@ class RatingController extends Controller
             $data->rate            = $request->input('rate');
 	        $data->save();
 
+            $recount_average_rating = Rating::where("tutor_id", $id)->avg('rate');
+            $user->total_rating = $recount_average_rating;
+            $user->save();
+
+            DB::commit();
+
     		return response()->json([
     			'status'	=> 'success',
     			'message'	=> 'Rating added successfully'
-    		], 201);
+    		], 200);
 
         } catch(\Exception $e){
+            DB::rollback();
             return response()->json([
                 'status' => 'failed',
-                'message' => $e->getMessage()
+                'message' => 'failed to insert rating',
+                'data' => $e->getMessage()
             ]);
         }
     }
@@ -118,6 +133,52 @@ class RatingController extends Controller
         }
     }
 
+    public function ratedByCurrentUser()
+    {
+        try {
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            $allRating = Rating::where('user_id', $current_user->id)->paginate(10);
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $allRating,
+                'message'   =>  'Get Data Success'
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  $th->getMessage(),
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
+    public function currentUserListRating()
+    {
+        try {
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            $allRating = Rating::where('tutor_id', $current_user->id)->paginate(10);
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $allRating,
+                'message'   =>  'Get Data Success'
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  $th->getMessage(),
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -138,8 +199,8 @@ class RatingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        
+
+
     }
 
     /**
