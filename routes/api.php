@@ -188,6 +188,12 @@ Route::middleware(['cors'])->group(function(){
         });
 
 
+        Route::prefix('/rating')->group(function ()
+        {
+            Route::get('/', 'RatingController@ratedByCurrentUser');
+            Route::get('me/', 'RatingController@currentUserListRating');
+        });
+
     });
     //--------------------------------------------------
 
