@@ -192,6 +192,7 @@ Route::middleware(['cors'])->group(function(){
         {
             Route::get('/', 'RatingController@ratedByCurrentUser');
             Route::get('me/', 'RatingController@currentUserListRating');
+            Route::get('/check/{user_id}', 'RatingController@check');
         });
 
     });
