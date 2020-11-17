@@ -7,6 +7,7 @@ use App\AdminDetail;
 use App\RoomChat;
 use App\RoomVC;
 use App\Order;
+use App\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -84,6 +85,12 @@ class AdminController extends Controller
                                 ->where('status', 'completed')
                                 ->where('created_at', '>=', $tempDate)->distinct()->get();
 
+            $report_today = Report::where('created_at', '>=', $tempDate)
+                                ->get();
+
+            $active_report_today = Report::where('created_at', '>=', $tempDate)
+                                ->distinct()->get();
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Get Dashboard Statistics Succeeded',
@@ -94,8 +101,8 @@ class AdminController extends Controller
                     'count_active_user_in_room_vidcall'     => count($active_user_in_room_vidcall),
                     'count_transaction_today'               => count($active_user_in_transaction_today),
                     'count_active_user_in_transaction_today'=> count($transaction_today),
-                    'count_report_today'                    => 0,
-                    'count_active_user_in_report_today'     => 0
+                    'count_report_today'                    => count($report_today),
+                    'count_active_user_in_report_today'     => count($active_report_today)
                 ]], 200);
         } catch (\Exception $e) {
             return response()->json([
