@@ -662,4 +662,25 @@ class UserController extends Controller
             return response()->json(compact('error','status','message'),500);
         }
     }
+
+    public function requestVerification()
+    {
+        try {
+            $user_id = JWTAuth::parseToken()->authenticate()->id;
+            $tutor          = TutorDetail::where('user_id', '=', $user_id)->firstOrFail();
+            $tutor->status  = TutorDetail::TutorStatus["PENDING"];
+            $tutor->save();
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Request Verification Sent',
+                'data'      =>  $tutor
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Request Verification Failed',
+                'data'      =>  $th->getMessage()
+            ]);
+        }
+    }
 }
