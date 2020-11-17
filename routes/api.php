@@ -25,6 +25,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tes', 'UserController@tes');
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
+    Route::put('verify/request/', 'UserController@requestVerification');
 
     Route::get('faq','AskController@getAllFAQ');
 

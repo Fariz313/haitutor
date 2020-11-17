@@ -17,7 +17,7 @@ class TutorDetail extends Migration
             $table->id();
             $table->integer('user_id');
             $table->text('biography')->nullable();
-            $table->enum('status',['unverified','verified']);
+            $table->enum('status',['unverified','verified','pending']);
             $table->timestamps();
         });
     }
