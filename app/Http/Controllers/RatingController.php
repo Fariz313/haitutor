@@ -77,27 +77,40 @@ class RatingController extends Controller
                 ],400);
             }
 
-            $user = User::findOrFail($id);
+            $current_user = JWTAuth::parseToken()->authenticate();
 
-            DB::beginTransaction();
+            $ratingExist = Rating::where('user_id', $current_user->id)
+                                 ->where('tutor_id', $id)
+                                 ->first();
 
-            $data                  = new Rating();
-            $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
-            $data->tutor_id        = $id;
-            $data->comment         = $request->input('comment');
-            $data->rate            = $request->input('rate');
-	        $data->save();
+            if ($ratingExist) {
+                return response()->json([
+                    'status'	=> 'failed',
+                    'message'	=> 'Rating alread added'
+                ], 409);
+            } else {
+                $user = User::findOrFail($id);
 
-            $recount_average_rating = Rating::where("tutor_id", $id)->avg('rate');
-            $user->total_rating = $recount_average_rating;
-            $user->save();
+                DB::beginTransaction();
 
-            DB::commit();
+                $data                  = new Rating();
+                $data->user_id         = $current_user->id;
+                $data->tutor_id        = $id;
+                $data->comment         = $request->input('comment');
+                $data->rate            = $request->input('rate');
+                $data->save();
 
-    		return response()->json([
-    			'status'	=> 'success',
-    			'message'	=> 'Rating added successfully'
-    		], 200);
+                $recount_average_rating = Rating::where("tutor_id", $id)->avg('rate');
+                $user->total_rating = round($recount_average_rating, 1);
+                $user->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'status'	=> 'success',
+                    'message'	=> 'Rating added successfully'
+                ], 200);
+            }
 
         } catch(\Exception $e){
             DB::rollback();
@@ -105,6 +118,36 @@ class RatingController extends Controller
                 'status' => 'failed',
                 'message' => 'failed to insert rating',
                 'data' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function check($user_id)
+    {
+        try {
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            $ratingExist = Rating::where('user_id', $current_user->id)
+                                 ->where('tutor_id', $user_id)
+                                 ->first();
+
+            if ($ratingExist) {
+                return response()->json([
+                    'status'	=> 'success',
+                    'message'	=> 'Rating exist for this user'
+                ], 200);
+            } else {
+                return response()->json([
+                    'status'	=> 'failed',
+                    'message'	=> 'Rating not exist for this user'
+                ], 200);
+             }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'failed to check rating',
+                'data' => $th->getMessage()
             ]);
         }
     }
