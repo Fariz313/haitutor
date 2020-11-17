@@ -13,6 +13,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
+use App\Helpers\CloudKilatHelper;
+
 class UserController extends Controller
 {
     public function login(Request $request)
@@ -183,11 +185,12 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user           = User::findOrFail($userDetail->id);
-            $photo = $request->file('photo');
-            $tujuan_upload = 'temp';
-            $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-            $photo->move($tujuan_upload,$photo_name);
-            $user->photo = $photo_name;
+            $user->photo    = CloudKilatHelper::put($request->file('image'), 'development/photos/user', 'image');
+            // $photo = $request->file('photo');
+            // $tujuan_upload = 'temp';
+            // $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
+            // $photo->move($tujuan_upload,$photo_name);
+            // $user->photo = $photo_name;
             $user->save();
             return response()->json([
                 'status'    =>'success',
@@ -655,7 +658,7 @@ class UserController extends Controller
             } else {
                 $data = [];
             }
-            
+
             return response()->json(compact('data','status','message'),200);
         } catch (\Exception $e) {
             $status    = 'Failed';
