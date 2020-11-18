@@ -41,7 +41,7 @@ class CloudKilatHelper {
                 // CREATING FILENAME & DIRECTORY
                 // $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
                 $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
-                $directory = self::getEnvironment().$dir .'/' . date('F') . date('Y') .'/'. $filename;
+                $directory = self::getEnvironment().$dir .'/'. $filename;
                 // END CREATING FILENAME & DIRECTORY
 
                 // UPLOAD TO S3
@@ -52,7 +52,7 @@ class CloudKilatHelper {
             }else if($file_type == "file"){
                // CREATING FILENAME & DIRECTORY
                 $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
-               $directory = $dir .'/' . date('F') . date('Y') .'/'. $filename;
+               $directory = $dir .'/'. $filename;
                // END CREATING FILENAME & DIRECTORY
 
                // UPLOAD TO S3
