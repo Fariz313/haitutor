@@ -25,6 +25,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tes', 'UserController@tes');
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
+    Route::put('verification/request/', 'UserController@requestVerification');
 
     Route::get('faq','AskController@getAllFAQ');
 
@@ -192,6 +193,7 @@ Route::middleware(['cors'])->group(function(){
         {
             Route::get('/', 'RatingController@ratedByCurrentUser');
             Route::get('me/', 'RatingController@currentUserListRating');
+            Route::get('/check/{user_id}', 'RatingController@check');
         });
 
     });

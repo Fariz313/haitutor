@@ -52,15 +52,14 @@ class UserController extends Controller
             'birth_date' => 'required|date',
             'photo' => 'file',
             'contact' => 'required|string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'required|string',
-            'jenjang' => 'integer|max:20'
+            'jenjang' => 'required|integer|max:20'
         ]);
 
         if($validator->fails()){
             // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
-                'status'    =>'failed',
+                'status'    =>'Failed',
                 'error'     =>$validator->errors()
             ],400);
         }
@@ -73,7 +72,6 @@ class UserController extends Controller
                 'birth_date'    => $request->get('birth_date'),
                 'role'          => "student",
                 'contact'       => $request->get('contact'),
-                'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
                 'jenjang'       => $request->get('jenjang')
             ]);
@@ -662,6 +660,27 @@ class UserController extends Controller
             $message   = 'Get Dashboard Statistics Failed';
             $error     = $e->getMessage();
             return response()->json(compact('error','status','message'),500);
+        }
+    }
+
+    public function requestVerification()
+    {
+        try {
+            $user_id = JWTAuth::parseToken()->authenticate()->id;
+            $tutor          = TutorDetail::where('user_id', '=', $user_id)->firstOrFail();
+            $tutor->status  = TutorDetail::TutorStatus["PENDING"];
+            $tutor->save();
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Request Verification Sent',
+                'data'      =>  $tutor
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Request Verification Failed',
+                'data'      =>  $th->getMessage()
+            ]);
         }
     }
 }
