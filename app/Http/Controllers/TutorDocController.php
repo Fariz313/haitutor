@@ -82,7 +82,7 @@ class TutorDocController extends Controller
             $data->type         = $request->input('type');
             $data->tutor_id     = $user->id;
 
-            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file');
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
 
             $data->file = $file;
 
@@ -154,7 +154,7 @@ class TutorDocController extends Controller
             $data->tutor_id     = $user->id;
 
             CloudKilatHelper::delete($data->file);
-            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file');
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
 
             $data->file = $file;
 

@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 use App;
 
 class CloudKilatHelper {
@@ -27,7 +28,7 @@ class CloudKilatHelper {
         }
     }
 
-    public static function put($file_request, $dir, $file_type = 'other') {
+    public static function put($file_request, $dir, $file_type = 'other', $user_id) {
         try {
             if($file_type == 'image'){
                 $manager = new ImageManager();
@@ -38,7 +39,8 @@ class CloudKilatHelper {
                 // // END REDUCE FILE
 
                 // CREATING FILENAME & DIRECTORY
-                $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+                // $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+                $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
                 $directory = self::getEnvironment().$dir .'/' . date('F') . date('Y') .'/'. $filename;
                 // END CREATING FILENAME & DIRECTORY
 
@@ -49,7 +51,7 @@ class CloudKilatHelper {
                 return $directory;
             }else if($file_type == "file"){
                // CREATING FILENAME & DIRECTORY
-               $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+                $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
                $directory = $dir .'/' . date('F') . date('Y') .'/'. $filename;
                // END CREATING FILENAME & DIRECTORY
 
