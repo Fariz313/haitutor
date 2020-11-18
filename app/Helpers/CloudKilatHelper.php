@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Storage;
-// use Intervention\Image\ImageManager;
+use Intervention\Image\ImageManager;
 
 class CloudKilatHelper {
     public static function delete($file_path) {
@@ -29,22 +29,20 @@ class CloudKilatHelper {
     public static function put($file_request, $dir, $file_type = 'other') {
         try {
             if($file_type == 'image'){
-                // $manager = new ImageManager();
+                $manager = new ImageManager();
 
                 // // REDUCE FILE
-                // $img = $manager->make($file_request)->resize(800, 800, function ($constraint) {$constraint->aspectRatio();});
-                // $img->save();
+                $img = $manager->make($file_request)->resize(800, 800, function ($constraint) {$constraint->aspectRatio();});
+                $img->stream();
                 // // END REDUCE FILE
 
                 // CREATING FILENAME & DIRECTORY
                 $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
                 $directory = $dir .'/' . date('F') . date('Y') .'/'. $filename;
-                // $filename = $file_request->getClientOriginalName();
-                // $directory = $dir .'/'. $filename;
                 // END CREATING FILENAME & DIRECTORY
 
                 // UPLOAD TO S3
-                Storage::disk('cloud_kilat')->put($directory, $file_request);
+                Storage::disk('cloud_kilat')->put($directory, $img);
                 // END UPLOAD TO S3
 
                 return $directory;
@@ -60,7 +58,7 @@ class CloudKilatHelper {
                 return $filename;
             }
         } catch (\Throwable $th) {
-            return null;
+            return $th->getMessage();
         }
     }
 }

@@ -82,19 +82,6 @@ class ArticleController extends Controller {
             $data->title           = $request->input('title');
             $data->content         = $request->input('content');
             $data->image           = CloudKilatHelper::put($request->file('image'), 'development/photos/article', 'image');
-            // try{
-            //     $photo = $request->file('image');
-            //     $tujuan_upload = 'temp/article';
-            //     $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-            //     $photo->move($tujuan_upload,$photo_name);
-            //     $data->image = $photo_name;
-
-            // }catch(\throwable $e){
-            //     return response()->json([
-            //         'status'	=> 'failed',
-            //         'message'	=> 'image not uploaded'
-            //     ], 400);
-            // }
             $data->save();
 
     		return response()->json([
@@ -137,24 +124,8 @@ class ArticleController extends Controller {
             if ($request->input('image')) {
 
                 CloudKilatHelper::delete($data->image);
+                $data->image           = CloudKilatHelper::put($request->file('image'), 'development/photos/article', 'image');
 
-                // CloudKilatHelper::delete($data->image);
-
-                // $data->image = CloudKilatHelper::put($request->input('image'), 'development/photos/article', 'image');
-
-                // try{
-                //     $photo = $request->file('image');
-                //     $tujuan_upload = 'temp/article';
-                //     $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                //     $photo->move($tujuan_upload,$photo_name);
-                //     $data->image = $photo_name;
-
-                // }catch(\throwable $e){
-                //     return response()->json([
-                //         'status'	=> 'failed',
-                //         'message'	=> 'image not uploaded'
-                //     ], 400);
-                // }
             }
 	        $data->save();
 
@@ -177,7 +148,10 @@ class ArticleController extends Controller {
         try{
 
             $article   = Article::findOrFail($id);
+
+            // Delete from s3
             CloudKilatHelper::delete($article->image);
+
             $delete = Article::findOrFail($id)->delete();
 
             if($delete){

@@ -185,16 +185,12 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user           = User::findOrFail($userDetail->id);
-            $user->photo    = CloudKilatHelper::put($request->file('image'), 'development/photos/user', 'image');
-            // $photo = $request->file('photo');
-            // $tujuan_upload = 'temp';
-            // $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-            // $photo->move($tujuan_upload,$photo_name);
-            // $user->photo = $photo_name;
+            CloudKilatHelper::delete($user->photo);
+            $user->photo    = CloudKilatHelper::put($request->file('photo'), 'development/photos/user', 'image');
             $user->save();
             return response()->json([
                 'status'    =>'success',
-                'message'   =>'Yours Photo Uploaded'
+                'message'   =>'Yours Photo Uploaded',
             ],201);
         } catch (\Throwable $th) {
             return response()->json([
@@ -605,6 +601,7 @@ class UserController extends Controller
                 $user->history_vc()->delete();
             }
 
+            CloudKilatHelper::delete($user->photo);
             $delete = $user->delete();
 
             if($delete){
@@ -621,7 +618,7 @@ class UserController extends Controller
 
         } catch (\Throwable $th) {
             return response([
-                "status"	=> "success",
+                "status"	=> "failed",
                 "message"   => "failed to delete user"
             ]);
         }
