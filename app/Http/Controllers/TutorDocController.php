@@ -82,12 +82,8 @@ class TutorDocController extends Controller
             $data->type         = $request->input('type');
             $data->tutor_id     = $user->id;
 
-            $file = CloudKilatHelper::put($request->file('file'), 'development/document/tutor', 'file');
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file');
 
-            // $file = $request->file('file');
-            // $tujuan_upload = 'tempdoc';
-            // $file_name = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-            // $file->move($tujuan_upload,$file_name);
             $data->file = $file;
 
 	        $data->save();
@@ -158,12 +154,8 @@ class TutorDocController extends Controller
             $data->tutor_id     = $user->id;
 
             CloudKilatHelper::delete($data->file);
-            $file = CloudKilatHelper::put($request->file('file'), 'development/document/tutor', 'file');
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file');
 
-            // $file = $request->file('file');
-            // $tujuan_upload = 'tempdoc';
-            // $file_name = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-            // $file->move($tujuan_upload,$file_name);
             $data->file = $file;
 
             $data->save();

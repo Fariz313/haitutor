@@ -105,7 +105,7 @@ class SubjectController extends Controller
                 ],400);
     		}
 
-            $icon_path = CloudKilatHelper::put($request->file('icon'), 'development/photos/subject', 'image');
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image');
 
             $data               = new Subject();
             $data->name         = $request->input('name');
@@ -224,7 +224,7 @@ class SubjectController extends Controller
             $data               = Subject::findOrFail($id);
 
             CloudKilatHelper::delete($data->icon_path);
-            $icon_path = CloudKilatHelper::put($request->file('icon'), 'development/photos/subject', 'image');
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image');
 
             $data->icon_path = $icon_path;
 

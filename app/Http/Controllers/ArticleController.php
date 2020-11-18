@@ -81,7 +81,7 @@ class ArticleController extends Controller {
             $data                  = new Article();
             $data->title           = $request->input('title');
             $data->content         = $request->input('content');
-            $data->image           = CloudKilatHelper::put($request->file('image'), 'development/photos/article', 'image');
+            $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image');
             $data->save();
 
     		return response()->json([
@@ -124,7 +124,7 @@ class ArticleController extends Controller {
             if ($request->input('image')) {
 
                 CloudKilatHelper::delete($data->image);
-                $data->image           = CloudKilatHelper::put($request->file('image'), 'development/photos/article', 'image');
+                $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image');
 
             }
 	        $data->save();

@@ -46,13 +46,9 @@ class ChatController extends Controller
                     $requestCount   +=   1;
                     $file           = $request->file('file');
                     $message        = "Photo";
-                    $file = CloudKilatHelper::put($request->file('file'), "development/photos/chat/".$data->room_key, 'image');
-                    // $tujuan_upload  = 'temp/chat';
+                    $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/".$data->room_key, 'image');
                     $data->file = $file;
                     $data->save();
-                    // $file_name      = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-                    // $file->move($tujuan_upload,$file_name);
-                    // $data->file     =   $tujuan_upload.'/'.$file_name;
                 } catch (\Throwable $th) {
                     return response()->json([
                         'status'	=> 'failed',

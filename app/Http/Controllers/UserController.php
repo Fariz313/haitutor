@@ -186,7 +186,7 @@ class UserController extends Controller
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user           = User::findOrFail($userDetail->id);
             CloudKilatHelper::delete($user->photo);
-            $user->photo    = CloudKilatHelper::put($request->file('photo'), 'development/photos/user', 'image');
+            $user->photo    = CloudKilatHelper::put($request->file('photo'), '/photos/user', 'image');
             $user->save();
             return response()->json([
                 'status'    =>'success',

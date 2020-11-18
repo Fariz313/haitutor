@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
+use App;
 
 class CloudKilatHelper {
     public static function delete($file_path) {
@@ -38,7 +39,7 @@ class CloudKilatHelper {
 
                 // CREATING FILENAME & DIRECTORY
                 $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
-                $directory = $dir .'/' . date('F') . date('Y') .'/'. $filename;
+                $directory = self::getEnvironment().$dir .'/' . date('F') . date('Y') .'/'. $filename;
                 // END CREATING FILENAME & DIRECTORY
 
                 // UPLOAD TO S3
@@ -70,6 +71,15 @@ class CloudKilatHelper {
             }
         } catch (\Throwable $th) {
             return $th->getMessage();
+        }
+    }
+
+    public static function getEnvironment()
+    {
+        if (App::environment("local")) {
+            return "development";
+        } else if (App::environment("production")) {
+            return "production";
         }
     }
 }
