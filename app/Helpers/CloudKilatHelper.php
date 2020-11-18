@@ -46,7 +46,18 @@ class CloudKilatHelper {
                 // END UPLOAD TO S3
 
                 return $directory;
-            }else{
+            }else if($file_type == "file"){
+               // CREATING FILENAME & DIRECTORY
+               $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+               $directory = $dir .'/' . date('F') . date('Y') .'/'. $filename;
+               // END CREATING FILENAME & DIRECTORY
+
+               // UPLOAD TO S3
+               Storage::disk('cloud_kilat')->put($directory, file_get_contents($file_request));
+               // END UPLOAD TO S3
+
+               return $directory;
+            } else {
                 // CREATING DIRECTORY
                 $directory = $dir .'/' . date('F') . date('Y');
                 // END CREATING DIRECTORY
