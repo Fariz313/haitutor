@@ -11,7 +11,7 @@ use App\RoomChat;
 use App\Notification;
 use Carbon\Carbon;
 use FCM;
-
+use App\Helpers\CloudKilatHelper;
 
 class ChatController extends Controller
 {
@@ -46,15 +46,18 @@ class ChatController extends Controller
                     $requestCount   +=   1;
                     $file           = $request->file('file');
                     $message        = "Photo";
-                    $tujuan_upload  = 'temp/chat';
+                    $file = CloudKilatHelper::put($request->file('file'), "development/photos/chat/".$data->room_key, 'image');
+                    // $tujuan_upload  = 'temp/chat';
+                    $data->file = $file;
                     $data->save();
-                    $file_name      = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-                    $file->move($tujuan_upload,$file_name);
-                    $data->file     =   $tujuan_upload.'/'.$file_name;
+                    // $file_name      = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
+                    // $file->move($tujuan_upload,$file_name);
+                    // $data->file     =   $tujuan_upload.'/'.$file_name;
                 } catch (\Throwable $th) {
                     return response()->json([
                         'status'	=> 'failed',
-                        'message'	=> 'failed adding ask with image'
+                        'message'	=> 'failed adding ask with image',
+                        "data"      => $th->getMessage()
                     ], 501);
                 }
             }
