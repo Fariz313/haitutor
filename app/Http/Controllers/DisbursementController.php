@@ -168,7 +168,7 @@ class DisbursementController extends Controller
                 "title" => "HaiTutor",
                 "message" => "Pengajuan Pencaian Token Anda disetujui",
                 "sender_id" => JWTAuth::parseToken()->authenticate()->id,
-                "target_id" => $id,
+                "target_id" => $userTutor->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
                 'token_recipient' => $userTutor->firebase_token,
                 'save_data' => true
@@ -203,7 +203,7 @@ class DisbursementController extends Controller
                 "title" => "HaiTutor",
                 "message" => "Pengajuan Pencaian Token Anda ditolak",
                 "sender_id" => JWTAuth::parseToken()->authenticate()->id,
-                "target_id" => $id,
+                "target_id" => $userTutor->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
                 'token_recipient' => $userTutor->firebase_token,
                 'save_data' => true
