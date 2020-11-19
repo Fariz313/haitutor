@@ -224,7 +224,7 @@ class SubjectController extends Controller
 
             $data               = Subject::findOrFail($id);
 
-            CloudKilatHelper::delete($data->icon_path);
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$data->icon_path);
             $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
 
             $data->icon_path = $icon_path;
@@ -256,7 +256,7 @@ class SubjectController extends Controller
         try{
 
             $subject = Subject::findOrFail($id);
-            CloudKilatHelper::delete($subject->icon_path);
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$subject->icon_path);
             $delete = $subject->delete();
 
             if($delete){

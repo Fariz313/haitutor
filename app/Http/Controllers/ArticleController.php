@@ -123,7 +123,7 @@ class ArticleController extends Controller {
             }
             if ($request->input('image')) {
 
-                CloudKilatHelper::delete($data->image);
+                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$data->image);
                 $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
 
             }
@@ -150,7 +150,7 @@ class ArticleController extends Controller {
             $article   = Article::findOrFail($id);
 
             // Delete from s3
-            CloudKilatHelper::delete($article->image);
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
 
             $delete = Article::findOrFail($id)->delete();
 
