@@ -183,7 +183,14 @@ class RatingController extends Controller
     {
         try {
 
-            $allRating = Rating::where('user_id', $user_id)->paginate(10);
+            $allRating = Rating::where('user_id', $user_id)
+                                ->with(array("sender" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->with(array("receiver" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->paginate(10);
 
             return response()->json([
                 'status'    =>  'success',
@@ -209,7 +216,14 @@ class RatingController extends Controller
     {
         try {
 
-            $allRating = Rating::where('tutor_id', $user_id)->paginate(10);
+            $allRating = Rating::where('tutor_id', $user_id)
+                                ->with(array("sender" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->with(array("receiver" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->paginate(10);
 
             return response()->json([
                 'status'    =>  'success',
