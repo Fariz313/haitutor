@@ -12,4 +12,20 @@ class Report extends Model
     ];
 
     protected $table = 'report';
+
+    public function reportIssue()
+    {
+        return $this->hasOne('App\ReportIssue', 'id', 'issue_id');
+    }
+
+    public function sender()
+    {
+        return $this->hasOne('App\User', 'id', 'sender_id');
+    }
+
+    public function target()
+    {
+        return $this->hasOne('App\User', 'id', 'target_id');
+    }
+
 }

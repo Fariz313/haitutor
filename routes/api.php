@@ -40,6 +40,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('rating', 'RatingController@index');
     Route::post('rating/{id}', 'RatingController@store');
     Route::delete('rating/{id}', 'RatingController@delete');
+    Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
+    Route::get('rating-user/{user_id}', 'RatingController@userRatingList');
 
     Route::get('get_student', 'UserController@getAllStudent');
     Route::get('get_student/{id}', 'UserController@getStudent');
@@ -193,8 +195,6 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/rating')->group(function ()
         {
-            Route::get('/', 'RatingController@ratedByCurrentUser');
-            Route::get('me/', 'RatingController@currentUserListRating');
             Route::get('/check/{user_id}', 'RatingController@check');
         });
 

@@ -255,8 +255,9 @@ class TutorController extends Controller
                         ->where('role','tutor')
                         ->where('name','LIKE','%'.$query.'%')
                         ->where('tutor_subject.subject_id',$subject_id)
-                        ->with(array('detail','tutorSubject'=>function($query){
-                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                        ->with(array('detail'))
+                        ->with(array('tutorSubject'=> function($query) use ($subject_id){
+                            $query->where('subject_id', '=', $subject_id);
                         }))
                         ->paginate($paginate);
             } else {
@@ -265,8 +266,9 @@ class TutorController extends Controller
                         ->where('status','verified')
                         ->where('role','tutor')
                         ->where('tutor_subject.subject_id',$subject_id)
-                        ->with(array('detail','tutorSubject'=>function($query){
-                            $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                        ->with(array('detail'))
+                        ->with(array('tutorSubject'=> function($query) use ($subject_id){
+                            $query->where('subject_id', '=', $subject_id);
                         }))
                         ->paginate($paginate);
             }
