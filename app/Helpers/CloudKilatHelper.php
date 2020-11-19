@@ -52,7 +52,7 @@ class CloudKilatHelper {
             }else if($file_type == "file"){
                // CREATING FILENAME & DIRECTORY
                 $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
-               $directory = $dir .'/'. $filename;
+               $directory = self::getEnvironment().$dir .'/'. $filename;
                // END CREATING FILENAME & DIRECTORY
 
                // UPLOAD TO S3
