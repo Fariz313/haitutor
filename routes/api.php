@@ -107,7 +107,7 @@ Route::middleware(['cors'])->group(function(){
     {
         Route::get('/', 'DisbursementController@index');
         Route::get('/{id}', 'DisbursementController@show');
-        Route::post('/', 'DisbursementController@store');
+        Route::post('/request', 'DisbursementController@store');
         Route::get('/user/{userId}', 'DisbursementController@getDisbursementByUserId');
         Route::put('/accept/{id}', 'DisbursementController@acceptDisbursement');
         Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');

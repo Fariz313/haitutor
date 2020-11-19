@@ -216,7 +216,7 @@ class TutorController extends Controller
             $dataNotif = [
                 "title" => "HaiTutor",
                 "message" => "Pengajuan verifikasi akun Anda disetujui. Akun Anda telah terverifikasi",
-                "sender_id" => $userTutor->id,
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
                 "target_id" => $id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
                 'token_recipient' => $userTutor->firebase_token,
@@ -250,7 +250,7 @@ class TutorController extends Controller
             $dataNotif = [
                 "title" => "HaiTutor",
                 "message" => "Pengajuan verifikasi akun Anda ditolak. Silahkan melakukan pengajuan ulang",
-                "sender_id" => $userTutor->id,
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
                 "target_id" => $id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
                 'token_recipient' => $userTutor->firebase_token,
