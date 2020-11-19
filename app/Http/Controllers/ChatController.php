@@ -46,7 +46,7 @@ class ChatController extends Controller
                     $requestCount   +=   1;
                     $file           = $request->file('file');
                     $message        = "Photo";
-                    $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/".$data->room_key, 'image', $user->id);
+                    $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
                     $data->file = $file;
                     $data->save();
                 } catch (\Throwable $th) {
