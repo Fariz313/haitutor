@@ -157,6 +157,7 @@ class DisbursementController extends Controller
             $data->status       = Disbursement::DisbursementStatus["ACCEPTED"];
             $data->information  = $request->input('information');
             $data->accepted_at  = date("Y-m-d H:i:s");
+            $data->save();
 
             return response()->json([
                 'status'    =>  'Success',
@@ -178,6 +179,7 @@ class DisbursementController extends Controller
             $data->status       = Disbursement::DisbursementStatus["REJECTED"];
             $data->information  = $request->input('information');
             $data->accepted_at  = date("Y-m-d H:i:s");
+            $data->save();
 
             return response()->json([
                 'status'    =>  'Success',
