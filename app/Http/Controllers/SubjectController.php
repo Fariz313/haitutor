@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Subject;
 use Illuminate\Support\Facades\Validator;
-
+use App\Helpers\CloudKilatHelper;
+use Illuminate\Support\Str;
 
 class SubjectController extends Controller
 {
@@ -26,11 +27,11 @@ class SubjectController extends Controller
                 $data = Subject::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('type','LIKE','%'.$query.'%');
-                } )->paginate($paginate);    
+                } )->paginate($paginate);
             }else{
                 $data = Subject::paginate($paginate);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -55,7 +56,7 @@ class SubjectController extends Controller
             $data = Subject::where(function ($where) use ($query){
                 $where->where('name','LIKE','%'.$query.'%')
                     ->orWhere('type','LIKE','%'.$query.'%');
-            } )->paginate($paginate);    
+            } )->paginate($paginate);
             return $data;
         } else {
             $data = Subject::paginate($paginate);
@@ -67,7 +68,7 @@ class SubjectController extends Controller
         try {
             $subjectModel = new Subject();
             $data = $subjectModel->getUnassignedSubject($tutor_id);
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -93,8 +94,9 @@ class SubjectController extends Controller
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'name'          => 'required|string|max:255|unique:subject',
-				'type'	        => 'in:general,vocation',
+                'name'          => 'required|string|max:255|unique:subject',
+                'icon'         => 'required|file|dimensions:max_width=512,max_height=512|max:128',
+				'type'	        => 'required|in:general,vocation',
     		]);
 
     		if($validator->fails()){
@@ -104,9 +106,12 @@ class SubjectController extends Controller
                 ],400);
     		}
 
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+
             $data               = new Subject();
             $data->name         = $request->input('name');
             $data->type        = $request->input('type');
+            $data->icon_path   = $icon_path;
 	        $data->save();
 
     		return response()->json([
@@ -168,8 +173,8 @@ class SubjectController extends Controller
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'name'          => 'string|max:255',
-				'type'	=> 'string|max:255',
+    			'name'          => 'string|max:255|unique:subject',
+				'type'	        => 'in:general,vocation',
     		]);
 
     		if($validator->fails()){
@@ -185,18 +190,58 @@ class SubjectController extends Controller
             }if($request->input('type')){
                 $data->type        = $request->input('type');
             }
+
 	        $data->save();
 
     		return response()->json([
     			'status'	=> 'success',
-    			'message'	=> 'Subject updated successfully'
-    		], 201);
+    			'message'	=> 'Subject updated'
+    		], 200);
 
         } catch(\Exception $e){
             return response()->json([
                 'status' => 'failed',
-                'message' => $e->getMessage()
+                'message' => 'Failed to update subject',
+                'data'  => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function updateIcon(Request $request, $id)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+                'icon'          => 'required|file|dimensions:max_width=512,max_height=512|max:128'
             ]);
+
+            if($validator->fails()){
+    			return response()->json([
+                    'status'    =>'failed validate',
+                    'error'     =>$validator->errors()
+                ],400);
+    		}
+
+            $data               = Subject::findOrFail($id);
+
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$data->icon_path);
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+
+            $data->icon_path = $icon_path;
+
+            $data->save();
+
+            return response()->json([
+    			'status'	=> 'success',
+    			'message'	=> 'Subject icon updated'
+    		], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Failed to update subject icon',
+                'data'  => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -210,12 +255,14 @@ class SubjectController extends Controller
     {
         try{
 
-            $delete = Subject::where("id", $id)->delete();
+            $subject = Subject::findOrFail($id);
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$subject->icon_path);
+            $delete = $subject->delete();
 
             if($delete){
               return response([
               	"status"	=> "success",
-                  "message"   => "Subject deleted successfully"
+                  "message"   => "Subject deleted"
               ]);
             } else {
               return response([

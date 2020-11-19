@@ -48,6 +48,17 @@ return [
             'root' => storage_path('app'),
         ],
 
+        'cloud_kilat' => [
+            'driver' => 's3',
+            'key' => env('CK_ACCES_KEY'),
+            'secret' => env('CK_SECRET_KEY'),
+            'endpoint' => env('CK_ENDPOINT') ,
+            'region' => env('CK_DEFAULT_REGION'),
+            'bucket' => env('CK_BUCKET'),
+            'url' => env('CK_URL'),
+            'visibility' => 'public'
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Rating;
+use App\User;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
+use DB;
 
 class RatingController extends Controller
 {
@@ -22,13 +25,13 @@ class RatingController extends Controller
                 $query = $request->get('search');
                 $data = Rating::where(function ($where) use ($query){
                     $where->where('coment','LIKE','%'.$query.'%');
-                })->groupBy('tutor_id')->avg('rate')->paginate(10);    
+                })->groupBy('tutor_id')->avg('rate')->paginate(10);
             }else{
                 $data = Rating::selectRaw('tutor_id,AVG(rate) average')
                 ->groupBy('tutor_id')
                 ->get();
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -50,7 +53,7 @@ class RatingController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -72,24 +75,79 @@ class RatingController extends Controller
                     'status'    =>'failed validate',
                     'error'     =>$validator->errors()
                 ],400);
-    		}
+            }
 
-            $data                  = new Rating();
-            $data->user_id         = JWTAuth::parseToken()->authenticate()->id;
-            $data->tutor_id        = $id;
-            $data->comment         = $request->input('comment');
-            $data->rate            = $request->input('rate');
-	        $data->save();
+            $current_user = JWTAuth::parseToken()->authenticate();
 
-    		return response()->json([
-    			'status'	=> 'success',
-    			'message'	=> 'Rating added successfully'
-    		], 201);
+            $ratingExist = Rating::where('user_id', $current_user->id)
+                                 ->where('tutor_id', $id)
+                                 ->first();
+
+            if ($ratingExist) {
+                return response()->json([
+                    'status'	=> 'failed',
+                    'message'	=> 'Rating alread added'
+                ], 409);
+            } else {
+                $user = User::findOrFail($id);
+
+                DB::beginTransaction();
+
+                $data                  = new Rating();
+                $data->user_id         = $current_user->id;
+                $data->tutor_id        = $id;
+                $data->comment         = $request->input('comment');
+                $data->rate            = $request->input('rate');
+                $data->save();
+
+                $recount_average_rating = Rating::where("tutor_id", $id)->avg('rate');
+                $user->total_rating = round($recount_average_rating, 1);
+                $user->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'status'	=> 'success',
+                    'message'	=> 'Rating added successfully'
+                ], 200);
+            }
 
         } catch(\Exception $e){
+            DB::rollback();
             return response()->json([
                 'status' => 'failed',
-                'message' => $e->getMessage()
+                'message' => 'failed to insert rating',
+                'data' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function check($user_id)
+    {
+        try {
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            $ratingExist = Rating::where('user_id', $current_user->id)
+                                 ->where('tutor_id', $user_id)
+                                 ->first();
+
+            if ($ratingExist) {
+                return response()->json([
+                    'status'	=> 'success',
+                    'message'	=> 'Rating exist for this user'
+                ], 200);
+            } else {
+                return response()->json([
+                    'status'	=> 'failed',
+                    'message'	=> 'Rating not exist for this user'
+                ], 200);
+             }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'failed to check rating',
+                'data' => $th->getMessage()
             ]);
         }
     }
@@ -118,6 +176,70 @@ class RatingController extends Controller
         }
     }
 
+    /*
+        Show rating list that has been rated by user_id
+    */
+    public function ratedByUser($user_id)
+    {
+        try {
+
+            $allRating = Rating::where('user_id', $user_id)
+                                ->with(array("sender" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->with(array("receiver" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->paginate(10);
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $allRating,
+                'message'   =>  'Get Data Success'
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  $th->getMessage(),
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
+
+    /*
+        Show rating list from user_id
+    */
+
+    public function userRatingList($user_id)
+    {
+        try {
+
+            $allRating = Rating::where('tutor_id', $user_id)
+                                ->with(array("sender" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->with(array("receiver" => function ($query) {
+                                    $query->select("id", "email", "name", "role");
+                                }))
+                                ->paginate(10);
+
+            return response()->json([
+                'status'    =>  'success',
+                'data'      =>  $allRating,
+                'message'   =>  'Get Data Success'
+            ]);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'data'      =>  $th->getMessage(),
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -138,8 +260,8 @@ class RatingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        
+
+
     }
 
     /**

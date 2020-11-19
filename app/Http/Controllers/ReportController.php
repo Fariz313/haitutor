@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Report;
+use App\ReportIssue;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -22,11 +23,28 @@ class ReportController extends Controller
                 $query = $request->get('search');
                 $data = Report::where(function ($where) use ($query){
                     $where->where('coment','LIKE','%'.$query.'%');
-                })->paginate(10);    
+                })
+                ->with(array('reportIssue' => function ($query) {}))
+                ->with(array('sender' => function ($query) {
+                    $query->select("id", 'name', 'email', 'role');
+                }))
+                ->with(array('target' => function ($query) {
+                    $query->select("id", 'name', 'email', 'role');
+                }))
+                ->paginate(10);
             }else{
-                $data = Report::paginate(10);
+                $data = Report::with(array('reportIssue' => function ($query) {
+
+                }))
+                ->with(array('sender' => function ($query) {
+                    $query->select("id", 'name', 'email', 'role');
+                }))
+                ->with(array('target' => function ($query) {
+                    $query->select("id", 'name', 'email', 'role');
+                }))
+                ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -48,7 +66,7 @@ class ReportController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -125,8 +143,8 @@ class ReportController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        
+
+
     }
 
     /**
@@ -138,5 +156,24 @@ class ReportController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function getReportIssue(Request $request)
+    {
+        try {
+            $data = ReportIssue::get();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Data Failed'
+            ]);
+        }
     }
 }

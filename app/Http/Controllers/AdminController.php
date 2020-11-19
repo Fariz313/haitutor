@@ -7,6 +7,7 @@ use App\AdminDetail;
 use App\RoomChat;
 use App\RoomVC;
 use App\Order;
+use App\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -84,6 +85,12 @@ class AdminController extends Controller
                                 ->where('status', 'completed')
                                 ->where('created_at', '>=', $tempDate)->distinct()->get();
 
+            $report_today = Report::where('created_at', '>=', $tempDate)
+                                ->get();
+
+            $active_report_today = Report::where('created_at', '>=', $tempDate)
+                                ->distinct()->get();
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Get Dashboard Statistics Succeeded',
@@ -94,8 +101,8 @@ class AdminController extends Controller
                     'count_active_user_in_room_vidcall'     => count($active_user_in_room_vidcall),
                     'count_transaction_today'               => count($active_user_in_transaction_today),
                     'count_active_user_in_transaction_today'=> count($transaction_today),
-                    'count_report_today'                    => 0,
-                    'count_active_user_in_report_today'     => 0
+                    'count_report_today'                    => count($report_today),
+                    'count_active_user_in_report_today'     => count($active_report_today)
                 ]], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -284,7 +291,10 @@ class AdminController extends Controller
             ],400);
         }
         try {
-            $user = User::findOrFail($id);
+            $user = User::where("id", $id)->with(array("admin_detail" => function($query)
+            {
+                $query->select("*");
+            }))->first();
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }if ($request->input('email')) {
@@ -303,7 +313,23 @@ class AdminController extends Controller
                 $user->address = $request->input('address');
             }
 
+            $admin_detail = AdminDetail::where("user_id", $id)->firstOrFail();
+
+            if ($request->input('nip')) {
+                $admin_detail->nip = $request->input('nip');
+            }
+
+            DB::beginTransaction();
+
+            $admin_detail->save();
             $user->save();
+
+            DB::commit();
+
+            $user = User::where("id", $id)->with(array("admin_detail" => function($query)
+            {
+                $query->select("*");
+            }))->first();
 
             return response()->json([
                 'status'    => 'success',
@@ -311,11 +337,13 @@ class AdminController extends Controller
                 'user'      => $user
             ],200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $notFound) {
+            DB::rollback();
             return response()->json([
                 'status'    => 'failed',
                 'message'   => "Admin not found"
             ],400);
         }catch (\Throwable $th) {
+            DB::rollback();
             return response()->json([
                 'status'    => 'failed',
                 'message'   => "Failed to update admin",

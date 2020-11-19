@@ -165,9 +165,19 @@ class NotificationController extends Controller
             "message" => "Harusnya Tetap Bisa",
             "sender_id" => 19,
             "target_id" => 30,
-            'token_recipient' => "eJLGS7DcQgab5nSaXaLI0P:APA91bGbcPEVfSdgbCU1iiqfq0YZDR_0iuyJ6lVeQwsBfojT2bj-_h6ksvPJOwIJ1W8HuSySANRltHUXZZ7YvNiDMEIlHrK8FuMYHjNHcX4zrztf3EfaABM0UESILgsaGbEr3sGxyiCZ",
-            'save_data' => true
+            'token_recipient' => "ev-IKguAS2Wz5UvUbaIyNM:APA91bHVffgSO4bwBDBsD0IJPWesrkw81IqM3EVoG_7YiQYBu0y8FJ_RLQKlcwCooMZkby__xy4GyUnSjvFSzifkaY-upgw69Sh1ZX3cwEys35Anbgvv6Gr6m24gL660zADQmTl5WAwC",
+            'save_data' => true,
+            'channel_name' => "CHANNEL_CHAT"
         ];
+        // $data = [
+        //     "title" => "Notif Penting Woyy",
+        //     "message" => "Harusnya Tetap Bisa",
+        //     "sender_id" => 19,
+        //     "target_id" => 30,
+        //     'token_recipient' => "f5Yvv6qHQTCOHZo_vATXT0:APA91bGbPPvX53U8uVsHwRYSnTuccx5mKFPD_tPLtiRWDxIL7F6mCjVWU_OIZsI480_5vrhQxKl4ml2YMKbVD2VPikRCodp4iF_COsIeyHquLrvlmx7xArNsANFJNd4W48qqUmxAmC2w",
+        //     'save_data' => true,
+        //     'channel_name' => "CHANNEL_CHAT"
+        // ];
         $response = FCM::pushNotification($data);
         return $response;
 

@@ -7,6 +7,7 @@ use App\TutorDoc;
 use JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Helpers\CloudKilatHelper;
 
 
 class TutorDocController extends Controller
@@ -24,11 +25,11 @@ class TutorDocController extends Controller
                 $data = TutorDoc::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('type','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = TutorDoc::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -80,12 +81,10 @@ class TutorDocController extends Controller
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
             $data->tutor_id     = $user->id;
-            
-            $file = $request->file('file');
-            $tujuan_upload = 'tempdoc';
-            $file_name = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-            $file->move($tujuan_upload,$file_name);
-            $data->file = $file_name;
+
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+
+            $data->file = $file;
 
 	        $data->save();
 
@@ -153,15 +152,14 @@ class TutorDocController extends Controller
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
             $data->tutor_id     = $user->id;
-            
-            $file = $request->file('file');
-            $tujuan_upload = 'tempdoc';
-            $file_name = $user->id.'_'.$file->getClientOriginalName().'_'.Str::random(3).'.'.$file->getClientOriginalExtension();
-            $file->move($tujuan_upload,$file_name);
-            $data->file = $file_name;
-            
+
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
+            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+
+            $data->file = $file;
+
             $data->save();
-            
+
             return response()->json([
                 'status'	=> 'Success',
                 'message'	=> 'Document updated successfully',
@@ -186,7 +184,9 @@ class TutorDocController extends Controller
     {
         try{
 
-            $delete = TutorDoc::where("id", $id)->delete();
+            $data = TutorDoc::findOrFail($id);
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
+            $delete = $data->delete();
 
             if($delete){
               return response([
@@ -243,5 +243,5 @@ class TutorDocController extends Controller
         }
     }
 
-    
+
 }

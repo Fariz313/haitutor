@@ -25,6 +25,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tes', 'UserController@tes');
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
+    Route::put('verification/request/', 'UserController@requestVerification');
 
     Route::get('faq','AskController@getAllFAQ');
 
@@ -39,6 +40,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('rating', 'RatingController@index');
     Route::post('rating/{id}', 'RatingController@store');
     Route::delete('rating/{id}', 'RatingController@delete');
+    Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
+    Route::get('rating-user/{user_id}', 'RatingController@userRatingList');
 
     Route::get('get_student', 'UserController@getAllStudent');
     Route::get('get_student/{id}', 'UserController@getStudent');
@@ -76,6 +79,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('info', 'UserController@getInformation');
     Route::get('version/{versionCode}', 'UserController@checkUpdate');
 
+    Route::post('pushNotification', 'NotificationController@pushNotification');
+
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
         Route::get('/{id}', 'CompanyController@show');
@@ -95,6 +100,7 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
     });
+    Route::get('/reportIssue', 'ReportController@getReportIssue');
 
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
@@ -187,6 +193,11 @@ Route::middleware(['cors'])->group(function(){
         });
 
 
+        Route::prefix('/rating')->group(function ()
+        {
+            Route::get('/check/{user_id}', 'RatingController@check');
+        });
+
     });
     //--------------------------------------------------
 
@@ -258,6 +269,13 @@ Route::middleware(['cors'])->group(function(){
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
 
+            //Subject
+            Route::get('subject','SubjectController@index');
+            Route::get('subject/{id}','SubjectController@show');
+            Route::post('subject','SubjectController@store');
+            Route::put('subject/{id}','SubjectController@update');
+            Route::post('subject/icon/{id}','SubjectController@updateIcon');
+            Route::delete('subject/{id}','SubjectController@destroy');
 
         });
 

@@ -13,6 +13,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
+use App\Helpers\CloudKilatHelper;
+
 class UserController extends Controller
 {
     public function login(Request $request)
@@ -50,15 +52,14 @@ class UserController extends Controller
             'birth_date' => 'required|date',
             'photo' => 'file',
             'contact' => 'required|string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'required|string',
-            'jenjang' => 'integer|max:20'
+            'jenjang' => 'required|integer|max:20'
         ]);
 
         if($validator->fails()){
             // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
-                'status'    =>'failed',
+                'status'    =>'Failed',
                 'error'     =>$validator->errors()
             ],400);
         }
@@ -71,7 +72,6 @@ class UserController extends Controller
                 'birth_date'    => $request->get('birth_date'),
                 'role'          => "student",
                 'contact'       => $request->get('contact'),
-                'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
                 'jenjang'       => $request->get('jenjang')
             ]);
@@ -183,15 +183,12 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user           = User::findOrFail($userDetail->id);
-            $photo = $request->file('photo');
-            $tujuan_upload = 'temp';
-            $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-            $photo->move($tujuan_upload,$photo_name);
-            $user->photo = $photo_name;
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/user'.$user->photo);
+            $user->photo    = CloudKilatHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
             $user->save();
             return response()->json([
                 'status'    =>'success',
-                'message'   =>'Yours Photo Uploaded'
+                'message'   =>'Yours Photo Uploaded',
             ],201);
         } catch (\Throwable $th) {
             return response()->json([
@@ -480,7 +477,7 @@ class UserController extends Controller
         $pw =  Hash::make($password);
         if($validator->fails()){
             return response()->json([
-                'status'    =>'failed validate',
+                'status'    =>'failed',
                 'error'     =>$validator->errors()
             ],400);
         }
@@ -490,9 +487,10 @@ class UserController extends Controller
             $user->save();
         }catch(\throwable $e){
             return response()->json([
-                'status'    => 'failed reset',
+                'status'    => 'failed',
                 'message'   => 'user not found'],404);
         }
+
         try{
         Mail::send([], [], function ($message) use ($request, $pw,$password)
         {
@@ -503,11 +501,18 @@ class UserController extends Controller
         });
         }catch(\throwable $e){
             return response()->json([
-                'status'=> 'failed sending email'],403);
+                'status' => 'failed',
+                'message' => 'Failed sending to email'
+            ],403);
         }
         return response()->json([
             'status' => 'success',
-            'message'=> 'password has been changed']);
+            'message'=> 'password has been changed',
+            'data' => array(
+                'user'     => $user,
+                'password' => $password
+            )
+        ],200);
     }
 
     public function logout(){
@@ -602,6 +607,7 @@ class UserController extends Controller
                 $user->history_vc()->delete();
             }
 
+            CloudKilatHelper::delete($user->photo);
             $delete = $user->delete();
 
             if($delete){
@@ -618,7 +624,7 @@ class UserController extends Controller
 
         } catch (\Throwable $th) {
             return response([
-                "status"	=> "success",
+                "status"	=> "failed",
                 "message"   => "failed to delete user"
             ]);
         }
@@ -643,21 +649,46 @@ class UserController extends Controller
         $message = "Check Version Succeeded";
         $status = "Success";
         try {
-            $lastData = AppVersion::all()->last();
-            $mustUpdate = AppVersion::select('type')->where('versionCode', '>', $versionCode)->distinct()->pluck('type')->toArray();
-            if (count($mustUpdate) > 0 && in_array(1, $mustUpdate)){
-                $lastData->type = 1;
+            $lastData = AppVersion::where('versionCode', AppVersion::max('versionCode'))->latest('id')->first();
+            if($versionCode < $lastData->versionCode){
+                $mustUpdate = AppVersion::select('type')->where('versionCode', '>', $versionCode)->distinct()->pluck('type')->toArray();
+                if (count($mustUpdate) > 0 && in_array(1, $mustUpdate)){
+                    $lastData->type = 1;
+                } else {
+                    $lastData->type = 0;
+                }
+                $data = $lastData;
             } else {
-                $lastData->type = 0;
+                $data = [];
             }
 
-            $data = $lastData;
             return response()->json(compact('data','status','message'),200);
         } catch (\Exception $e) {
             $status    = 'Failed';
             $message   = 'Get Dashboard Statistics Failed';
             $error     = $e->getMessage();
             return response()->json(compact('error','status','message'),500);
+        }
+    }
+
+    public function requestVerification()
+    {
+        try {
+            $user_id = JWTAuth::parseToken()->authenticate()->id;
+            $tutor          = TutorDetail::where('user_id', '=', $user_id)->firstOrFail();
+            $tutor->status  = TutorDetail::TutorStatus["PENDING"];
+            $tutor->save();
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Request Verification Sent',
+                'data'      =>  $tutor
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Request Verification Failed',
+                'data'      =>  $th->getMessage()
+            ]);
         }
     }
 }

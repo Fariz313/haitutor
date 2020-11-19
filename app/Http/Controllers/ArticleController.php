@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Article;
+use App\Helpers\CloudKilatHelper;
+use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -11,41 +13,41 @@ use Illuminate\Support\Str;
 
 
 class ArticleController extends Controller {
-    
+
     public function getAll(Request $request){
-    
+
          try{
-           
+
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = Article::where(function ($where) use ($query){
                     $where->where('title','LIKE','%'.$query.'%')
                         ->orWhere('content','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Article::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
-        
+
          }catch(\Throwable $e){
-             
+
               return response()->json([
                "status"=>"gagal",
                "error"=>$e
                ],500);
-         }       
+         }
     }
 
     public function getOne($id)
     {
         try {
-            $data   =   Article::findOrFail($id);  
-            
+            $data   =   Article::findOrFail($id);
+
             return response()->json([
                 'status'    =>  'success',
                 'message'   =>  'Get Data Success',
@@ -79,19 +81,7 @@ class ArticleController extends Controller {
             $data                  = new Article();
             $data->title           = $request->input('title');
             $data->content         = $request->input('content');
-            try{
-                $photo = $request->file('image');
-                $tujuan_upload = 'temp/article';
-                $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $data->image = $photo_name;
-                
-            }catch(\throwable $e){
-                return response()->json([
-                    'status'	=> 'failed',
-                    'message'	=> 'image not uploaded'
-                ], 400);
-            }
+            $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
             $data->save();
 
     		return response()->json([
@@ -132,19 +122,10 @@ class ArticleController extends Controller {
                 $data->title        = $request->input('title');
             }
             if ($request->input('image')) {
-                try{
-                    $photo = $request->file('image');
-                    $tujuan_upload = 'temp/article';
-                    $photo_name = Str::random(2).'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                    $photo->move($tujuan_upload,$photo_name);
-                    $data->image = $photo_name;
-                    
-                }catch(\throwable $e){
-                    return response()->json([
-                        'status'	=> 'failed',
-                        'message'	=> 'image not uploaded'
-                    ], 400);
-                }
+
+                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$data->image);
+                $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
+
             }
 	        $data->save();
 
@@ -161,10 +142,15 @@ class ArticleController extends Controller {
             ]);
         }
     }
-    
+
     public function destroy($id)
     {
         try{
+
+            $article   = Article::findOrFail($id);
+
+            // Delete from s3
+            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
 
             $delete = Article::findOrFail($id)->delete();
 
@@ -186,6 +172,6 @@ class ArticleController extends Controller {
             ]);
         }
     }
-    
-    
+
+
 }
