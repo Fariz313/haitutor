@@ -176,13 +176,14 @@ class RatingController extends Controller
         }
     }
 
-    public function ratedByCurrentUser()
+    /*
+        Show rating list that has been rated by user_id
+    */
+    public function ratedByUser($user_id)
     {
         try {
 
-            $current_user = JWTAuth::parseToken()->authenticate();
-
-            $allRating = Rating::where('user_id', $current_user->id)->paginate(10);
+            $allRating = Rating::where('user_id', $user_id)->paginate(10);
 
             return response()->json([
                 'status'    =>  'success',
@@ -199,13 +200,16 @@ class RatingController extends Controller
         }
     }
 
-    public function currentUserListRating()
+
+    /*
+        Show rating list from user_id
+    */
+
+    public function userRatingList($user_id)
     {
         try {
 
-            $current_user = JWTAuth::parseToken()->authenticate();
-
-            $allRating = Rating::where('tutor_id', $current_user->id)->paginate(10);
+            $allRating = Rating::where('tutor_id', $user_id)->paginate(10);
 
             return response()->json([
                 'status'    =>  'success',
