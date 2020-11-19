@@ -15,7 +15,7 @@ class TutorDoc extends Model
     const TutorDocType = [
         "IJAZAH"        => 'ijazah',
         "CV"            => 'cv',
-        "SERTIFIKAT"    => 'certificate',
+        "CERTIFICATE"   => 'certificate',
         "KTP"           => 'ktp',
         "NO_REKENING"   => 'no_rekening',
         "OTHER"         => 'other'
