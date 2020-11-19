@@ -16,8 +16,9 @@ class CreateDisbursementTable extends Migration
         Schema::create('disbursement', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
+            $table->integer('token');
             $table->integer('amount');
-            $table->integer('status');
+            $table->integer('status')->default(0);
             $table->string('information')->nullable();
             $table->datetime('accepted_at')->nullable();
             $table->timestamps();
