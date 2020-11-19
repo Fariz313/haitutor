@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\TutorDoc;
+use App\User;
+use App\Notification;
 use JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Helpers\CloudKilatHelper;
+use FCM;
 
 
 class TutorDocController extends Controller
@@ -67,7 +70,7 @@ class TutorDocController extends Controller
     		$validator = Validator::make($request->all(), [
     			'name'          => 'required|string|max:255',
                 'file'			=> 'file',
-                'type'          => 'in:ijazah,cv,certificate,other'
+                'type'          => 'in:ijazah,cv,certificate,ktp,no_rekening,other'
     		]);
 
     		if($validator->fails()){
@@ -80,6 +83,7 @@ class TutorDocController extends Controller
             $data               = new TutorDoc();
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
+            $data->status       = TutorDoc::TutorDocStatus["PENDING"];
             $data->tutor_id     = $user->id;
 
             $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
@@ -138,7 +142,7 @@ class TutorDocController extends Controller
             $validator = Validator::make($request->all(), [
     			'name'          => 'required|string|max:255',
                 'file'			=> 'file',
-                'type'          => 'in:ijazah,cv,certificate,other'
+                'type'          => 'in:ijazah,cv,certificate,ktp,no_rekening,other'
             ]);
 
     		if($validator->fails()){
@@ -151,6 +155,7 @@ class TutorDocController extends Controller
             $data               = TutorDoc::findOrFail($id);
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
+            $data->status       = TutorDoc::TutorDocStatus["PENDING"];
             $data->tutor_id     = $user->id;
 
             CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
@@ -211,15 +216,50 @@ class TutorDocController extends Controller
     {
         try {
             $data           = TutorDoc::findOrFail($id);
-            $data->status   = 'verified';
-            $data->save()   ;
+            $data->status   = TutorDoc::TutorDocStatus["VERIFIED"];
+            $data->save();
+
+            $userTutor      = User::findOrFail($data->tutor_id);
+
+            $docName        = "";
+            switch ($data->type) {
+                case TutorDoc::TutorDocType["IJAZAH"]:
+                    $docName = "Ijazah ";
+                break;
+                case TutorDoc::TutorDocType["CV"]:
+                    $docName = "CV ";
+                break;
+                case TutorDoc::TutorDocType["CERTIFICATE"]:
+                    $docName = "Sertifikat ";
+                break;
+                case TutorDoc::TutorDocType["KTP"]:
+                    $docName = "KTP ";
+                break;
+                case TutorDoc::TutorDocType["NO_REKENING"]:
+                    $docName = "Buku Rekening ";
+                break;
+                default:
+                $docName = "";
+            }
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Dokumen " . $docName . "Anda telah disetujui",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $userTutor->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[10],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                "status"    =>   'success',
+                "status"    =>   'Success',
                 "message"   =>   'Document Verified'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                "status"    =>   'failed',
+                "status"    =>   'Failed',
                 "message"   =>   'Document Not Verified'
             ]);
         }
@@ -229,15 +269,50 @@ class TutorDocController extends Controller
     {
         try {
             $data           = TutorDoc::findOrFail($id);
-            $data->status   = 'unverified';
+            $data->status   = TutorDoc::TutorDocStatus["UNVERIFIED"];
             $data->save()   ;
+
+            $userTutor      = User::findOrFail($data->tutor_id);
+
+            $docName        = "";
+            switch ($data->type) {
+                case TutorDoc::TutorDocType["IJAZAH"]:
+                    $docName = "Ijazah ";
+                break;
+                case TutorDoc::TutorDocType["CV"]:
+                    $docName = "CV ";
+                break;
+                case TutorDoc::TutorDocType["CERTIFICATE"]:
+                    $docName = "Sertifikat ";
+                break;
+                case TutorDoc::TutorDocType["KTP"]:
+                    $docName = "KTP ";
+                break;
+                case TutorDoc::TutorDocType["NO_REKENING"]:
+                    $docName = "Buku Rekening ";
+                break;
+                default:
+                $docName = "";
+            }
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Dokumen " . $docName . "Anda telah ditolak",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $userTutor->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[10],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                "status"    =>   'success',
+                "status"    =>   'Success',
                 "message"   =>   'Document Unverified'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                "status"    =>   'failed',
+                "status"    =>   'Failed',
                 "message"   =>   'Document Not Unverified'
             ]);
         }
