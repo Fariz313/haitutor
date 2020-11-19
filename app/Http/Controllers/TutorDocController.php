@@ -253,14 +253,19 @@ class TutorDocController extends Controller
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
 
-            return response()->json([
-                "status"    =>   'Success',
-                "message"   =>   'Document Verified'
-            ]);
-        } catch (\Throwable $th) {
+            // return response()->json([
+            //     "status"    =>   'Success',
+            //     "message"   =>   'Document Verified',
+            //     "notif"     =>   $responseNotif
+            // ]);
+
+            return $responseNotif;
+
+        } catch(\Exception $e){
             return response()->json([
                 "status"    =>   'Failed',
-                "message"   =>   'Document Not Verified'
+                "message"   =>   'Document Verification Failed',
+                "error"     =>   $e->getMessage()
             ]);
         }
     }
@@ -310,10 +315,11 @@ class TutorDocController extends Controller
                 "status"    =>   'Success',
                 "message"   =>   'Document Unverified'
             ]);
-        } catch (\Throwable $th) {
+        } catch(\Exception $e){
             return response()->json([
                 "status"    =>   'Failed',
-                "message"   =>   'Document Not Unverified'
+                "message"   =>   'Document Unverification Failed',
+                "error"     =>   $e->getMessage()
             ]);
         }
     }
