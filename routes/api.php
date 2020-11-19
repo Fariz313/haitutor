@@ -100,7 +100,18 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
     });
+
     Route::get('/reportIssue', 'ReportController@getReportIssue');
+
+    Route::prefix('/disbursement')->group(function()
+    {
+        Route::get('/', 'DisbursementController@index');
+        Route::get('/{id}', 'DisbursementController@show');
+        Route::post('/', 'DisbursementController@store');
+        Route::get('/user/{userId}', 'DisbursementController@getDisbursementByUserId');
+        Route::put('/accept/{id}', 'DisbursementController@acceptDisbursement');
+        Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');
+    });
 
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
