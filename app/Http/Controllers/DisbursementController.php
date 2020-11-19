@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Disbursement;
+use App\Notification;
+use App\User;
 use Illuminate\Http\Request;
 use JWTAuth;
+use FCM;
 
 class DisbursementController extends Controller
 {
@@ -159,6 +162,19 @@ class DisbursementController extends Controller
             $data->accepted_at  = date("Y-m-d H:i:s");
             $data->save();
 
+            $userTutor          = User::findOrFail($data->user_id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan Pencaian Token Anda disetujui",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -180,6 +196,19 @@ class DisbursementController extends Controller
             $data->information  = $request->input('information');
             $data->accepted_at  = date("Y-m-d H:i:s");
             $data->save();
+
+            $userTutor          = User::findOrFail($data->user_id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan Pencaian Token Anda ditolak",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
 
             return response()->json([
                 'status'    =>  'Success',
