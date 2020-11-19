@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\TutorDetail;
+use App\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
+use FCM;
 
 class TutorController extends Controller
 {
@@ -206,16 +208,30 @@ class TutorController extends Controller
     {
         try {
             $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
-            $tutor->status  = "verified";
+            $tutor->status  = TutorDetail::TutorStatus["VERIFIED"];
             $tutor->save();
+
+            $userTutor      = User::findOrFail($id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan verifikasi akun Anda disetujui. Akun Anda telah terverifikasi",
+                "sender_id" => $userTutor->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'message'   =>  'Success verify tutor',
                 'data'      =>  $tutor
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'message'   =>  'Failed to verify tutor',
                 'data'      =>  $th->getMessage()
             ]);
@@ -226,16 +242,30 @@ class TutorController extends Controller
     {
         try {
             $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
-            $tutor->status  = 'unverified';
+            $tutor->status  = TutorDetail::TutorStatus["UNVERIFIED"];
             $tutor->save();
+
+            $userTutor      = User::findOrFail($id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan verifikasi akun Anda ditolak. Silahkan melakukan pengajuan ulang",
+                "sender_id" => $userTutor->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'message'   =>  'Success unverify tutor',
                 'data'      =>  $tutor
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'message'   =>  'Failed to unverify tutor',
                 'data'      =>  $th->getMessage()
             ]);
