@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Subject;
 use Illuminate\Support\Facades\Validator;
-
+use App\Helpers\CloudKilatHelper;
+use Illuminate\Support\Str;
 
 class SubjectController extends Controller
 {
@@ -105,10 +106,7 @@ class SubjectController extends Controller
                 ],400);
     		}
 
-            $icon = $request->file('icon');
-            $upload_destination = 'temp';
-            $icon_path = $request->input('name').'_'.$icon->getClientOriginalName();
-            $icon->move($upload_destination, $icon_path);
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
 
             $data               = new Subject();
             $data->name         = $request->input('name');
@@ -176,7 +174,6 @@ class SubjectController extends Controller
         try{
     		$validator = Validator::make($request->all(), [
     			'name'          => 'string|max:255|unique:subject',
-                // 'icon'          => 'file|dimensions:max_width=512,max_height=512|max:128',
 				'type'	        => 'in:general,vocation',
     		]);
 
@@ -227,10 +224,8 @@ class SubjectController extends Controller
 
             $data               = Subject::findOrFail($id);
 
-            $icon = $request->file('icon');
-            $upload_destination = 'temp';
-            $icon_path = $data->name.'_'.$icon->getClientOriginalName();
-            $icon->move($upload_destination, $icon_path);
+            CloudKilatHelper::delete($data->icon_path);
+            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
 
             $data->icon_path = $icon_path;
 
@@ -260,7 +255,9 @@ class SubjectController extends Controller
     {
         try{
 
-            $delete = Subject::where("id", $id)->delete();
+            $subject = Subject::findOrFail($id);
+            CloudKilatHelper::delete($subject->icon_path);
+            $delete = $subject->delete();
 
             if($delete){
               return response([
