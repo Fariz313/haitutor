@@ -18,7 +18,7 @@ class TutorDocument extends Migration
             $table->string('Name');
             $table->integer('tutor_id');
             $table->string('file');
-            $table->enum('type',['ijazah','skhu','certificate','other']);
+            $table->enum('type',['ijazah','skhu','certificate','ktp','no_rekening','other']);
             $table->enum('status',['unverified','verified']);
             $table->timestamps();
         });
