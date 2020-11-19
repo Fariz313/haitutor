@@ -79,6 +79,8 @@ Route::middleware(['cors'])->group(function(){
     Route::get('info', 'UserController@getInformation');
     Route::get('version/{versionCode}', 'UserController@checkUpdate');
 
+    Route::post('pushNotification', 'NotificationController@pushNotification');
+
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
         Route::get('/{id}', 'CompanyController@show');
