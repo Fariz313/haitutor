@@ -166,7 +166,7 @@ class DisbursementController extends Controller
 
             $dataNotif = [
                 "title" => "HaiTutor",
-                "message" => "Pengajuan Pencaian Token Anda disetujui",
+                "message" => "Pengajuan Pencairan Token Anda disetujui",
                 "sender_id" => JWTAuth::parseToken()->authenticate()->id,
                 "target_id" => $userTutor->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
@@ -201,7 +201,7 @@ class DisbursementController extends Controller
 
             $dataNotif = [
                 "title" => "HaiTutor",
-                "message" => "Pengajuan Pencaian Token Anda ditolak",
+                "message" => "Pengajuan Pencairan Token Anda ditolak",
                 "sender_id" => JWTAuth::parseToken()->authenticate()->id,
                 "target_id" => $userTutor->id,
                 "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],

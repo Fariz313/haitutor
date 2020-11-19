@@ -220,8 +220,8 @@ Route::middleware(['cors'])->group(function(){
         Route::middleware(['admin.general'])->group(function(){
             Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
             Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
-            Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
-            Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
+            Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
+            Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
 
             Route::get('/package', 'PackageController@index');
