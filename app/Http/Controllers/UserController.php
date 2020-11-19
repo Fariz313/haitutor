@@ -477,7 +477,7 @@ class UserController extends Controller
         $pw =  Hash::make($password);
         if($validator->fails()){
             return response()->json([
-                'status'    =>'failed validate',
+                'status'    =>'failed',
                 'error'     =>$validator->errors()
             ],400);
         }
@@ -487,9 +487,10 @@ class UserController extends Controller
             $user->save();
         }catch(\throwable $e){
             return response()->json([
-                'status'    => 'failed reset',
+                'status'    => 'failed',
                 'message'   => 'user not found'],404);
         }
+
         try{
         Mail::send([], [], function ($message) use ($request, $pw,$password)
         {
@@ -500,11 +501,18 @@ class UserController extends Controller
         });
         }catch(\throwable $e){
             return response()->json([
-                'status'=> 'failed sending email'],403);
+                'status' => 'failed',
+                'message' => 'Failed sending to email'
+            ],403);
         }
         return response()->json([
             'status' => 'success',
-            'message'=> 'password has been changed']);
+            'message'=> 'password has been changed',
+            'data' => array(
+                'user'     => $user,
+                'password' => $password
+            )
+        ],200);
     }
 
     public function logout(){
