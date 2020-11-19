@@ -5,10 +5,22 @@ use Illuminate\Support\Facades\Http;
 use JWTAuth;
 use App\Notification;
 use Illuminate\Http\Request;
+use App;
 
 class FirebaseNotification {
+
+    const Environment = [
+        "DEVELOPMENT"   => 'development',
+        "PRODUCTION"    => 'production'
+    ];
+
     public static function pushNotification($data) {
-        $headers = [
+        $headerDevelopment = [
+            'Content-type' => 'application/json',
+            'Authorization'=> 'key=AAAAFSp2p7U:APA91bHiD1lq7ReClUI7eL1_96C-bxw3yGd8iplnExkHGP3fkZ5HtbJnu-kPoKwzuAxciIUzYDpQpnja8cGm1JDMUQANPIYQHb9m56HluJVHj-pxkvP8_f6owIaOSZ7rESzJowA5qibz',
+        ];
+
+        $headerProduction = [
             'Content-type' => 'application/json',
             'Authorization'=> 'key=AAAAq5PEITQ:APA91bE9Z7KmH5BDUi_fQJ8KCId7g0hdfrW8tEVmhRHwR4l7AtVwKFiNKJc3oklbkcSAFRvFqipPPKKwarYwICVcHCti0_QdeDbduDcHX6_3KpuqgeMc4C6l5-4Kw0UNolt1SViVXFCh',
         ];
@@ -82,12 +94,25 @@ class FirebaseNotification {
                 ];
             }
 
-            $response = Http::withHeaders($headers)->post('https://fcm.googleapis.com/fcm/send', $body);
+            if(self::getEnvironment() == self::Environment["DEVELOPMENT"]){
+                $response = Http::withHeaders($headerDevelopment)->post('https://fcm.googleapis.com/fcm/send', $body);
+            } else {
+                $response = Http::withHeaders($headerProduction)->post('https://fcm.googleapis.com/fcm/send', $body);
+            }
 
             return $response;
 
         } catch(\Exception $e){
             return $e->getMessage();
+        }
+    }
+
+    public static function getEnvironment()
+    {
+        if (App::environment("local")) {
+            return "development";
+        } else if (App::environment("production")) {
+            return "production";
         }
     }
 }
