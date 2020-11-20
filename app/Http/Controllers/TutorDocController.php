@@ -253,13 +253,10 @@ class TutorDocController extends Controller
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
 
-            // return response()->json([
-            //     "status"    =>   'Success',
-            //     "message"   =>   'Document Verified',
-            //     "notif"     =>   $responseNotif
-            // ]);
-
-            return $responseNotif;
+            return response()->json([
+                "status"    =>   'Success',
+                "message"   =>   'Document Verified'
+            ]);
 
         } catch(\Exception $e){
             return response()->json([
