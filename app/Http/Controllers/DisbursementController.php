@@ -223,4 +223,25 @@ class DisbursementController extends Controller
             ], 500);
         }
     }
+
+    public function getLatestPending(){
+        try {
+            $userTutor          = JWTAuth::parseToken()->authenticate();
+
+            $data               = Disbursement::where('user_id',$userTutor->id)
+                                    ->where('status', Disbursement::DisbursementStatus["PENDING"])->latest('id')->first();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Latest Pending Disbursement Succeeded'
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Latest Pending Disbursement Failed'
+            ], 500);
+        }
+    }
 }
