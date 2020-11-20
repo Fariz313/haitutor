@@ -95,7 +95,7 @@ class SubjectController extends Controller
         try{
     		$validator = Validator::make($request->all(), [
                 'name'          => 'required|string|max:255|unique:subject',
-                'icon'         => 'required|file|dimensions:max_width=512,max_height=512|max:128',
+                'icon'         => 'required|file|',
 				'type'	        => 'required|in:general,vocation',
     		]);
 
