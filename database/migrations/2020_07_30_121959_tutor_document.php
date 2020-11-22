@@ -15,7 +15,7 @@ class TutorDocument extends Migration
     {
         Schema::create('tutor_doc', function (Blueprint $table) {
             $table->id();
-            $table->string('Name');
+            $table->string('name');
             $table->integer('tutor_id');
             $table->string('file');
             $table->enum('type',['ijazah','skhu','certificate','ktp','no_rekening','other']);
