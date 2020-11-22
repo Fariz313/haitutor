@@ -14,7 +14,7 @@ class AddTotalRatingToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->float('total_rating')->after('balance')->nullable();
+            $table->float('total_rating', 0, 0)->after('balance')->nullable();
         });
     }
 

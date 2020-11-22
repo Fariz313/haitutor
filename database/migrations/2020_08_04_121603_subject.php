@@ -17,6 +17,7 @@ class Subject extends Migration
             $table->id();
             $table->string('name');
             $table->enum('type',['general','vocation']);
+            $table->text("icon_path");
             $table->timestamps();
         });
     }

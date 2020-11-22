@@ -17,8 +17,8 @@ class Chat extends Migration
             $table->id();
             $table->string('room_key');
             $table->integer('user_id');
-            $table->text('text')->nullabel();
-            $table->string('file')->nullabel();
+            $table->text('text')->nullable();
+            $table->string('file')->nullable();
             $table->date('deleted_at')->nullable();
             $table->timestamps();
         });

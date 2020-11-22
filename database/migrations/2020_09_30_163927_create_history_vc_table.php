@@ -18,9 +18,9 @@ class CreateHistoryVcTable extends Migration
             $table->integer("room_id");
             $table->integer("user_id");
             $table->integer("tutor_id");
-            $table->integer("duration");
+            $table->integer("duration")->nullable()->default(0);
             $table->timestamps();
-            $table->date("deleted_at");
+            $table->date("deleted_at")->nullable();
         });
     }
 
