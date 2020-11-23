@@ -67,7 +67,8 @@ class DisbursementController extends Controller
 	        $data->save();
 
     		return response()->json([
-    			'status'	=> 'Success',
+                'status'	=> 'Success',
+                'data'      => $data,
     			'message'	=> 'Request Disbursement Sent'
     		], 201);
 
