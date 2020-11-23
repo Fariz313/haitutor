@@ -213,13 +213,13 @@ class DisbursementController extends Controller
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
-                'message'   =>  'Accept Disbursement Success'
+                'message'   =>  'Reject Disbursement Success'
             ], 201);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
-                'message'   =>  'Accept Disbursement Failed'
+                'message'   =>  'Reject Disbursement Failed'
             ], 500);
         }
     }
@@ -241,6 +241,28 @@ class DisbursementController extends Controller
                 'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
                 'message'   =>  'Get Latest Pending Disbursement Failed'
+            ], 500);
+        }
+    }
+
+    public function cancelDisbursement(Request $request, $id){
+        try {
+            $data               = Disbursement::where('id',$id)->first();
+            $data->status       = Disbursement::DisbursementStatus["REJECTED"];
+            $data->information  = "Dibatalkan oleh User";
+            $data->accepted_at  = date("Y-m-d H:i:s");
+            $data->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Cancel Disbursement Success'
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Cancel Disbursement Failed'
             ], 500);
         }
     }
