@@ -103,7 +103,14 @@ Route::middleware(['cors'])->group(function(){
         Route::delete('/{id}', 'ReportController@destroy');
     });
 
-    Route::get('/reportIssue', 'ReportController@getReportIssue');
+    Route::prefix('/reportIssue')->group(function()
+    {
+        Route::get('/', 'ReportController@getReportIssue');
+        Route::post('/', 'ReportController@insertReportIssue');
+        Route::get('/{id}', 'ReportController@getDetailReportIssue');
+        Route::put('/{id}', 'ReportController@updateReportIssue');
+        Route::delete('/{id}', 'ReportController@deleteReportIssue');
+    });
 
     Route::prefix('/disbursement')->group(function()
     {
@@ -114,6 +121,7 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/accept/{id}', 'DisbursementController@acceptDisbursement');
         Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');
         Route::get('/pending/latest', 'DisbursementController@getLatestPending');
+        Route::put('/cancel/{id}', 'DisbursementController@cancelDisbursement');
     });
 
     Route::middleware(['user.tutor'])->group(function(){
