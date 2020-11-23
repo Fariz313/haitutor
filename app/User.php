@@ -16,6 +16,11 @@ class User extends Authenticatable implements JWTSubject
         "STUDENT" => "student"
     );
 
+    const IS_RESTRICTED = array(
+        "TRUE"  => 1,
+        "FALSE" => 0
+    );
+
     /**
      * The attributes that are mass assignable.
      *

@@ -224,6 +224,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+            Route::put('/suspend/{id}', 'UserController@suspendUser');
+            Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
 
             Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');

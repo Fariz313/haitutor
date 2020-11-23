@@ -691,4 +691,46 @@ class UserController extends Controller
             ]);
         }
     }
+
+    public function suspendUser($id)
+    {
+        try {
+            $user               = User::findOrFail($id);
+            $user->isRestricted = User::IS_RESTRICTED["TRUE"];
+            $user->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Suspend User Succeeded',
+                'data'      =>  $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Suspend User Failed',
+                'data'      =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function unsuspendUser($id)
+    {
+        try {
+            $user               = User::findOrFail($id);
+            $user->isRestricted = User::IS_RESTRICTED["FALSE"];
+            $user->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Unsuspend User Succeeded',
+                'data'      =>  $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Unsuspend User Failed',
+                'data'      =>  $e->getMessage()
+            ]);
+        }
+    }
 }
