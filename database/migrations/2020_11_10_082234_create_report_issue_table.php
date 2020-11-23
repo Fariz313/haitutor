@@ -16,7 +16,7 @@ class CreateReportIssueTable extends Migration
         Schema::create('report_issue', function (Blueprint $table) {
             $table->id();
             $table->string('issue');
-            $table->integer('deleted');
+            $table->integer('deleted')->default(0);
             $table->timestamps();
         });
     }
