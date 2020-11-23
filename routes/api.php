@@ -99,6 +99,8 @@ Route::middleware(['cors'])->group(function(){
     {
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
+        Route::get('/{id}', 'ReportController@show');
+        Route::delete('/{id}', 'ReportController@destroy');
     });
 
     Route::get('/reportIssue', 'ReportController@getReportIssue');

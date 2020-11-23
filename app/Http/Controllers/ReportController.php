@@ -155,7 +155,22 @@ class ReportController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $data = Report::where('id',$id)->first();
+            $data->delete();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Delete Report Data Succeeded'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Delete Report Data Failed'
+            ]);
+        }
     }
 
     public function getReportIssue(Request $request)
