@@ -140,7 +140,7 @@ class DisbursementController extends Controller
 
     public function getDisbursementByUserId($userId){
         try {
-            $data = Disbursement::where('user_id',$userId)->paginate(10);
+            $data = Disbursement::where('user_id',$userId)->orderBy('created_at','DESC')->paginate(10);
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
