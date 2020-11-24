@@ -327,6 +327,27 @@ class TutorController extends Controller
         }
     }
 
+    public function updateDisbursementDoc(Request $request, $userId){
+        try {
+            $tutor              = TutorDetail::where('user_id', '=', $userId)->firstOrFail();
+            $tutor->nik         = $request->input('nik');
+            $tutor->no_rekening = $request->input('no_rekening');
+            $tutor->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Tutor Disbursement Info Updated',
+                'data'      =>  $tutor
+            ]);
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Tutor Disbursement Info Failed to Update',
+                'data'      =>  $e->getMessage()
+            ]);
+        }
+    }
+
     /**
      * Show the form for creating a new resource.
      *

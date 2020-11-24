@@ -122,6 +122,7 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');
         Route::get('/pending/latest', 'DisbursementController@getLatestPending');
         Route::put('/cancel/{id}', 'DisbursementController@cancelDisbursement');
+        Route::put('/info/{userId}', 'TutorController@updateDisbursementDoc');
     });
 
     Route::middleware(['user.tutor'])->group(function(){
