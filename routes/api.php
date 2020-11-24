@@ -279,6 +279,13 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/information/{id}','InformationController@getOne');
             Route::delete('/information/{id}','InformationController@destroy');
 
+            Route::get('/payment_method','PaymentMethodController@getAll');
+            Route::post('/payment_method','PaymentMethodController@store');
+            Route::put('/payment_method/{id}','PaymentMethodController@update');
+            Route::put('/payment_method/status/{id}','PaymentMethodController@updateStatus');
+            Route::get('/payment_method/{id}','PaymentMethodController@getOne');
+            Route::delete('/payment_method/{id}','PaymentMethodController@destroy');
+
             Route::get('/faq','FaqController@getAll');
             Route::post('/faq','FaqController@store');
             Route::put('/faq/{id}','FaqController@update');
