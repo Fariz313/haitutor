@@ -21,9 +21,12 @@ class ReportController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Report::select("report.*", "sender_table.name as sender_name")
-                                ->where("sender_table", "LIKE", "%".$query."%")
+                $data = Report::select("report.*")
+                                ->where("sender_table.name", "LIKE", "%".$query."%")
                                 ->join("users as sender_table", "sender_table.id", "=", "report.sender_id")
+                                ->with(array("reportIssue" => function ($query) {
+
+                                }))
                                 ->with(array("sender" => function ($query) {
                                     $query->select("id", 'name', 'email', 'role');
                                 }))
@@ -31,17 +34,6 @@ class ReportController extends Controller
                                     $query->select("id", 'name', 'email', 'role');
                                 }))
                                 ->paginate(10);
-                // $data = Report::where(function ($where) use ($query){
-                //     $where->where('coment','LIKE','%'.$query.'%');
-                // })
-                // ->with(array('reportIssue' => function ($query) {}))
-                // ->with(array('sender' => function ($query) {
-                //     $query->select("id", 'name', 'email', 'role');
-                // }))
-                // ->with(array('target' => function ($query) {
-                //     $query->select("id", 'name', 'email', 'role');
-                // }))
-                // ->paginate(10);
             }else{
                 $data = Report::with(array('reportIssue' => function ($query) {
 
