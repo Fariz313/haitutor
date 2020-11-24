@@ -21,17 +21,27 @@ class ReportController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Report::where(function ($where) use ($query){
-                    $where->where('coment','LIKE','%'.$query.'%');
-                })
-                ->with(array('reportIssue' => function ($query) {}))
-                ->with(array('sender' => function ($query) {
-                    $query->select("id", 'name', 'email', 'role');
-                }))
-                ->with(array('target' => function ($query) {
-                    $query->select("id", 'name', 'email', 'role');
-                }))
-                ->paginate(10);
+                $data = Report::select("report.*", "sender_table.name as sender_name")
+                                ->where("sender_table", "LIKE", "%".$query."%")
+                                ->join("users as sender_table", "sender_table.id", "=", "report.sender_id")
+                                ->with(array("sender" => function ($query) {
+                                    $query->select("id", 'name', 'email', 'role');
+                                }))
+                                ->with(array('target' => function ($query) {
+                                    $query->select("id", 'name', 'email', 'role');
+                                }))
+                                ->paginate(10);
+                // $data = Report::where(function ($where) use ($query){
+                //     $where->where('coment','LIKE','%'.$query.'%');
+                // })
+                // ->with(array('reportIssue' => function ($query) {}))
+                // ->with(array('sender' => function ($query) {
+                //     $query->select("id", 'name', 'email', 'role');
+                // }))
+                // ->with(array('target' => function ($query) {
+                //     $query->select("id", 'name', 'email', 'role');
+                // }))
+                // ->paginate(10);
             }else{
                 $data = Report::with(array('reportIssue' => function ($query) {
 
@@ -187,10 +197,11 @@ class ReportController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = ReportIssue::where(function ($where) use ($query){
-                    $where->where('coment','LIKE','%'.$query.'%');
+                    $where->where('issue','LIKE','%'.$query.'%')
+                          ->where("deleted", "0");
                 })->paginate(10);
             } else {
-                $data = ReportIssue::paginate(10);
+                $data = ReportIssue::where("deleted", "0")->paginate(10);
             }
 
             return response()->json([
