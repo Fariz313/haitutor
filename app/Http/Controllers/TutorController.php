@@ -78,13 +78,27 @@ class TutorController extends Controller
         return $data;
     }
     public function showTutor($id){
-        $data   =   User::where('role','tutor')
-                          ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                          'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
-                            ->groupBy('tutor_id');},))
+
+        try {
+
+            $data   =   User::where('role','tutor')
+                          ->with(array('detail','tutorSubject'=>function($query) {
+                              $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }, 'rating','avrating'=>function($query){
+                                $query->selectRaw('tutor_id,AVG(rate) average')->groupBy('tutor_id');
+                            }, "tutorDoc" => function ($query) {
+
+                            }))
                           ->findOrFail($id);
-        return $data;
+            return $data;
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>'failed',
+                'message'   => "failed to get tutor",
+                "data"      => $th->getMessage()
+            ],400);
+        }
     }
     public function getAllTutor(Request $request){
         $paginate = 10;
