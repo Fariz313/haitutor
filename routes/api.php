@@ -112,6 +112,9 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/accept/{id}', 'DisbursementController@acceptDisbursement');
         Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');
         Route::get('/pending/latest', 'DisbursementController@getLatestPending');
+        Route::put('/cancel/{id}', 'DisbursementController@cancelDisbursement');
+        Route::put('/info/{userId}', 'TutorController@updateDisbursementDoc');
+        Route::get('/request/check', 'DisbursementController@checkRequirements');
     });
 
     Route::middleware(['user.tutor'])->group(function(){

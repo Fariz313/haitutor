@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Disbursement;
 use App\Notification;
 use App\User;
+use App\TutorDetail;
+use App\TutorDoc;
 use Illuminate\Http\Request;
 use JWTAuth;
 use FCM;
@@ -241,6 +243,98 @@ class DisbursementController extends Controller
                 'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
                 'message'   =>  'Get Latest Pending Disbursement Failed'
+            ], 500);
+        }
+    }
+
+    public function cancelDisbursement(Request $request, $id){
+        try {
+            $data               = Disbursement::where('id',$id)->first();
+            $data->status       = Disbursement::DisbursementStatus["REJECTED"];
+            $data->information  = "Dibatalkan oleh User";
+            $data->accepted_at  = date("Y-m-d H:i:s");
+            $data->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Cancel Disbursement Success'
+            ], 201);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Cancel Disbursement Failed'
+            ], 500);
+        }
+    }
+
+    public function checkRequirements(){
+        // Requirements:
+        // 1. NIK and No Rek filled
+        // 2. KTP and No Rek Documents Uploaded
+
+        try {
+            $userId             = JWTAuth::parseToken()->authenticate()->id;
+
+            $isApplicable       = true;
+            $isKTPVerified      = false;
+            $isRekeningVerified = false;
+
+            $errorMsg           = "";
+            $userData           = User::where('id', $userId)
+                                        ->with(array(
+                                            'detail', 'tutorDoc'=>function($query) use ($userId){
+                                                $query->where(function($q) use ($userId) {
+                                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->where('tutor_id', $userId)->groupBy('type'));
+                                                });
+                                            }))->first();
+
+            foreach($userData->tutorDoc as $document){
+                if($document->type == TutorDoc::TutorDocType["KTP"] && $document->status == TutorDoc::TutorDocStatus["VERIFIED"]){
+                    $isKTPVerified = true;
+                } else if($document->type == TutorDoc::TutorDocType["NO_REKENING"] && $document->status == TutorDoc::TutorDocStatus["VERIFIED"]){
+                    $isRekeningVerified = true;
+                }
+            }
+
+            if($isApplicable && ($userData->detail->nik == null || $userData->detail->nik == "")){
+                $isApplicable   = false;
+                $data           = 1;
+                $errorMsg       = "NIK is Empty";
+            } else if($isApplicable && ($userData->detail->no_rekening == null || $userData->detail->no_rekening == "")){
+                $isApplicable   = false;
+                $data           = 2;
+                $errorMsg       = "No Rekening is Empty";
+            } else if($isApplicable && !$isKTPVerified){
+                $isApplicable   = false;
+                $data           = 3;
+                $errorMsg       = "KTP Document is Empty / Not Verified";
+            } else if($isApplicable && !$isRekeningVerified){
+                $isApplicable   = false;
+                $data           = 4;
+                $errorMsg       = "No Rekening Document is Empty / Not Verified";
+            }
+            
+            if($isApplicable){
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  0,
+                    'message'   =>  'No Error'
+                ], 201);
+            } else {
+                return response()->json([
+                    'status'    =>  'Failed',
+                    'data'      =>  $data,
+                    'message'   =>  $errorMsg
+                ], 500);
+            }
+            
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  $e->getMessage(),
+                'message'   =>  'Check Disbursement Requirements Error'
             ], 500);
         }
     }
