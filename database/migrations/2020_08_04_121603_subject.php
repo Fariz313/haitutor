@@ -13,10 +13,11 @@ class Subject extends Migration
      */
     public function up()
     {
-        Schema::create('Subject', function (Blueprint $table) {
+        Schema::create('subject', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->enum('type',['general','vocation']);
+            $table->text("icon_path");
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ class Subject extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('Subject');
+        Schema::dropIfExists('subject');
     }
 }

@@ -39,8 +39,8 @@ class CloudKilatHelper {
                 // // END REDUCE FILE
 
                 // CREATING FILENAME & DIRECTORY
-                // $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
-                $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
+                $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+                // $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
                 $directory = self::getEnvironment().$dir .'/'. $filename;
                 // END CREATING FILENAME & DIRECTORY
 
@@ -51,7 +51,8 @@ class CloudKilatHelper {
                 return $filename;
             }else if($file_type == "file"){
                // CREATING FILENAME & DIRECTORY
-                $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
+               $filename = md5(uniqid(rand(), true)) . '.' . $file_request->getClientOriginalExtension();
+                // $filename = $user_id.'_'.$file_request->getClientOriginalName().'_'.Str::random(3).'.'.$file_request->getClientOriginalExtension();
                $directory = self::getEnvironment().$dir .'/'. $filename;
                // END CREATING FILENAME & DIRECTORY
 

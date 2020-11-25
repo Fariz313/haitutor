@@ -99,8 +99,32 @@ Route::middleware(['cors'])->group(function(){
     {
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
+        Route::get('/{id}', 'ReportController@show');
+        Route::delete('/{id}', 'ReportController@destroy');
     });
-    Route::get('/reportIssue', 'ReportController@getReportIssue');
+
+    Route::prefix('/reportIssue')->group(function()
+    {
+        Route::get('/', 'ReportController@getReportIssue');
+        Route::post('/', 'ReportController@insertReportIssue');
+        Route::get('/{id}', 'ReportController@getDetailReportIssue');
+        Route::put('/{id}', 'ReportController@updateReportIssue');
+        Route::delete('/{id}', 'ReportController@deleteReportIssue');
+    });
+
+    Route::prefix('/disbursement')->group(function()
+    {
+        Route::get('/', 'DisbursementController@index');
+        Route::get('/{id}', 'DisbursementController@show');
+        Route::post('/request', 'DisbursementController@store');
+        Route::get('/user/{userId}', 'DisbursementController@getDisbursementByUserId');
+        Route::put('/accept/{id}', 'DisbursementController@acceptDisbursement');
+        Route::put('/reject/{id}', 'DisbursementController@rejectDisbursement');
+        Route::get('/pending/latest', 'DisbursementController@getLatestPending');
+        Route::put('/cancel/{id}', 'DisbursementController@cancelDisbursement');
+        Route::put('/info/{userId}', 'TutorController@updateDisbursementDoc');
+        Route::get('/request/check', 'DisbursementController@checkRequirements');
+    });
 
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
@@ -209,9 +233,11 @@ Route::middleware(['cors'])->group(function(){
         Route::middleware(['admin.general'])->group(function(){
             Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
             Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
-            Route::get('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
-            Route::get('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
+            Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
+            Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+            Route::put('/suspend/{id}', 'UserController@suspendUser');
+            Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
 
             Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');
@@ -254,6 +280,13 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/information/{id}','InformationController@update');
             Route::get('/information/{id}','InformationController@getOne');
             Route::delete('/information/{id}','InformationController@destroy');
+
+            Route::get('/payment_method','PaymentMethodController@getAll');
+            Route::post('/payment_method','PaymentMethodController@store');
+            Route::put('/payment_method/{id}','PaymentMethodController@update');
+            Route::put('/payment_method/status/{id}','PaymentMethodController@updateStatus');
+            Route::get('/payment_method/{id}','PaymentMethodController@getOne');
+            Route::delete('/payment_method/{id}','PaymentMethodController@destroy');
 
             Route::get('/faq','FaqController@getAll');
             Route::post('/faq','FaqController@store');

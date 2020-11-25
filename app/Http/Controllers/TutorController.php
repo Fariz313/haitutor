@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\TutorDetail;
+use App\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
+use FCM;
 
 class TutorController extends Controller
 {
@@ -76,13 +78,27 @@ class TutorController extends Controller
         return $data;
     }
     public function showTutor($id){
-        $data   =   User::where('role','tutor')
-                          ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                          'rating','avrating'=>function($query){$query->selectRaw('tutor_id,AVG(rate) average')
-                            ->groupBy('tutor_id');},))
+
+        try {
+
+            $data   =   User::where('role','tutor')
+                          ->with(array('detail','tutorSubject'=>function($query) {
+                              $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }, 'rating','avrating'=>function($query){
+                                $query->selectRaw('tutor_id,AVG(rate) average')->groupBy('tutor_id');
+                            }, "tutorDoc" => function ($query) {
+
+                            }))
                           ->findOrFail($id);
-        return $data;
+            return $data;
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>'failed',
+                'message'   => "failed to get tutor",
+                "data"      => $th->getMessage()
+            ],400);
+        }
     }
     public function getAllTutor(Request $request){
         $paginate = 10;
@@ -206,16 +222,30 @@ class TutorController extends Controller
     {
         try {
             $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
-            $tutor->status  = "verified";
+            $tutor->status  = TutorDetail::TutorStatus["VERIFIED"];
             $tutor->save();
+
+            $userTutor      = User::findOrFail($id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan verifikasi akun Anda disetujui. Akun Anda telah terverifikasi",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'message'   =>  'Success verify tutor',
                 'data'      =>  $tutor
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'message'   =>  'Failed to verify tutor',
                 'data'      =>  $th->getMessage()
             ]);
@@ -226,16 +256,30 @@ class TutorController extends Controller
     {
         try {
             $tutor          = TutorDetail::where('user_id', '=', $id)->firstOrFail();
-            $tutor->status  = 'unverified';
+            $tutor->status  = TutorDetail::TutorStatus["UNVERIFIED"];
             $tutor->save();
+
+            $userTutor      = User::findOrFail($id);
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => "Pengajuan verifikasi akun Anda ditolak. Silahkan melakukan pengajuan ulang",
+                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                "target_id" => $id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[8],
+                'token_recipient' => $userTutor->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'message'   =>  'Success unverify tutor',
                 'data'      =>  $tutor
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'message'   =>  'Failed to unverify tutor',
                 'data'      =>  $th->getMessage()
             ]);
@@ -279,6 +323,27 @@ class TutorController extends Controller
                 'status'    =>  'failed',
                 'data'      =>  'No Data Picked',
                 'message'   =>  $th
+            ]);
+        }
+    }
+
+    public function updateDisbursementDoc(Request $request, $userId){
+        try {
+            $tutor              = TutorDetail::where('user_id', '=', $userId)->firstOrFail();
+            $tutor->nik         = $request->input('nik');
+            $tutor->no_rekening = $request->input('no_rekening');
+            $tutor->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Tutor Disbursement Info Updated',
+                'data'      =>  $tutor
+            ]);
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Tutor Disbursement Info Failed to Update',
+                'data'      =>  $e->getMessage()
             ]);
         }
     }

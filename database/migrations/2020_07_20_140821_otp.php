@@ -17,6 +17,7 @@ class Otp extends Migration
             $table->id();
             $table->integer('user_id');
             $table->string('user_ip');
+            $table->string("device_id");
             $table->enum('type', ['verification', 'reset password']);
             $table->string('otp');
             $table->enum('status', ['pending','completed','failed']);

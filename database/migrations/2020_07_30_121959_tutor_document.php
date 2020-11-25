@@ -15,11 +15,13 @@ class TutorDocument extends Migration
     {
         Schema::create('tutor_doc', function (Blueprint $table) {
             $table->id();
-            $table->string('Name');
+            $table->string('name');
             $table->integer('tutor_id');
             $table->string('file');
-            $table->enum('type',['ijazah','skhu','certificate','other']);
-            $table->enum('status',['unverified','verified']);
+            $table->enum('type',['ijazah','skhu','certificate','ktp','no_rekening','other']);
+            $table->enum('status',['unverified','verified','pending']);
+            $table->string('information')->nullable();
+            $table->datetime('accepted_at')->nullable();
             $table->timestamps();
         });
     }

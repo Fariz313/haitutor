@@ -16,15 +16,15 @@ class Order extends Migration
         Schema::create('order', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->integer('package_id');
+            $table->integer('package_id')->default(0);
             $table->integer('method_id')->nullable();
-            $table->string('invoice');
-            $table->string('va_number')->nullable();
+            $table->string('invoice')->nullable();
+            $table->text('va_number')->nullable();
             $table->string('proof')->nullable();
-            $table->string('detail')->nullable();
+            $table->text('detail')->nullable();
             $table->integer('amount')->nullable();
             $table->integer('pos')->nullable();
-            $table->integer('type_code')->nullable();    
+            $table->integer('type_code')->nullable();
             $table->enum('status',['pending','failed','completed']);
             $table->timestamps();
         });

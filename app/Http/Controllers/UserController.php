@@ -14,6 +14,7 @@ use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
 use App\Helpers\CloudKilatHelper;
+use Kreait\Firebase\Auth;
 
 class UserController extends Controller
 {
@@ -485,6 +486,15 @@ class UserController extends Controller
             $user = User::where('email',$request->email)->first();
             $user->password = $pw;
             $user->save();
+
+            $email = $request->email;
+
+            // Change password firebase
+            $auth = app('firebase.auth');
+            $user = $auth->getUserByEmail($email);
+            $auth->changeUserPassword($user->uid, $password);
+            // End of change password firebase
+
         }catch(\throwable $e){
             return response()->json([
                 'status'    => 'failed',
@@ -688,6 +698,48 @@ class UserController extends Controller
                 'status'    =>  'Failed',
                 'message'   =>  'Request Verification Failed',
                 'data'      =>  $th->getMessage()
+            ]);
+        }
+    }
+
+    public function suspendUser($id)
+    {
+        try {
+            $user               = User::findOrFail($id);
+            $user->isRestricted = User::IS_RESTRICTED["TRUE"];
+            $user->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Suspend User Succeeded',
+                'data'      =>  $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Suspend User Failed',
+                'data'      =>  $e->getMessage()
+            ]);
+        }
+    }
+
+    public function unsuspendUser($id)
+    {
+        try {
+            $user               = User::findOrFail($id);
+            $user->isRestricted = User::IS_RESTRICTED["FALSE"];
+            $user->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Unsuspend User Succeeded',
+                'data'      =>  $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'Unsuspend User Failed',
+                'data'      =>  $e->getMessage()
             ]);
         }
     }
