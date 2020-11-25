@@ -96,7 +96,9 @@ class DisbursementController extends Controller
     public function show($id)
     {
         try {
-            $data = Disbursement::where('id',$id)->first();
+            $data = Disbursement::where('id',$id)->with(array("user" => function ($query) {
+                $query->select("id", "email", "name", "role");
+            }))->first();
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
