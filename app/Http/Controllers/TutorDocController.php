@@ -325,5 +325,127 @@ class TutorDocController extends Controller
         }
     }
 
+    public function verifyingAllDoc($userId)
+    {
+        try {
+            $allDocsUser        = TutorDoc::where('tutor_id', $userId)->where('status', TutorDoc::TutorDocStatus["PENDING"])->get();
+
+            foreach($allDocsUser as $document){
+                $document->status       = TutorDoc::TutorDocStatus["VERIFIED"];
+                $document->information  = "";
+                $document->save();
+
+                $userTutor      = User::findOrFail($userId);
+
+                $docName        = "";
+                switch ($document->type) {
+                    case TutorDoc::TutorDocType["IJAZAH"]:
+                        $docName = "Ijazah ";
+                    break;
+                    case TutorDoc::TutorDocType["CV"]:
+                        $docName = "CV ";
+                    break;
+                    case TutorDoc::TutorDocType["CERTIFICATE"]:
+                        $docName = "Sertifikat ";
+                    break;
+                    case TutorDoc::TutorDocType["KTP"]:
+                        $docName = "KTP ";
+                    break;
+                    case TutorDoc::TutorDocType["NO_REKENING"]:
+                        $docName = "Buku Rekening ";
+                    break;
+                    default:
+                    $docName = "";
+                }
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => "Dokumen " . $docName . "Anda telah disetujui",
+                    "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                    "target_id" => $userTutor->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[10],
+                    'token_recipient' => $userTutor->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+            }
+
+            return response()->json([
+                "status"    =>   'Success',
+                "message"   =>   'All Document Verified'
+            ]);
+
+            return $allDocsUser;
+
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    =>   'Failed',
+                "message"   =>   'All Document Verification Failed',
+                "error"     =>   $e->getMessage()
+            ]);
+        }
+    }
+
+    public function unverifyingAllDoc($userId)
+    {
+        try {
+            $allDocsUser        = TutorDoc::where('tutor_id', $userId)->where('status', TutorDoc::TutorDocStatus["PENDING"])->get();
+
+            foreach($allDocsUser as $document){
+                $document->status       = TutorDoc::TutorDocStatus["UNVERIFIED"];
+                $document->information  = "";
+                $document->save();
+
+                $userTutor      = User::findOrFail($userId);
+
+                $docName        = "";
+                switch ($document->type) {
+                    case TutorDoc::TutorDocType["IJAZAH"]:
+                        $docName = "Ijazah ";
+                    break;
+                    case TutorDoc::TutorDocType["CV"]:
+                        $docName = "CV ";
+                    break;
+                    case TutorDoc::TutorDocType["CERTIFICATE"]:
+                        $docName = "Sertifikat ";
+                    break;
+                    case TutorDoc::TutorDocType["KTP"]:
+                        $docName = "KTP ";
+                    break;
+                    case TutorDoc::TutorDocType["NO_REKENING"]:
+                        $docName = "Buku Rekening ";
+                    break;
+                    default:
+                    $docName = "";
+                }
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => "Dokumen " . $docName . "Anda telah ditolak",
+                    "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                    "target_id" => $userTutor->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[10],
+                    'token_recipient' => $userTutor->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+            }
+
+            return response()->json([
+                "status"    =>   'Success',
+                "message"   =>   'All Document Unverified'
+            ]);
+
+            return $allDocsUser;
+
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    =>   'Failed',
+                "message"   =>   'All Document Unverification Failed',
+                "error"     =>   $e->getMessage()
+            ]);
+        }
+    }
+
 
 }

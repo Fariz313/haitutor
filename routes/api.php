@@ -238,6 +238,8 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
             Route::put('/suspend/{id}', 'UserController@suspendUser');
             Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+            Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
+            Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
 
             Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');

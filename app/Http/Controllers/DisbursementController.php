@@ -331,13 +331,13 @@ class DisbursementController extends Controller
                     'status'    =>  'Success',
                     'data'      =>  0,
                     'message'   =>  'No Error'
-                ], 201);
+                ], 200);
             } else {
                 return response()->json([
                     'status'    =>  'Failed',
                     'data'      =>  $data,
                     'message'   =>  $errorMsg
-                ], 500);
+                ], 200);
             }
             
         } catch(\Exception $e){
