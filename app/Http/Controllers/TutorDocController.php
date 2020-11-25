@@ -84,6 +84,7 @@ class TutorDocController extends Controller
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
             $data->status       = TutorDoc::TutorDocStatus["PENDING"];
+            $data->information  = "";
             $data->tutor_id     = $user->id;
 
             $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
@@ -156,6 +157,7 @@ class TutorDocController extends Controller
             $data->name         = $request->input('name');
             $data->type         = $request->input('type');
             $data->status       = TutorDoc::TutorDocStatus["PENDING"];
+            $data->information  = "";
             $data->tutor_id     = $user->id;
 
             CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
@@ -215,8 +217,9 @@ class TutorDocController extends Controller
     public function verifyingDoc($id)
     {
         try {
-            $data           = TutorDoc::findOrFail($id);
-            $data->status   = TutorDoc::TutorDocStatus["VERIFIED"];
+            $data               = TutorDoc::findOrFail($id);
+            $data->status       = TutorDoc::TutorDocStatus["VERIFIED"];
+            $data->information  = "";
             $data->save();
 
             $userTutor      = User::findOrFail($data->tutor_id);
