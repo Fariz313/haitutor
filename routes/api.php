@@ -99,9 +99,18 @@ Route::middleware(['cors'])->group(function(){
     {
         Route::get('/', 'ReportController@index');
         Route::post('/', 'ReportController@store');
+        Route::get('/{id}', 'ReportController@show');
+        Route::delete('/{id}', 'ReportController@destroy');
     });
 
-    Route::get('/reportIssue', 'ReportController@getReportIssue');
+    Route::prefix('/reportIssue')->group(function()
+    {
+        Route::get('/', 'ReportController@getReportIssue');
+        Route::post('/', 'ReportController@insertReportIssue');
+        Route::get('/{id}', 'ReportController@getDetailReportIssue');
+        Route::put('/{id}', 'ReportController@updateReportIssue');
+        Route::delete('/{id}', 'ReportController@deleteReportIssue');
+    });
 
     Route::prefix('/disbursement')->group(function()
     {
@@ -227,6 +236,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
             Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+            Route::put('/suspend/{id}', 'UserController@suspendUser');
+            Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
 
             Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');
@@ -269,6 +280,13 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/information/{id}','InformationController@update');
             Route::get('/information/{id}','InformationController@getOne');
             Route::delete('/information/{id}','InformationController@destroy');
+
+            Route::get('/payment_method','PaymentMethodController@getAll');
+            Route::post('/payment_method','PaymentMethodController@store');
+            Route::put('/payment_method/{id}','PaymentMethodController@update');
+            Route::put('/payment_method/status/{id}','PaymentMethodController@updateStatus');
+            Route::get('/payment_method/{id}','PaymentMethodController@getOne');
+            Route::delete('/payment_method/{id}','PaymentMethodController@destroy');
 
             Route::get('/faq','FaqController@getAll');
             Route::post('/faq','FaqController@store');

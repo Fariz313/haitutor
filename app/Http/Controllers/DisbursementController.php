@@ -23,9 +23,16 @@ class DisbursementController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Disbursement::paginate(10);
+                $data = Disbursement::select("disbursement.*")
+                                       ->where("user_table.name", "LIKE", "%".$query."%")
+                                       ->join("users as user_table", "user_table.id", "=", "disbursement.user_id")
+                                       ->with(array("user" => function ($query) {
+                                            $query->select("id", "email", "name", "role");
+                                        }))->paginate(10);
             }else{
-                $data = Disbursement::paginate(10);
+                $data = Disbursement::with(array("user" => function ($query) {
+                    $query->select("id", "email", "name", "role");
+                }))->paginate(10);
             }
 
             return response()->json([
@@ -69,7 +76,8 @@ class DisbursementController extends Controller
 	        $data->save();
 
     		return response()->json([
-    			'status'	=> 'Success',
+                'status'	=> 'Success',
+                'data'      => $data,
     			'message'	=> 'Request Disbursement Sent'
     		], 201);
 
@@ -90,7 +98,9 @@ class DisbursementController extends Controller
     public function show($id)
     {
         try {
-            $data = Disbursement::where('id',$id)->first();
+            $data = Disbursement::where('id',$id)->with(array("user" => function ($query) {
+                $query->select("id", "email", "name", "role");
+            }))->first();
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -141,7 +151,7 @@ class DisbursementController extends Controller
 
     public function getDisbursementByUserId($userId){
         try {
-            $data = Disbursement::where('user_id',$userId)->paginate(10);
+            $data = Disbursement::where('user_id',$userId)->orderBy('created_at','DESC')->paginate(10);
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -215,13 +225,13 @@ class DisbursementController extends Controller
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
-                'message'   =>  'Accept Disbursement Success'
+                'message'   =>  'Reject Disbursement Success'
             ], 201);
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'Failed',
                 'data'      =>  'No Data Picked',
-                'message'   =>  'Accept Disbursement Failed'
+                'message'   =>  'Reject Disbursement Failed'
             ], 500);
         }
     }

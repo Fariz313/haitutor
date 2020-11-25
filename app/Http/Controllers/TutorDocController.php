@@ -267,11 +267,12 @@ class TutorDocController extends Controller
         }
     }
 
-    public function unverifyingDoc($id)
+    public function unverifyingDoc(Request $request, $id)
     {
         try {
-            $data           = TutorDoc::findOrFail($id);
-            $data->status   = TutorDoc::TutorDocStatus["UNVERIFIED"];
+            $data               = TutorDoc::findOrFail($id);
+            $data->status       = TutorDoc::TutorDocStatus["UNVERIFIED"];
+            $data->information  = $request->input('information');
             $data->save()   ;
 
             $userTutor      = User::findOrFail($data->tutor_id);

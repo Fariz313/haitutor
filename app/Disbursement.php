@@ -21,4 +21,9 @@ class Disbursement extends Model
     ];
 
     protected $table = 'disbursement';
+
+    public function user()
+    {
+        return $this->belongsTo("App\User", "user_id", "id");
+    }
 }
