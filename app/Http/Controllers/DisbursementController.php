@@ -21,9 +21,16 @@ class DisbursementController extends Controller
         try {
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = Disbursement::paginate(10);
+                $data = Disbursement::select("disbursement.*")
+                                       ->where("user_table.name", "LIKE", "%".$query."%")
+                                       ->join("users as user_table", "user_table.id", "=", "disbursement.user_id")
+                                       ->with(array("user" => function ($query) {
+                                            $query->select("id", "email", "name", "role");
+                                        }))->paginate(10);
             }else{
-                $data = Disbursement::paginate(10);
+                $data = Disbursement::with(array("user" => function ($query) {
+                    $query->select("id", "email", "name", "role");
+                }))->paginate(10);
             }
 
             return response()->json([
