@@ -24,16 +24,14 @@ class RatingController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
 
-                $data = Rating::select("rating.*", "user_table.name as user_name")
-                        ->where("user_name", "LIKE", "%".$query."%")
-                        ->join("users as user_table", "user_table.id", "=", "rating.target_id")
+                $data = Rating::where("users.name", "LIKE", "%".$query."%")
+                        ->join("users", "users.id", "=", "rating.target_id")
+                        ->groupBy('target_id')
+                        ->selectRaw("target_id,AVG(rate) average")
+                        ->with(array("target" => function ($query) {
+                            $query->select("id", "email", "name", "role");
+                        }))
                         ->paginate(10);
-
-                // $data = Rating::where(function ($where) use ($query){
-                //     $where->where('coment','LIKE','%'.$query.'%');
-                // })->with(array("target" => function ($query) {
-                //     $query->select("id", "email", "name", "role");
-                // }))->groupBy('target')->avg('rate')->paginate(10);
             }else{
                 $data = Rating::selectRaw('target_id,AVG(rate) average')
                 ->with(array("target" => function ($query) {
