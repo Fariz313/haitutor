@@ -27,13 +27,13 @@ class RatingController extends Controller
                 $data = Rating::where("users.name", "LIKE", "%".$query."%")
                         ->join("users", "users.id", "=", "rating.target_id")
                         ->groupBy('target_id')
-                        ->selectRaw("target_id,AVG(rate) average, max(rating.id) as id")
+                        ->selectRaw("target_id,ROUND(AVG(rate), 1) average, max(rating.id) as id")
                         ->with(array("target" => function ($query) {
                             $query->select("id", "email", "name", "role");
                         }))
                         ->paginate(10);
             }else{
-                $data = Rating::selectRaw('target_id,AVG(rate) average, max(id) as id')
+                $data = Rating::selectRaw('target_id,ROUND(AVG(rate), 1) average, max(id) as id')
                 ->with(array("target" => function ($query) {
                     $query->select("id", "email", "name", "role");
                 }))
