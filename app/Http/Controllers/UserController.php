@@ -743,4 +743,37 @@ class UserController extends Controller
             ]);
         }
     }
+
+    public function checkUserIsRestricted()
+    {
+        try {
+
+            $user           = JWTAuth::parseToken()->authenticate();
+
+            if ($user->isRestricted == User::IS_RESTRICTED["TRUE"]) {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'User restricted',
+                    'data'      =>  [
+                        "is_restricted"  => User::IS_RESTRICTED["TRUE"]
+                        ]
+                    ], 200);
+            } else {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'User not restricted',
+                    'data'      =>  [
+                            "is_restricted"  => User::IS_RESTRICTED["FALSE"]
+                        ]
+                    ], 200);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'failed to fetch user restricted status',
+                'data'      =>  $th->getMessage()
+            ], 400);
+        }
+    }
 }
