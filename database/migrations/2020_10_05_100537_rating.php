@@ -15,8 +15,8 @@ class Rating extends Migration
     {
         Schema::create('rating', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('tutor_id');
+            $table->integer('sender_id');
+            $table->integer('sender_id');
             $table->text('comment');
             $table->integer('rate');
             $table->timestamps();
