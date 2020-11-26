@@ -399,7 +399,7 @@ class UserController extends Controller
                             }
                             , 'tutorDoc'=>function($query) use ($userId){
                                 $query->where(function($q) use ($userId) {
-                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->where('target_id', $userId)->groupBy('type'));
+                                    $q->whereIn('id', $q->selectRaw('MAX(id)')->where('tutor_id', $userId)->groupBy('type'));
                                 });
                             }
                             ))->first();
