@@ -39,6 +39,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
 
     Route::get('rating', 'RatingController@index');
+    Route::get('rating/{id}', 'RatingController@show');
     Route::post('rating/{id}', 'RatingController@store');
     Route::delete('rating/{id}', 'RatingController@delete');
     Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
