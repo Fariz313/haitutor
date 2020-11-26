@@ -88,8 +88,8 @@ class RatingController extends Controller
 
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            $ratingExist = Rating::where('sender', $current_user->id)
-                                 ->where('target', $id)
+            $ratingExist = Rating::where('sender_id', $current_user->id)
+                                 ->where('target_id', $id)
                                  ->first();
 
             if ($ratingExist) {
@@ -103,13 +103,13 @@ class RatingController extends Controller
                 DB::beginTransaction();
 
                 $data                  = new Rating();
-                $data->user_id         = $current_user->id;
-                $data->tutor_id        = $id;
+                $data->sender_id         = $current_user->id;
+                $data->target_id       = $id;
                 $data->comment         = $request->input('comment');
                 $data->rate            = $request->input('rate');
                 $data->save();
 
-                $recount_average_rating = Rating::where("target", $id)->avg('rate');
+                $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
                 $user->total_rating = round($recount_average_rating, 1);
                 $user->save();
 
@@ -136,8 +136,8 @@ class RatingController extends Controller
         try {
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            $ratingExist = Rating::where('sender', $current_user->id)
-                                 ->where('target', $user_id)
+            $ratingExist = Rating::where('sender_id', $current_user->id)
+                                 ->where('target_id', $user_id)
                                  ->first();
 
             if ($ratingExist) {
@@ -170,7 +170,13 @@ class RatingController extends Controller
     public function show($id)
     {
         try {
-            $data = Rating::where('id',$id)->first();
+            $data = Rating::where('id',$id)
+                    ->with(array("sender" => function ($query) {
+                        $query->select("id", "email", "name", "role");
+                    }))
+                    ->with(array("target" => function ($query) {
+                        $query->select("id", "email", "name", "role");
+                    }))->firstOrFail();
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -192,7 +198,7 @@ class RatingController extends Controller
     {
         try {
 
-            $allRating = Rating::where('sender', $user_id)
+            $allRating = Rating::where('sender_id', $user_id)
                                 ->with(array("sender" => function ($query) {
                                     $query->select("id", "email", "name", "role");
                                 }))
@@ -225,7 +231,7 @@ class RatingController extends Controller
     {
         try {
 
-            $allRating = Rating::where('target', $user_id)
+            $allRating = Rating::where('target_id', $user_id)
                                 ->with(array("sender" => function ($query) {
                                     $query->select("id", "email", "name", "role");
                                 }))
