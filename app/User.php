@@ -57,11 +57,11 @@ class User extends Authenticatable implements JWTSubject
     }
     public function rating()
     {
-        return $this->hasMany('App\Rating','tutor_id','id');
+        return $this->hasMany('App\Rating','target_id','id');
     }
     public function avrating()
     {
-        return $this->hasMany('App\Rating','tutor_id','id');
+        return $this->hasMany('App\Rating','target_id','id');
     }
     public function tutorDoc()
     {
