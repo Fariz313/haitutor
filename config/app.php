@@ -231,6 +231,8 @@ return [
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'FCM' => App\Helpers\FirebaseNotification::class,
+        'OTPModel' => App\Otp::class,
+
 
     ],
 

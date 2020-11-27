@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['cors'])->group(function(){
 
-
     Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
