@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['cors'])->group(function(){
 
+    Route::get('show-otp', "OtpController@showOtp");
 
     Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');

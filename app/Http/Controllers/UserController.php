@@ -504,9 +504,18 @@ class UserController extends Controller
         try{
         Mail::send([], [], function ($message) use ($request, $pw,$password)
         {
-            $message->subject('Contoh Otp');
+            $message->subject('Kode OTP Akun Hai Tutor');
             $message->to($request->email);
-            $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$password.'</b></h1>','text/html');
+            $view = View::make('otpVerification', [
+                'otp' => $otp,
+                "otp_title" => "Reset Password",
+                "otp_message" => "Anda mengajukan reset password, berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda ",
+                "otp_type" => "otp"
+            ]);
+
+            $html = $view->render();
+            $message->setBody($html,'text/html');
+            // $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$password.'</b></h1>','text/html');
 
         });
         }catch(\throwable $e){
