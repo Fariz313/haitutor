@@ -16,6 +16,7 @@ use App\TutorDetail;
 use App\Helpers\CloudKilatHelper;
 use App\Otp;
 use Kreait\Firebase\Auth;
+use View;
 
 class UserController extends Controller
 {
