@@ -42,6 +42,27 @@ class Order extends Model
         "VC", "BK", "OV"
     );
 
+    const PAYMENT = array(
+        "DUITKU"    => array(
+            "PRODUCTION"    => array(
+                "MERCHANT_CODE" => "D4709",
+                "MERCHANT_KEY"  => "842145221e885c65e84ecc91084e757e",
+                "RETURN_URL"    => "https://haitutor.id/backend-educhat/api/callback",
+                "CALLBACK_URL"  => "https://haitutor.id/backend-educhat/api/callback"
+            ),
+            "DEVELOPMENT"   => array(
+                "MERCHANT_CODE" => "D7176",
+                "MERCHANT_KEY"  => "e5739c71cb0ed538c749e127233e2c12",
+                "RETURN_URL"    => "https://haitutor.id/backend-educhat-dev/api/callback",
+                "CALLBACK_URL"  => "https://haitutor.id/backend-educhat-dev/api/callback"
+            )
+        ),
+        "MIDTRANS"  => array(
+            "PRODUCTION"    => "",
+            "DEVELOPMENT"   => ""
+        )
+    );
+
     public function package()
     {
         return $this->hasOne('App\Package','id','package_id');
