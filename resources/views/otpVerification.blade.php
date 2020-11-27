@@ -57,7 +57,7 @@
                         <tr>
                             <td align="center" valign="top" style="padding: 40px 10px 40px 10px;">
                                 <a href="https://haitutor.id" target="_blank">
-                                    <img alt="Logo" src="http://haitutor.id/backend-educhat/temp/haitutor-wtext.png" width="169" height="40" style="display: block; width: 169px; max-width: 169px; min-width: 169px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;" border="0">
+                                    <img alt="Logo" src="http://haitutor.id/backend-educhat/temp/haitutor-wtext.png" width="50" height="50" style="display: block; width: 169px; max-width: 100; min-width: 10; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;" border="0">
                                 </a>
                             </td>
                         </tr>
@@ -79,8 +79,8 @@
                     <![endif]-->
                     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" >
                         <tr>
-                            <td bgcolor="#ffffff" align="center" valign="top" style="padding: 30px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; letter-spacing: 4px; line-height: 48px;">
-                              <h1 style="font-size: 28px; font-weight: 400; margin: 0; letter-spacing: 0px;">{{ $otp_title }}</h1>
+                            <td bgcolor="#ffffff" align="center" valign="top" style="padding: 30px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: Helvetica, Arial, sans-serif; font-size: 36px; font-weight: 400; letter-spacing: 4px; line-height: 48px;">
+                              <h1 style="font-size: 25px; font-weight: 400; margin: 0; letter-spacing: 0px;">{{ $otp_title }}</h1>
                             </td>
                         </tr>
                     </table>
@@ -102,7 +102,7 @@
                     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" >
                       <!-- COPY -->
                       <tr>
-                        <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 0px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
+                        <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 0px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
                           <p style="margin: 0;"> {{ $otp_message }}</p>
                         </td>
                       </tr>
@@ -124,7 +124,7 @@
 
                             @else
                                 <tr>
-                                    <td bgcolor="#ffffff" align="center" style="padding: 0px 30px 60px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
+                                    <td bgcolor="#ffffff" align="center" style="padding: 0px 30px 60px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
                                     <p style="margin: 0;"><b> Jangan berikan KODE OTP kepada siapapun </b></p>
                                     </td>
                                 </tr>
@@ -146,13 +146,13 @@
                         </tr> --}}
                       <!-- COPY -->
                       <tr>
-                        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
+                        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
                           <p style="margin: 0;"> {{ $otp_action_user}}</p>
                         </td>
                       </tr>
                       <!-- COPY -->
                       <tr>
-                        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
+                        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
                           <p style="margin: 0;">Salam,<br>Tim HaiTutor.</p>
                         </td>
                       </tr>
