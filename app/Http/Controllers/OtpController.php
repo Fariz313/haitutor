@@ -97,7 +97,7 @@ class OtpController extends Controller
                             Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
                             Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
                             Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
-                            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :"
+                            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan verifikasi email. Berikut Kode OTP untuk verifikasi email Anda:"
                         ]);
 
                         $html = $view->render();
@@ -300,7 +300,34 @@ class OtpController extends Controller
             Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
             Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
             Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
-            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :"
+            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan verifikasi email. berikut Kode OTP untuk verifikasi email Anda:"
+            ]);
+    }
+
+    public function showPasswordOtp(){
+
+        $data = Information::get();
+
+        foreach ($data as $key) {
+            if ($key->variable == "no_telp") {
+                $no_telp = $key->value;
+            }
+
+            if ($key->variable == "alamat") {
+                $alamat = $key->value;
+            }
+
+        }
+
+        $otp = '8291821';
+        return view('otpVerification', [
+            Otp::OTP_PAYLOAD["OTP"] => $otp,
+            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["RESET_PASSWORD"],
+            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut: ",
+            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password, berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda."
             ]);
     }
 }
