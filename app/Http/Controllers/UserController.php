@@ -528,13 +528,8 @@ class UserController extends Controller
                     Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["RESET_PASSWORD"],
                     Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
                     Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
-                    Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi admin melalui link berikut https://wa.me/$no_telp",
-                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda mengajukan reset password, berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda",
-
-                    // 'otp' => $password,
-                    // "otp_title" => "Reset Password",
-                    // "otp_message" => "Anda mengajukan reset password, berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda ",
-                    // "otp_type" => "otp"
+                    Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut:",
+                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda",
                 ]);
 
                 $html = $view->render();

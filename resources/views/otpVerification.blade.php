@@ -57,7 +57,7 @@
                         <tr>
                             <td align="center" valign="top" style="padding: 40px 10px 40px 10px;">
                                 <a href="https://haitutor.id" target="_blank">
-                                    <img alt="Logo" src="http://haitutor.id/backend-educhat/temp/haitutor-wtext.png" width="50" height="50" style="display: block; width: 169px; max-width: 100; min-width: 10; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;" border="0">
+                                    <img alt="Logo" src="http://haitutor.id/backend-educhat/temp/haitutor-wtext.png" width="50" height="50" style="display: block; width: 75px; max-width: 75; min-width: 10; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;" border="0">
                                 </a>
                             </td>
                         </tr>
@@ -111,10 +111,10 @@
                         <td bgcolor="#ffffff" align="left">
                           <table width="100%" border="0" cellspacing="0" cellpadding="0">
                             <tr>
-                              <td bgcolor="#ffffff" align="center" style="padding: 15px 30px 15px 30px;">
+                              <td bgcolor="#ffffff" align="center" style="padding: 25px 30px 10px 30px;">
                                 <table border="0" cellspacing="0" cellpadding="0">
                                   <tr>
-                                      <td align="center" style="border-radius: 3px;" bgcolor="#ffffff"> <p style="font-size: 30px; font-family: Helvetica, Arial, sans-serif; color: #000000; text-decoration: none; color: #000000; text-decoration: none; padding: 0px 20px 0px 20px; border-radius: 2px; border: 1px solid #ffffff; display: inline-block;"> <b>{{ $otp }}</b>  </p> </td>
+                                      <td align="center" style="border-radius: 3px;" bgcolor="#ffffff"> <p style="font-size: 30px; font-family: Helvetica, Arial, sans-serif; color: #000000; text-decoration: none; color: #000000; text-decoration: none; padding: 0px 20px 0px 20px; border-radius: 2px; border: 1px solid #ffffff;"> <b>{{ $otp }}</b>  </p> </td>
                                   </tr>
                                 </table>
                               </td>
@@ -124,7 +124,7 @@
 
                             @else
                                 <tr>
-                                    <td bgcolor="#ffffff" align="center" style="padding: 0px 30px 60px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
+                                    <td bgcolor="#ffffff" align="center" style="padding: 0px 30px 0px 30px;color: #666666;font-family: Helvetica, Arial, sans-serif;font-size: 14px;font-weight: 400;line-height: 25px;" >
                                     <p style="margin: 0;"><b> Jangan berikan KODE OTP kepada siapapun </b></p>
                                     </td>
                                 </tr>
@@ -146,10 +146,41 @@
                         </tr> --}}
                       <!-- COPY -->
                       <tr>
-                        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
+                        <td bgcolor="#ffffff" align="left" style="padding: 40px 30px 20px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >
                           <p style="margin: 0;"> {{ $otp_action_user}}</p>
                         </td>
                       </tr>
+
+                      @if ($otp_type == OTPModel::OTP_TYPE["RESET_PASSWORD"])
+                        <tr>
+                            <td bgcolor="#ffffff" align="left">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                <td bgcolor="#ffffff" align="center" style="padding: 20px 30px 60px 30px;">
+                                    <table border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center" style="border-radius: 3px;" bgcolor="#0cab36">
+                                            <a href="https://wa.me/{{$no_telp}}" target="_blank" >
+                                                <table>
+                                                    <tr style="font-size: 13px;font-family: Helvetica, Arial, sans-serif;color: #ffffff;text-decoration: none;color: #ffffff;text-decoration: none;padding: 10px 12px;border-radius: 2px;border: 1px solid #0cab36;display: inline-block;">
+                                                        <td>
+                                                            <img src="http://haitutor.id/backend-educhat/temp/whatsapp-logo.png" alt="Hubungi Kami" width="20" height="20" style="padding:0px 10px 0px 0px;display: block; width: 20px; max-width: 20; min-width: 10; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;" border="0">
+                                                        </td>
+                                                        <td>Hubungi Admin</td>
+                                                    </tr>
+                                                </table>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    </table>
+                                </td>
+                                </tr>
+                            </table>
+                            </td>
+                        </tr>
+                      @else
+
+                      @endif
                       <!-- COPY -->
                       <tr>
                         <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;" >

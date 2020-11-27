@@ -83,6 +83,7 @@ Route::middleware(['cors'])->group(function(){
     Route::post('pushNotification', 'NotificationController@pushNotification');
 
     Route::get('show-otp', 'OtpController@showOtp');
+    Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
