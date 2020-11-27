@@ -120,7 +120,7 @@
                               </td>
                             </tr>
 
-                            @if ($otp_type == "email")
+                            @if ($otp_type == OTPModel::OTP_TYPE["VERIFY_EMAIL"])
 
                             @else
                                 <tr>
@@ -203,7 +203,7 @@
                       <tr>
                       <tr>
                         <td bgcolor="#f4f4f4" align="left" style="padding: 0px 30px 10px 30px; color: #666666; font-family: Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 18px;" >
-                        <p style="margin: 0;">{{ $no_hp }}</p>
+                        <p style="margin: 0;">{{ $no_telp }}</p>
                         </td>
                       </tr>
                       <tr>

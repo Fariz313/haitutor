@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Otp;
+use App\Information;
 use App\User;
 use JWTAuth;
 use Mail;
@@ -72,15 +73,31 @@ class OtpController extends Controller
             $data->device_id = $device_id;
             if($data->save()){
                 try{
-                    Mail::send([], [], function ($message) use ($user, $otp)
+
+                    $data = Information::get();
+
+                    foreach ($data as $key) {
+                        if ($key->variable == "no_telp") {
+                            $no_telp = $key->value;
+                        }
+
+                        if ($key->variable == "alamat") {
+                            $alamat = $key->value;
+                        }
+                    }
+
+                    Mail::send([], [], function ($message) use ($user, $otp, $no_telp, $alamat)
                     {
                         $message->subject('Kode OTP Akun HaiTutor');
                         $message->to($user->email);
                         $view = View::make('otpVerification', [
-                            'otp' => $otp,
-                            "otp_title" => "Verifikasi Email Anda",
-                            "otp_message" => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :",
-                            "otp_type" => "email"
+                            Otp::OTP_PAYLOAD["OTP"] => $otp,
+                            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+                            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["VERIFY_EMAIL"],
+                            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+                            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+                            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
+                            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :"
                         ]);
 
                         $html = $view->render();
@@ -261,15 +278,29 @@ class OtpController extends Controller
     }
 
     public function showOtp(){
+
+        $data = Information::get();
+
+        foreach ($data as $key) {
+            if ($key->variable == "no_telp") {
+                $no_telp = $key->value;
+            }
+
+            if ($key->variable == "alamat") {
+                $alamat = $key->value;
+            }
+
+        }
+
         $otp = '8291821';
         return view('otpVerification', [
-            'otp' => $otp,
-            "otp_title" => "Verifikasi Email Anda",
-            "otp_type" => "email",
-            "no_hp" => "08123456789",
-            "alamat" => "Perumahan Green Living Residence Blok C No. 14 Kecamatan Sukun, Kota Malang",
-            "otp_action_user" => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
-            "otp_message" => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :"
+            Otp::OTP_PAYLOAD["OTP"] => $otp,
+            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["VERIFY_EMAIL"],
+            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
+            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda mengajukan verifikasi email, berikut Kode OTP untuk verifikasi email Anda :"
             ]);
     }
 }
