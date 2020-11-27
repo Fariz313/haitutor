@@ -26,6 +26,7 @@ Route::middleware(['cors'])->group(function(){
     Route::put('balance', 'UserController@updateBalance');
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
     Route::put('verification/request/', 'UserController@requestVerification');
+    Route::get('restricted-status', 'UserController@checkUserIsRestricted');
 
     Route::get('faq','AskController@getAllFAQ');
 
@@ -38,6 +39,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
 
     Route::get('rating', 'RatingController@index');
+    Route::get('rating/{id}', 'RatingController@show');
     Route::post('rating/{id}', 'RatingController@store');
     Route::delete('rating/{id}', 'RatingController@delete');
     Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
@@ -238,6 +240,8 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
             Route::put('/suspend/{id}', 'UserController@suspendUser');
             Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+            Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
+            Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
 
             Route::get('/package', 'PackageController@index');
             Route::post('/package', 'PackageController@store');

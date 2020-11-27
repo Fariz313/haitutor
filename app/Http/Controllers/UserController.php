@@ -394,8 +394,8 @@ class UserController extends Controller
                             'tutorSubject'=>function($query){
                                 $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                             }, 'rating'=>function($query){
-                                $query->selectRaw('tutor_id,AVG(rate) average')
-                                ->groupBy('tutor_id');
+                                $query->selectRaw('target_id,AVG(rate) average')
+                                ->groupBy('target_id');
                             }
                             , 'tutorDoc'=>function($query) use ($userId){
                                 $query->where(function($q) use ($userId) {
@@ -741,6 +741,39 @@ class UserController extends Controller
                 'message'   =>  'Unsuspend User Failed',
                 'data'      =>  $e->getMessage()
             ]);
+        }
+    }
+
+    public function checkUserIsRestricted()
+    {
+        try {
+
+            $user           = JWTAuth::parseToken()->authenticate();
+
+            if ($user->isRestricted == User::IS_RESTRICTED["TRUE"]) {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'User restricted',
+                    'data'      =>  [
+                        "is_restricted"  => User::IS_RESTRICTED["TRUE"]
+                        ]
+                    ], 200);
+            } else {
+                return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'User not restricted',
+                    'data'      =>  [
+                            "is_restricted"  => User::IS_RESTRICTED["FALSE"]
+                        ]
+                    ], 200);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'failed to fetch user restricted status',
+                'data'      =>  $th->getMessage()
+            ], 400);
         }
     }
 }

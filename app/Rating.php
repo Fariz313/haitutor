@@ -10,11 +10,11 @@ class Rating extends Model
 
     public function sender()
     {
-        return $this->hasOne('App\User', 'id', 'user_id');
+        return $this->hasOne('App\User', 'id', 'sender_id');
     }
 
-    public function receiver()
+    public function target()
     {
-        return $this->hasOne('App\User', 'id', 'tutor_id');
+        return $this->hasOne('App\User', 'id', 'target_id');
     }
 }
