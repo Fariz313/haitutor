@@ -128,6 +128,64 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/request/check', 'DisbursementController@checkRequirements');
     });
 
+    Route::prefix('/payment')->group(function () {
+
+        Route::prefix('/method')->group(function () {
+            Route::get('/list/all', 'PaymentMethodController@getAll');
+            Route::get('/list/enable', 'PaymentMethodController@getAllEnabledPaymentMethod');
+            Route::get('/{id}','PaymentMethodController@getOne');
+
+            Route::post('/', 'PaymentMethodController@store');
+
+            Route::put('/{id}','PaymentMethodController@update');
+            Route::put('/enable/{id}', 'PaymentMethodController@EnablePaymentMethod');
+            Route::put('/disable/{id}', 'PaymentMethodController@DisablePaymentMethod');
+
+            Route::delete('/{id}','PaymentMethodController@destroy');
+        });
+
+        Route::prefix('/category')->group(function () {
+            Route::get('/list/all', 'PaymentCategoryController@index');
+            Route::get('/{id}','PaymentCategoryController@show');
+
+            Route::post('/', 'PaymentCategoryController@store');
+
+            Route::put('/{id}','PaymentCategoryController@update');
+            Route::put('/enable/{id}', 'PaymentCategoryController@enablePaymentCategory');
+            Route::put('/disable/{id}', 'PaymentCategoryController@disablePaymentCategory');
+
+            Route::delete('/{id}','PaymentCategoryController@destroy');
+        });
+
+        Route::prefix('/provider')->group(function () {
+            Route::get('/list/all', 'PaymentProviderController@index');
+            Route::get('/{id}','PaymentProviderController@show');
+
+            Route::post('/', 'PaymentProviderController@store');
+
+            Route::put('/{id}','PaymentProviderController@update');
+            Route::put('/enable/{id}', 'PaymentProviderController@enablePaymentProvider');
+            Route::put('/disable/{id}', 'PaymentProviderController@disablePaymentProvider');
+            Route::put('/include/{id}', 'PaymentProviderController@includePaymentMethod');
+            Route::put('/exclude/{id}', 'PaymentProviderController@excludePaymentMethod');
+
+            Route::delete('/{id}','PaymentProviderController@destroy');
+
+            Route::prefix('/variable')->group(function () {
+                Route::post('/','PaymentProviderController@addPaymentProviderVariable');
+                Route::put('/{id}','PaymentProviderController@updatePaymentProviderVariable');
+                Route::delete('/{id}','PaymentProviderController@deletePaymentProviderVariable');
+            });
+
+            Route::prefix('/method/variable')->group(function () {
+                Route::post('/','PaymentProviderController@addPaymentMethodProviderVariable');
+                Route::put('/{id}','PaymentProviderController@updatePaymentMethodProviderVariable');
+                Route::delete('/{id}','PaymentProviderController@deletePaymentMethodProviderVariable');
+            });
+        });
+
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
