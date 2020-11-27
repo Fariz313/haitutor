@@ -104,17 +104,30 @@ class OrderController extends Controller
             $data->type_code    = Order::TYPE_CODE["PAYMENT_GATEWAY"];
             $data->save();
 
+            // // Request Transaction with Payment Gateway
+            // $body = [
+            //     "merchantCode" => Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"],
+            //     "paymentAmount" => $data->amount,
+            //     "merchantOrderId" => $data->id,
+            //     "productDetails" => $data->detail,
+            //     "email" => $user->email,
+            //     "paymentMethod" => $request->input('payment_method'),
+            //     "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
+            //     "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
+            //     "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+            // ];
+
             // Request Transaction with Payment Gateway
             $body = [
-                "merchantCode" => Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"],
+                "merchantCode" => Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_CODE"],
                 "paymentAmount" => $data->amount,
                 "merchantOrderId" => $data->id,
                 "productDetails" => $data->detail,
                 "email" => $user->email,
                 "paymentMethod" => $request->input('payment_method'),
-                "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
-                "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
-                "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+                "returnUrl" => Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["RETURN_URL"],
+                "callbackUrl" => Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["CALLBACK_URL"],
+                "signature" => md5(Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_CODE"]. $data->id. $data->amount. Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_KEY"])
             ];
 
             $responsePayment    = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
@@ -423,6 +436,18 @@ class OrderController extends Controller
     }
 
     public function requestTransaction(Request $request){
+        // $body = [
+        //     "merchantCode" => $request->input('merchantCode'),
+        //     "paymentAmount" => $request->input('paymentAmount'),
+        //     "merchantOrderId" => $request->input('merchantOrderId'),
+        //     "productDetails" => $request->input('productDetails'),
+        //     "email" => $request->input('email'),
+        //     "paymentMethod" => $request->input('paymentMethod'),
+        //     "returnUrl" => $request->input('returnUrl'),
+        //     "callbackUrl" => $request->input('callbackUrl'),
+        //     "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+        // ];
+
         $body = [
             "merchantCode" => $request->input('merchantCode'),
             "paymentAmount" => $request->input('paymentAmount'),
@@ -432,7 +457,7 @@ class OrderController extends Controller
             "paymentMethod" => $request->input('paymentMethod'),
             "returnUrl" => $request->input('returnUrl'),
             "callbackUrl" => $request->input('callbackUrl'),
-            "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+            "signature" => md5(Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_KEY"])
         ];
 
         $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
