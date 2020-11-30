@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Otp;
+use App\Information;
 use App\User;
 use JWTAuth;
 use Mail;
@@ -27,11 +28,11 @@ class OtpController extends Controller
                 $data = Company::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('company_type','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Company::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -45,8 +46,6 @@ class OtpController extends Controller
             ]);
         }
     }
-
-
 
     public function createOtpVerification($device_id)
     {
@@ -74,17 +73,36 @@ class OtpController extends Controller
             $data->device_id = $device_id;
             if($data->save()){
                 try{
-                    Mail::send([], [], function ($message) use ($user, $otp)
+
+                    $data = Information::get();
+
+                    foreach ($data as $key) {
+                        if ($key->variable == "no_telp") {
+                            $no_telp = $key->value;
+                        }
+
+                        if ($key->variable == "alamat") {
+                            $alamat = $key->value;
+                        }
+                    }
+
+                    Mail::send([], [], function ($message) use ($user, $otp, $no_telp, $alamat)
                     {
-                        $message->subject('Kode OTP Akun Vokanesia');
+                        $message->subject('Kode OTP Akun HaiTutor');
                         $message->to($user->email);
                         $view = View::make('otpVerification', [
-                            'otp' => $otp
+                            Otp::OTP_PAYLOAD["OTP"] => $otp,
+                            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+                            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["VERIFY_EMAIL"],
+                            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+                            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+                            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
+                            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan verifikasi email. Berikut Kode OTP untuk verifikasi email Anda:"
                         ]);
 
                         $html = $view->render();
                         $message->setBody($html,'text/html');
-            
+
                     });
                     return response()->json([
                         'status'    =>  'success',
@@ -106,6 +124,7 @@ class OtpController extends Controller
             ]);
         }
     }
+
     public function verifying(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -135,14 +154,14 @@ class OtpController extends Controller
             if($expiredDate > $today){
                 if($request->input('otp')==$otpData->otp){
                     $otpData->status        =   'completed';
-                    $otpData->verified_at   =   $today; 
-                    $user->status           =   'verified'; 
-                    $otpData->save();  
-                    $user->save();  
+                    $otpData->verified_at   =   $today;
+                    $user->status           =   'verified';
+                    $otpData->save();
+                    $user->save();
                     return response()->json([
                         'status'    =>  'success',
                         'message'   =>  'your account verified now'
-                    ]);    
+                    ]);
                 }else{
                     return response()->json([
                         'status'    =>  'failed',
@@ -164,7 +183,7 @@ class OtpController extends Controller
     }
 
     public function sendByEmail()
-    {   
+    {
         try{
             $user               = JWTAuth::parseToken()->authenticate();
             $otpData            = Otp::where('user_id',$user->id)
@@ -186,7 +205,7 @@ class OtpController extends Controller
                     $message->subject('Contoh Otp');
                     $message->to($user->email);
                     $message->setBody('<p> Hi!! </p><h1>OTP Anda Adalah</h1><br/><h1><b>'.$otp.'</b></h1>','text/html');
-        
+
                 });
                 return response()->json([
                     'status'    =>  'success',
@@ -204,6 +223,7 @@ class OtpController extends Controller
                 'message'   =>  'Failed to send otp to your email'],403);
         }
     }
+
     function sendBySms(){
         try{
             $user               = JWTAuth::parseToken()->authenticate();
@@ -223,7 +243,7 @@ class OtpController extends Controller
             }else if($otpData){
                 $username = "vokanesia";
                 $apikey = "1b0d834c330fcee8e57456d7f96f7254";
-            
+
                 $postRequest = array(
                     'action' => 'sendsms',
                     'username' => $username,
@@ -231,14 +251,14 @@ class OtpController extends Controller
                     'destination' => $user->contact,
                     'message' => "Your Tutor Vokeanesia Otp is ".$otp,
                 );
-                $ch = curl_init(); 
-    
+                $ch = curl_init();
+
                 curl_setopt($ch, CURLOPT_URL, "http://smsapi.rosihanari.net/v2/restapi.php");
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postRequest);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 $output = curl_exec($ch);
                 curl_close($ch);
-            
+
                 // return $output;
                 return response()->json([
                     'status'    =>  'success',
@@ -255,14 +275,59 @@ class OtpController extends Controller
                 'Otp'       =>  'OTP doesnt Sended',
                 'message'   =>  'Failed to send otp to your email'],403);
         }
-
-        
-    
-        
     }
 
     public function showOtp(){
+
+        $data = Information::get();
+
+        foreach ($data as $key) {
+            if ($key->variable == "no_telp") {
+                $no_telp = $key->value;
+            }
+
+            if ($key->variable == "alamat") {
+                $alamat = $key->value;
+            }
+
+        }
+
         $otp = '8291821';
-        return view('otpVerification', ['otp' => $otp]);
+        return view('otpVerification', [
+            Otp::OTP_PAYLOAD["OTP"] => $otp,
+            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["VERIFY_EMAIL"],
+            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, harap abaikan email ini.",
+            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan verifikasi email. berikut Kode OTP untuk verifikasi email Anda:"
+            ]);
+    }
+
+    public function showPasswordOtp(){
+
+        $data = Information::get();
+
+        foreach ($data as $key) {
+            if ($key->variable == "no_telp") {
+                $no_telp = $key->value;
+            }
+
+            if ($key->variable == "alamat") {
+                $alamat = $key->value;
+            }
+
+        }
+
+        $otp = '8291821';
+        return view('otpVerification', [
+            Otp::OTP_PAYLOAD["OTP"] => $otp,
+            Otp::OTP_PAYLOAD["TITLE"] => "Verifikasi Email Anda",
+            Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["RESET_PASSWORD"],
+            Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+            Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+            Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut: ",
+            Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password, berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda."
+            ]);
     }
 }

@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['cors'])->group(function(){
 
-
     Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
@@ -82,6 +81,9 @@ Route::middleware(['cors'])->group(function(){
     Route::get('version/{versionCode}', 'UserController@checkUpdate');
 
     Route::post('pushNotification', 'NotificationController@pushNotification');
+
+    Route::get('show-otp', 'OtpController@showOtp');
+    Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
