@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\PaymentMethod;
+use App\PaymentMethodProvider;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -13,32 +14,61 @@ use Illuminate\Support\Str;
 class PaymentMethodController extends Controller {
     
     public function getAll(Request $request){
-    
-         try{
-           
+        try{
+            // Get All Provider for each Payment Method
+            $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id_payment_method', 
+                                                    'payment_provider.id as active_provider_id', 
+                                                    'payment_provider.name as active_provider_name')
+                                                ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
+                                                ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                                ->groupBy('id_payment_method');
+
             if($request->get('search')){
                 $query = $request->get('search');
-                $data = PaymentMethod::where(function ($where) use ($query){
-                    $where->where('name','LIKE','%'.$query.'%')
-                        ->orWhere('code','LIKE','%'.$query.'%');
-                } )->paginate(10);    
-            }else{
-                $data = PaymentMethod::paginate(10);
+                
+                $data = PaymentMethod::select('payment_method.*', 
+                        'payment_method_category.name as category_name', 
+                        'payment_method_category.order as category_order', 
+                        'active_method.*')
+                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                    ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
+                        $join->on('payment_method.id', '=', 'active_method.id_payment_method');
+                    })
+                    ->with(array('availablePaymentProvider'))
+                    ->orderBy('category_order','ASC')
+                    ->orderBy('order','ASC')
+                    ->where(function ($where) use ($query){
+                        $where->where('payment_method.name','LIKE','%'.$query.'%')
+                            ->orWhere('payment_method.code','LIKE','%'.$query.'%');
+                    })->paginate(10);
+
+            } else {
+                
+                $data = PaymentMethod::select('payment_method.*', 
+                        'payment_method_category.name as category_name', 
+                        'payment_method_category.order as category_order', 
+                        'active_method.*')
+                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                    ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
+                        $join->on('payment_method.id', '=', 'active_method.id_payment_method');
+                    })
+                    ->with(array('availablePaymentProvider'))
+                    ->orderBy('category_order','ASC')
+                    ->orderBy('order','ASC')->paginate(10);
             }
             
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
-            ]);
+            ], 200);
         
-         }catch(\Throwable $e){
-             
-              return response()->json([
-               "status"=>"gagal",
-               "error"=>$e
-               ],500);
-         }       
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    => "Failed",
+                "error"     => $e->getMessage()
+            ], 500);
+        }       
     }
 
     public function getOne($id)
