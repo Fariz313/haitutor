@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\PaymentMethodProvider;
+use App\PaymentMethodProviderVariable;
 use App\PaymentProvider;
 use App\PaymentProviderVariable;
 use Illuminate\Http\Request;
@@ -381,7 +382,7 @@ class PaymentProviderController extends Controller
                 $data->save();
                 $message                    = 'Payment Provider Variable Added';
             } else {
-                $message                    = 'Payment Provider Already Exists';
+                $message                    = 'Payment Provider Variable Already Exists';
             }
 
             return response()->json([
@@ -449,4 +450,136 @@ class PaymentProviderController extends Controller
     }
 
     // ========================== END PAYMENT PROVIDER VARIABLE ======================================
+
+    // ============================= PAYMENT METHOD PROVIDER VARIABLE ======================================
+
+    public function getAllPaymentMethodProviderVariable(Request $request)
+    {
+        try {
+            if($request->get('search')){
+                $query  = $request->get('search');
+                
+                $data   = PaymentMethodProviderVariable::where(function ($where) use ($query){
+                    $where->where('variable','LIKE','%'.$query.'%');
+                })->paginate(10);
+            } else {
+                $data = PaymentMethodProviderVariable::paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getPaymentMethodProviderVariableById($id)
+    {
+        try {
+            $data = PaymentMethodProviderVariable::findOrFail($id);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addPaymentMethodProviderVariable(Request $request)
+    {
+        try {
+            $variable           = $request->input('variable');
+            $paymentMethodId    = $request->input('id_payment_method_provider');
+
+            $data           = PaymentMethodProviderVariable::where('id_payment_method_provider', $paymentMethodId)
+                                ->where('variable', $variable)->first();
+
+            if($data == null){
+                $data                               = new PaymentMethodProviderVariable();
+                $data->id_payment_method_provider   = $paymentMethodId;
+                $data->variable                     = $variable;
+                $data->value                        = $request->input('value');
+                $data->save();
+                $message                    = 'Payment Method Provider Variable Added';
+            } else {
+                $message                    = 'Payment Method Provider Variable Already Exists';
+            }
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  $message
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updatePaymentMethodProviderVariable(Request $request, $id)
+    {
+        try {
+            $data           = PaymentMethodProviderVariable::findOrFail($id);
+
+            if($request->input('variable')){
+                $data->variable = $request->input('variable');
+            }
+
+            if($request->input('value')){
+                $data->value    = $request->input('value');
+            }
+
+            $data->save();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Update Payment Method Provider Variable Succeeded'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deletePaymentMethodProviderVariable($id)
+    {
+        try {
+            $data           = PaymentMethodProviderVariable::findOrFail($id);
+            $data->delete();
+            $message        = 'Payment Method Provider Variable Deleted';
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  $message
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ========================== END PAYMENT METHOD PROVIDER VARIABLE ======================================
 }
