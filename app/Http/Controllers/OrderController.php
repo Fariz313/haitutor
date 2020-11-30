@@ -249,6 +249,9 @@ class OrderController extends Controller
                             }))
                             ->with(array('payment_method' => function ($query) {
                                 $query->select('id', 'name', 'code');
+                            }))
+                            ->with(array("user" => function ($query) {
+                                $query->select("id", "name", "email", "role");
                             }))->first();
 
             for ($i=0; $i < sizeof($non_va); $i++) {
