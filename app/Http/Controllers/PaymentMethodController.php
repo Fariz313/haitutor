@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\PaymentMethod;
+use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
@@ -40,7 +41,8 @@ class PaymentMethodController extends Controller {
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
-                    })->paginate(10);
+                    })->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->paginate(10);
 
             } else {
                 
@@ -54,8 +56,49 @@ class PaymentMethodController extends Controller {
                     })
                     ->with(array('availablePaymentProvider'))
                     ->orderBy('category_order','ASC')
-                    ->orderBy('order','ASC')->paginate(10);
+                    ->orderBy('order','ASC')
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->paginate(10);
             }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    => "Failed",
+                "error"     => $e->getMessage()
+            ], 500);
+        }       
+    }
+
+    public function getAllEnabledPaymentMethod(){
+        try{
+            // Get All Provider for each Payment Method
+            $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id_payment_method', 
+                                                    'payment_provider.id as active_provider_id', 
+                                                    'payment_provider.name as active_provider_name')
+                                                ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                                ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
+                                                ->groupBy('id_payment_method');
+
+            $data = PaymentMethodCategory::where(function ($where){
+                        $where->where('status', PaymentMethodCategory::PAYMENT_CATEGORY_STATUS["ENABLED"])
+                            ->where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS['ACTIVE']);
+                    })
+                    ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider){
+                        $query->select('payment_method.*', 'active_method.active_provider_name', 'active_method.active_provider_id')
+                        ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
+                            $join->on('payment_method.id', '=', 'active_method.id_payment_method');
+                        })
+                        ->where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
+                        ->orderBy('order','ASC');
+                    }))
+                    ->orderBy('order','ASC')
+                    ->get();
             
             return response()->json([
                 'status'    =>  'Success',
