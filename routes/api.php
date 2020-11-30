@@ -166,8 +166,8 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/{id}','PaymentProviderController@update');
             Route::put('/enable/{id}', 'PaymentProviderController@enablePaymentProvider');
             Route::put('/disable/{id}', 'PaymentProviderController@disablePaymentProvider');
-            Route::put('/include/{id}', 'PaymentProviderController@includePaymentMethod');
-            Route::put('/exclude/{id}', 'PaymentProviderController@excludePaymentMethod');
+            Route::put('/include/{paymentMethodId}', 'PaymentProviderController@includePaymentMethod');
+            Route::put('/exclude/{paymentMethodId}', 'PaymentProviderController@excludePaymentMethod');
 
             Route::delete('/{id}','PaymentProviderController@destroy');
 

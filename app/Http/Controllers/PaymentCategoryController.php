@@ -36,7 +36,7 @@ class PaymentCategoryController extends Controller
                 "status"   => "Failed",
                 "message"  => $e->getMessage()
             ], 500);
-        }  
+        }
     }
 
     /**
