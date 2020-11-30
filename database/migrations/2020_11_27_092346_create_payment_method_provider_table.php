@@ -17,6 +17,7 @@ class CreatePaymentMethodProviderTable extends Migration
             $table->id();
             $table->integer('id_payment_method');
             $table->integer('id_payment_provider');
+            $table->integer('status')->default(0);
             $table->integer('isActive')->default(0);
             $table->integer('isDeleted')->default(0);
             $table->timestamps();

@@ -241,6 +241,8 @@ class PaymentProviderController extends Controller
 
             if($data != null){
                 if($data->isDeleted == PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"]){
+                    $data->status       = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $data->isActive     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
                     $data->isDeleted    = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["ACTIVE"];
                     $message            = 'Payment Method Reincluded';
                     $data->save();
@@ -251,7 +253,7 @@ class PaymentProviderController extends Controller
                 $data                       = new PaymentMethodProvider();
                 $data->id_payment_method    = $paymentMethodId;
                 $data->id_payment_provider  = $providerId;
-                $data->isActive             = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["ENABLED"];
+                $data->status               = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["ENABLED"];
                 $data->save();
                 $message                    = 'Payment Method Included';
             }

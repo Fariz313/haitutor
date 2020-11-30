@@ -6,11 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentMethodProvider extends Model
 {
+    // Kolom 'status'       untuk status Enable/Disable Payment Method pada Provider tertentu
+    // Kolom 'isActive'     untuk mengetahui Payment Method mana yang AKTIF (ditampilkan di mobile) saat ini (HANYA ADA SATU untuk masing-masing Payment Method)
+    // Kolom 'isDeleted'    untuk mengetahui Payment Method yang TERSEDIA pada Provider tertentu
+    
     protected $table = "payment_method_provider";
 
     const PAYMENT_METHOD_PROVIDER_STATUS = array(
         "DISABLED"  => 0,
         "ENABLED"   => 1
+    );
+
+    const PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS = array(
+        "NON_ACTIVE"    => 0,
+        "ACTIVE"        => 1
     );
 
     const PAYMENT_METHOD_PROVIDER_DELETED_STATUS = array(
