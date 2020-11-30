@@ -172,12 +172,16 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/{id}','PaymentProviderController@destroy');
 
             Route::prefix('/variable')->group(function () {
+                Route::get('/list/all', 'PaymentProviderController@getAllPaymentProviderVariable');
+                Route::get('/{id}','PaymentProviderController@getPaymentProviderVariableById');
                 Route::post('/','PaymentProviderController@addPaymentProviderVariable');
                 Route::put('/{id}','PaymentProviderController@updatePaymentProviderVariable');
                 Route::delete('/{id}','PaymentProviderController@deletePaymentProviderVariable');
             });
 
             Route::prefix('/method/variable')->group(function () {
+                Route::get('/list/all', 'PaymentProviderController@getAllPaymentMethodProviderVariable');
+                Route::get('/{id}','PaymentProviderController@getPaymentMethodProviderVariableById');
                 Route::post('/','PaymentProviderController@addPaymentMethodProviderVariable');
                 Route::put('/{id}','PaymentProviderController@updatePaymentMethodProviderVariable');
                 Route::delete('/{id}','PaymentProviderController@deletePaymentMethodProviderVariable');
