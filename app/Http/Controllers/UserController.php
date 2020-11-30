@@ -520,7 +520,7 @@ class UserController extends Controller
 
             Mail::send([], [], function ($message) use ($request, $password, $alamat, $no_telp)
             {
-                $message->subject('Kode OTP Akun Hai Tutor');
+                $message->subject('Kode OTP Akun HaiTutor');
                 $message->to($request->email);
                 $view = View::make('otpVerification', [
                     Otp::OTP_PAYLOAD["OTP"] => $password,
@@ -529,7 +529,7 @@ class UserController extends Controller
                     Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
                     Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
                     Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut:",
-                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda",
+                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda.",
                 ]);
 
                 $html = $view->render();
