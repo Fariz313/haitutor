@@ -75,8 +75,10 @@ class RatingController extends Controller
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'comment'   => 'required|string',
-				'rate'	    => 'required|integer|max:5',
+    			'comment'       => 'required|string',
+                'rate'	        => 'required|integer|max:5',
+                "service_type"  => "required|in:chat,video_call",
+                "service_id"    => "required|integer"
     		]);
 
     		if($validator->fails()){
@@ -88,38 +90,64 @@ class RatingController extends Controller
 
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            $ratingExist = Rating::where('sender_id', $current_user->id)
-                                 ->where('target_id', $id)
-                                 ->first();
+            // $ratingExist = Rating::where('sender_id', $current_user->id)
+            //                      ->where('target_id', $id)
+            //                      ->first();
 
-            if ($ratingExist) {
-                return response()->json([
-                    'status'	=> 'failed',
-                    'message'	=> 'Rating alread added'
-                ], 409);
-            } else {
-                $user = User::findOrFail($id);
+            // if ($ratingExist) {
+            //     return response()->json([
+            //         'status'	=> 'failed',
+            //         'message'	=> 'Rating alread added'
+            //     ], 409);
+            // } else {
+            //     $user = User::findOrFail($id);
 
-                DB::beginTransaction();
+            //     DB::beginTransaction();
 
-                $data                  = new Rating();
-                $data->sender_id         = $current_user->id;
-                $data->target_id       = $id;
-                $data->comment         = $request->input('comment');
-                $data->rate            = $request->input('rate');
-                $data->save();
+            //     $data                  = new Rating();
+            //     $data->sender_id         = $current_user->id;
+            //     $data->target_id       = $id;
+            //     $data->comment         = $request->input('comment');
+            //     $data->rate            = $request->input('rate');
+            //     $data->service_type    = $request->input('service_type');
+            //     $data->service_id      = $request->input('service_id');
+            //     $data->save();
 
-                $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
-                $user->total_rating = round($recount_average_rating, 1);
-                $user->save();
+            //     $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
+            //     $user->total_rating = round($recount_average_rating, 1);
+            //     $user->save();
 
-                DB::commit();
+            //     DB::commit();
 
-                return response()->json([
-                    'status'	=> 'success',
-                    'message'	=> 'Rating added successfully'
-                ], 200);
-            }
+            //     return response()->json([
+            //         'status'	=> 'success',
+            //         'message'	=> 'Rating added successfully'
+            //     ], 200);
+            // }
+
+            $user = User::findOrFail($id);
+
+            DB::beginTransaction();
+
+            $data                  = new Rating();
+            $data->sender_id         = $current_user->id;
+            $data->target_id       = $id;
+            $data->comment         = $request->input('comment');
+            $data->rate            = $request->input('rate');
+            $data->service_type    = $request->input('service_type');
+            $data->service_id      = $request->input('service_id');
+            $data->save();
+
+            $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
+            $user->total_rating = round($recount_average_rating, 1);
+            $user->save();
+
+            DB::commit();
+
+            return response()->json([
+                'status'	=> 'success',
+                'message'	=> 'Rating added successfully'
+            ], 200);
 
         } catch(\Exception $e){
             DB::rollback();
@@ -205,6 +233,9 @@ class RatingController extends Controller
                                 ->with(array("target" => function ($query) {
                                     $query->select("id", "email", "name", "role");
                                 }))
+                                ->with(array("service_name" => function ($query) {
+
+                                }))
                                 ->paginate(10);
 
             return response()->json([
@@ -237,6 +268,9 @@ class RatingController extends Controller
                                 }))
                                 ->with(array("target" => function ($query) {
                                     $query->select("id", "email", "name", "role");
+                                }))
+                                ->with(array("service_name" => function ($query) {
+
                                 }))
                                 ->paginate(10);
 
