@@ -36,4 +36,9 @@ class PaymentMethodProvider extends Model
     {
         return $this->hasOne('App\PaymentProvider', 'id_payment_provider');
     }
+
+    public function paymentMethodProviderVariable()
+    {
+        return $this->hasMany('App\PaymentMethodProviderVariable', 'id_payment_method_provider', 'id');
+    }
 }

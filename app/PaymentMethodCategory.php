@@ -17,4 +17,14 @@ class PaymentMethodCategory extends Model
         "ACTIVE"    => 0,
         "DELETED"   => 1
     );
+
+    public function enabledPaymentMethod()
+    {
+        return $this->hasMany('App\PaymentMethod','id_payment_category','id');
+    }
+
+    public function paymentMethodProvider()
+    {
+        return $this->hasMany('App\PaymentMethodProvider');
+    }
 }
