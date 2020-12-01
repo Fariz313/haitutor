@@ -75,10 +75,10 @@ class RatingController extends Controller
     {
         try{
     		$validator = Validator::make($request->all(), [
-    			'comment'       => 'required|string',
-                'rate'	        => 'required|integer|max:5',
-                "service_type"  => "required|in:chat,video_call",
-                "service_id"    => "required|integer"
+    			'comment'           => 'required|string',
+                'rate'	            => 'required|integer|max:5',
+                "serviceable_type"  => "required|in:chat,videocall",
+                "serviceable_id"    => "required|integer"
     		]);
 
     		if($validator->fails()){
@@ -129,13 +129,13 @@ class RatingController extends Controller
 
             DB::beginTransaction();
 
-            $data                  = new Rating();
-            $data->sender_id         = $current_user->id;
-            $data->target_id       = $id;
-            $data->comment         = $request->input('comment');
-            $data->rate            = $request->input('rate');
-            $data->service_type    = $request->input('service_type');
-            $data->service_id      = $request->input('service_id');
+            $data                   = new Rating();
+            $data->sender_id        = $current_user->id;
+            $data->target_id        = $id;
+            $data->comment          = $request->input('comment');
+            $data->rate             = $request->input('rate');
+            $data->serviceable_type = $request->input('serviceable_type');
+            $data->serviceable_id   = $request->input('serviceable_id');
             $data->save();
 
             $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
@@ -204,6 +204,9 @@ class RatingController extends Controller
                     }))
                     ->with(array("target" => function ($query) {
                         $query->select("id", "email", "name", "role");
+                    }))
+                    ->with(array("serviceable" => function ($query) {
+
                     }))->firstOrFail();
             return response()->json([
                 'status'    =>  'success',
@@ -213,7 +216,7 @@ class RatingController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'Failed to pick',
-                'data'      =>  'No Data Picked',
+                'data'      =>  $th->getMessage(),
                 'message'   =>  'Get Data Failed'
             ]);
         }
@@ -233,7 +236,7 @@ class RatingController extends Controller
                                 ->with(array("target" => function ($query) {
                                     $query->select("id", "email", "name", "role");
                                 }))
-                                ->with(array("service_name" => function ($query) {
+                                ->with(array("serviceable" => function ($query) {
 
                                 }))
                                 ->paginate(10);
@@ -269,7 +272,7 @@ class RatingController extends Controller
                                 ->with(array("target" => function ($query) {
                                     $query->select("id", "email", "name", "role");
                                 }))
-                                ->with(array("service_name" => function ($query) {
+                                ->with(array("serviceable" => function ($query) {
 
                                 }))
                                 ->paginate(10);

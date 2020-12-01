@@ -14,8 +14,8 @@ class AlterTableRating extends Migration
     public function up()
     {
         Schema::table('rating', function (Blueprint $table) {
-            $table->enum("service_type", ["chat", "video_call"])->nullable()->after("rate");
-            $table->integer("service_id")->nullable()->after("service_type");
+            $table->string("serviceable_type")->nullable()->after("rate");
+            $table->integer("serviceable_id")->nullable()->after("serviceable_type");
         });
     }
 
@@ -27,8 +27,7 @@ class AlterTableRating extends Migration
     public function down()
     {
         Schema::table('rating', function (Blueprint $table) {
-            $table->dropColumn("service_type");
-            $table->dropColumn("service_id");
+            $table->dropColumn(["serviceable_type","serviceable_id"]);
         });
     }
 }
