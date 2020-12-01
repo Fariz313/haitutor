@@ -22,4 +22,9 @@ class PaymentMethodCategory extends Model
     {
         return $this->hasMany('App\PaymentMethod','id_payment_category','id');
     }
+
+    public function paymentMethodProvider()
+    {
+        return $this->hasMany('App\PaymentMethodProvider');
+    }
 }

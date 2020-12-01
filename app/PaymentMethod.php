@@ -27,4 +27,8 @@ class PaymentMethod extends Model
     {
         return $this->hasMany('App\PaymentMethodProvider','id_payment_method','id');
     }
+
+    public function paymentMethodProviderVariable(){
+        return $this->hasManyThrough('App\PaymentMethodProviderVariable', 'App\PaymentMethodProvider', 'id_payment_method', 'id_payment_method_provider', 'id', 'id');
+    }
 }
