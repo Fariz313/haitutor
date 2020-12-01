@@ -282,6 +282,26 @@ class PaymentMethodController extends Controller {
             ]);
         }
     }
-    
+
+    public function getPaymentMethodByMethodProviderId($idPaymentMethodProvider)
+    {
+        try {
+            $data   =   PaymentMethod::select('payment_method.*', 'payment_method_provider.id as id_payment_method_provider')
+                        ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
+                        ->with('paymentMethodProviderVariable')
+                        ->where('payment_method_provider.id', $idPaymentMethodProvider)->first();
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Get Data Success',
+                'data'      =>  $data
+            ]);
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    => "Failed",
+                "error"     => $e->getMessage()
+            ], 500);
+        }   
+    }
     
 }
