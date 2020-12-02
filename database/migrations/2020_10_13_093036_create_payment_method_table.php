@@ -18,6 +18,7 @@ class CreatePaymentMethodTable extends Migration
             $table->integer('id_payment_category');
             $table->string('name');
             $table->string('code');
+            $table->string('icon');
             $table->integer('status')->default(0);
             $table->integer('order')->default(0);
             $table->integer('isDeleted')->default(0);

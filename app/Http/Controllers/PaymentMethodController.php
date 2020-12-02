@@ -95,7 +95,8 @@ class PaymentMethodController extends Controller {
                     ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider){
                         $query->select('payment_method.*', 
                             'active_method.active_provider_name', 
-                            'active_method.active_provider_id')
+                            'active_method.active_provider_id',
+                            'active_method.id as id_payment_method_provider')
                         ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                             $join->on('payment_method.id', '=', 'active_method.id_payment_method');
                         })
@@ -135,7 +136,9 @@ class PaymentMethodController extends Controller {
             $data   =   PaymentMethod::select('payment_method.*', 
                             'payment_method_category.name as category_name', 
                             'payment_method_category.order as category_order', 
-                            'active_method.*')
+                            'active_method.active_provider_name', 
+                            'active_method.active_provider_id',
+                            'active_method.id as id_payment_method_provider')
                         ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                         ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                             $join->on('payment_method.id', '=', 'active_method.id_payment_method');
@@ -279,6 +282,26 @@ class PaymentMethodController extends Controller {
             ]);
         }
     }
-    
+
+    public function getPaymentMethodByMethodProviderId($idPaymentMethodProvider)
+    {
+        try {
+            $data   =   PaymentMethod::select('payment_method.*', 'payment_method_provider.id as id_payment_method_provider')
+                        ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
+                        ->with('paymentMethodProviderVariable')
+                        ->where('payment_method_provider.id', $idPaymentMethodProvider)->first();
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Get Data Success',
+                'data'      =>  $data
+            ]);
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    => "Failed",
+                "error"     => $e->getMessage()
+            ], 500);
+        }   
+    }
     
 }
