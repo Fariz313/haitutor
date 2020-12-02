@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
+use App\PaymentProvider;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -35,7 +36,11 @@ class PaymentMethodController extends Controller {
                     ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                         $join->on('payment_method.id', '=', 'active_method.id_payment_method');
                     })
-                    ->with(array('availablePaymentProvider'))
+                    ->with(array('availablePaymentProvider' => function($query){
+                        $query->select('payment_method_provider.*',
+                        'payment_provider.name as provider_name')
+                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
+                    }))
                     ->orderBy('status','DESC')
                     ->orderBy('category_order','ASC')
                     ->orderBy('order','ASC')
@@ -55,7 +60,11 @@ class PaymentMethodController extends Controller {
                     ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                         $join->on('payment_method.id', '=', 'active_method.id_payment_method');
                     })
-                    ->with(array('availablePaymentProvider'))
+                    ->with(array('availablePaymentProvider' => function($query){
+                        $query->select('payment_method_provider.*',
+                        'payment_provider.name as provider_name')
+                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
+                    }))
                     ->orderBy('status','DESC')
                     ->orderBy('category_order','ASC')
                     ->orderBy('order','ASC')
@@ -143,6 +152,11 @@ class PaymentMethodController extends Controller {
                         ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                             $join->on('payment_method.id', '=', 'active_method.id_payment_method');
                         })
+                        ->with(array('availablePaymentProvider' => function($query){
+                            $query->select('payment_method_provider.*',
+                            'payment_provider.name as provider_name')
+                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
+                        }))
                         ->with('paymentMethodProviderVariable')
                         ->where('payment_method.id', $id)->first();
             
@@ -290,6 +304,26 @@ class PaymentMethodController extends Controller {
                         ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
                         ->with('paymentMethodProviderVariable')
                         ->where('payment_method_provider.id', $idPaymentMethodProvider)->first();
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'message'   =>  'Get Data Success',
+                'data'      =>  $data
+            ]);
+        } catch(\Exception $e){
+            return response()->json([
+                "status"    => "Failed",
+                "error"     => $e->getMessage()
+            ], 500);
+        }   
+    }
+
+    public function getAvailablePaymentMethodProvider($idPaymentMethod)
+    {
+        try {
+            $data   =   PaymentProvider::select("payment_provider.*", 'payment_method_provider.id as id_payment_method_provider')
+                        ->join("payment_method_provider", "payment_provider.id", "=", "payment_method_provider.id_payment_provider")
+                        ->where('payment_method_provider.id_payment_method', $idPaymentMethod)->get();
             
             return response()->json([
                 'status'    =>  'Success',

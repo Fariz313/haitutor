@@ -137,6 +137,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/list/enable', 'PaymentMethodController@getAllEnabledPaymentMethod');
             Route::get('/{id}','PaymentMethodController@getOne');
             Route::get('/provider/{id}','PaymentMethodController@getPaymentMethodByMethodProviderId');
+            Route::get('/available/provider/{idPaymentMethod}','PaymentMethodController@getAvailablePaymentMethodProvider');
 
             Route::post('/', 'PaymentMethodController@store');
 
