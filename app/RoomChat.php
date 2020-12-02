@@ -20,4 +20,9 @@ class RoomChat extends Model
     {
         return $this->belongsTo('App\User','tutor_id','id');
     }
+
+    public function ratings()
+    {
+        return $this->morphMany(Rating::class, "serviceable");
+    }
 }

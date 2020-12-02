@@ -25,4 +25,8 @@ class RoomVC extends Model
         return $this->hasMany('App\HistoryVC','room_id');
     }
 
+    public function ratings()
+    {
+        return $this->morphMany(Rating::class, 'serviceable');
+    }
 }
