@@ -95,23 +95,27 @@ class PaymentProviderController extends Controller
             $data = PaymentProvider::where('id', $id)->with('providerVariables')->first();
 
             $dataPaymentMethod = PaymentMethod::select('payment_method.*', 
+                                        'payment_method_category.name as category_name',
                                         'payment_method_provider.id as id_payment_method_provider',
                                         'payment_method_provider.status as status_payment_method_provider')
                                     ->selectSub(function ($query) {
                                         $query->selectRaw('1');
                                     }, 'isIncluded')
                                     ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
+                                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                                     ->where('payment_method_provider.id_payment_provider', $id)
                                     ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                                     ->where('payment_method_provider.isDeleted', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["ACTIVE"]);
 
             $allPaymentMethod = PaymentMethod::select('payment_method.*', 
+                                        'payment_method_category.name as category_name',
                                         'payment_method_provider.id as id_payment_method_provider',
                                         'payment_method_provider.status as status_payment_method_provider')
                                     ->selectSub(function ($query) {
                                         $query->selectRaw('0');
                                     }, 'isIncluded')
                                     ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
+                                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                                     ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                                     ->where('payment_method_provider.isDeleted', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["ACTIVE"])
                                     ->whereNotIn('payment_method.id', $dataPaymentMethod->pluck('id')->toArray())
