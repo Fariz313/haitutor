@@ -255,8 +255,21 @@ class PaymentMethodController extends Controller {
             if ($request->input('icon')) {
                 $data->icon = $request->input('icon');
             }
+            if ($request->input('id_payment_method_provider')) {
+                $dataPaymentProvider = PaymentMethodProvider::where('id_payment_method', $data->id)->get();
 
-	        $data->save();
+                foreach($dataPaymentProvider as $provider){
+                    if($provider->id == $request->input('id_payment_method_provider')){
+                        $provider->isActive = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"];
+                    } else {
+                        $provider->isActive = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    }
+                    $provider->save();
+                }
+            }
+
+            $data->save();
+            
 
     		return response()->json([
     			'status'	=> 'Success',
