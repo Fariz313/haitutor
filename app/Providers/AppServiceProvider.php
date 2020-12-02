@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::morphMap([
             "chat" => \App\RoomChat::class,
-            "videocall" => \App\HistoryVC::class
+            "videocall" => \App\RoomVC::class
         ]);
 
     }
