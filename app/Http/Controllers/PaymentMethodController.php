@@ -186,23 +186,41 @@ class PaymentMethodController extends Controller {
                     'status'    =>'failed validate',
                     'error'     =>$validator->errors()
                 ],400);
-    		}
+            }
 
-            $data          = new PaymentMethod();
-            $data->name    = $request->input('name');
-            $data->code    = $request->input('code');
-            $data->status  = '0';   
+            $data                       = new PaymentMethod();
+
+            if($request->input('id_payment_category')){
+                $data->id_payment_category  = $request->input('id_payment_category');
+            } else {
+                $data->id_payment_category  = 0;
+            }
+
+            $maxOrder = PaymentMethod::selectRaw("MAX(payment_method.order) as maxOrder")
+                        ->where('id_payment_category', $data->id_payment_category)
+                        ->where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
+                        ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                        ->first()->maxOrder;
+
+            $data->name                 = $request->input('name');
+            $data->code                 = $request->input('code');
+            $data->icon                 = 'credit_card.png';
+            $data->status               = 0;
+            $data->order                = $maxOrder + 1;
+            $data->is_deleted           = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"];
             $data->save();
 
+            $this->tidyOrder();
+
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
                 'message'	=> 'Payment Method added successfully',
                 'data'      => $data
     		], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
             ]);
         }
@@ -224,23 +242,31 @@ class PaymentMethodController extends Controller {
     		}
 
             $data                   = PaymentMethod::findOrFail($id);
+            
+            if ($request->input('id_payment_category')) {
+                $data->id_payment_category = $request->input('id_payment_category');
+            }
             if ($request->input('name')) {
                 $data->name = $request->input('name');
             }
             if ($request->input('code')) {
                 $data->code = $request->input('code');
             }
+            if ($request->input('icon')) {
+                $data->icon = $request->input('icon');
+            }
+
 	        $data->save();
 
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
                 'message'	=> 'Payment Method updated successfully',
                 'data'      => $data
     		], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
             ]);
         }
@@ -259,14 +285,14 @@ class PaymentMethodController extends Controller {
             $data->save();
             
     		return response()->json([
-    			'status'	=> 'success',
+    			'status'	=> 'Success',
                 'message'	=> 'Status Payment Method Updated Successfully',
                 'data'      => $data
     		], 201);
 
         } catch(\Exception $e){
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => $e->getMessage()
             ]);
         }
@@ -275,25 +301,22 @@ class PaymentMethodController extends Controller {
     public function destroy($id)
     {
         try{
+            $data   = PaymentMethod::findOrFail($id);
+            $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
+            $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+            $data->order        = 0;
+            $data->save();
 
-            $delete = PaymentMethod::findOrFail($id)->delete();
-
-            if($delete){
-              return response([
-              	"status"	=> "success",
-                  "message"   => "Payment Method deleted successfully"
-              ]);
-            } else {
-              return response([
-                "status"  => "failed",
-                  "message"   => "Failed delete data"
-              ]);
-            }
+            return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Payment Method Deleted',
+                'data'      => $data
+    		], 200);
         } catch(\Exception $e){
             return response([
-            	"status"	=> "failed",
+            	"status"	=> "Failed",
                 "message"   => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -336,6 +359,26 @@ class PaymentMethodController extends Controller {
                 "error"     => $e->getMessage()
             ], 500);
         }   
+    }
+
+    private function tidyOrder(){
+        $dataCategory  = PaymentMethod::where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->orderBy('id_payment_category','ASC')
+                    ->orderBy('order','ASC')->groupBy('id_payment_category')->pluck('id_payment_category')->toArray();
+
+        for ($i = 0; $i < count($dataCategory); $i++) {
+            $data   = PaymentMethod::where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->where('id_payment_category', $dataCategory[$i])
+                    ->orderBy('id_payment_category','ASC')
+                    ->orderBy('order','ASC')->get();
+
+            for ($j = 0; $j < count($data); $j++) {
+                $data[$j]->order    = $j + 1;
+                $data[$j]->save();
+            }
+        }
     }
     
 }
