@@ -136,6 +136,7 @@ class PaymentMethodController extends Controller {
             // Get All Provider for each Payment Method
             $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id',
                                                     'payment_method_provider.id_payment_method',
+                                                    'payment_method_provider.status',
                                                     'payment_provider.id as active_provider_id', 
                                                     'payment_provider.name as active_provider_name')
                                                 ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
@@ -147,7 +148,8 @@ class PaymentMethodController extends Controller {
                             'payment_method_category.order as category_order', 
                             'active_method.active_provider_name', 
                             'active_method.active_provider_id',
-                            'active_method.id as id_payment_method_provider')
+                            'active_method.id as id_payment_method_provider',
+                            'active_method.status as status_payment_method_provider')
                         ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                         ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
                             $join->on('payment_method.id', '=', 'active_method.id_payment_method');
