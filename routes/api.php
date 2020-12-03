@@ -138,6 +138,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/list/enable', 'PaymentMethodController@getAllEnabledPaymentMethod');
             Route::get('/{id}','PaymentMethodController@getOne');
             Route::get('/provider/{id}','PaymentMethodController@getPaymentMethodByMethodProviderId');
+            Route::get('/available/provider/{idPaymentMethod}','PaymentMethodController@getAvailablePaymentMethodProvider');
 
             Route::post('/', 'PaymentMethodController@store');
 
@@ -163,6 +164,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/provider')->group(function () {
             Route::get('/list/all', 'PaymentProviderController@index');
+            Route::get('/list/method', 'PaymentProviderController@getPaymentMethodList');
             Route::get('/{id}','PaymentProviderController@show');
 
             Route::post('/', 'PaymentProviderController@store');
@@ -170,8 +172,11 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/{id}','PaymentProviderController@update');
             Route::put('/enable/{id}', 'PaymentProviderController@enablePaymentProvider');
             Route::put('/disable/{id}', 'PaymentProviderController@disablePaymentProvider');
+
             Route::put('/include/{paymentMethodId}', 'PaymentProviderController@includePaymentMethod');
             Route::put('/exclude/{paymentMethodId}', 'PaymentProviderController@excludePaymentMethod');
+            Route::put('/method/enable/{idPaymentMethodProvider}', 'PaymentProviderController@enablePaymentMethodProvider');
+            Route::put('/method/disable/{idPaymentMethodProvider}', 'PaymentProviderController@disablePaymentMethodProvider');
 
             Route::delete('/{id}','PaymentProviderController@destroy');
 
