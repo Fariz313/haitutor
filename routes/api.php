@@ -182,7 +182,7 @@ Route::middleware(['cors'])->group(function(){
             Route::prefix('/variable')->group(function () {
                 Route::get('/list/all', 'PaymentProviderController@getAllPaymentProviderVariable');
                 Route::get('/{id}','PaymentProviderController@getPaymentProviderVariableById');
-                Route::post('/','PaymentProviderController@addPaymentProviderVariable');
+                Route::post('/add','PaymentProviderController@addPaymentProviderVariable');
                 Route::put('/{id}','PaymentProviderController@updatePaymentProviderVariable');
                 Route::delete('/{id}','PaymentProviderController@deletePaymentProviderVariable');
             });

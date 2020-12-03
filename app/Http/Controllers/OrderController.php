@@ -259,6 +259,10 @@ class OrderController extends Controller
                                 ->with(array('package' => function ($query) {
                                     $query->select("id", "price", "balance", "name");
                                 }))
+                                ->with(array('payment_method' => function($query){
+                                    $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                            ->with(array('paymentMethodProviderVariable'));
+                                }))
                                 ->orderBy('created_at','DESC')
                                 ->where("type_code", 'LIKE', '%'.$type_code.'%')
                                 ->where("detail", 'LIKE',  '%'.$query.'%')
@@ -273,6 +277,10 @@ class OrderController extends Controller
                                 })
                                 ->with(array('package' => function ($query) {
                                     $query->select("id", "price", "balance", "name");
+                                }))
+                                ->with(array('payment_method' => function($query){
+                                    $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                            ->with(array('paymentMethodProviderVariable'));
                                 }))
                                 ->orderBy('created_at','DESC')
                                 ->paginate(10);
