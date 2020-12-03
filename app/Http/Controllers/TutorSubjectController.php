@@ -219,6 +219,8 @@ class TutorSubjectController extends Controller
                     }
                 }
 
+                DB::commit();
+
                 return response([
                     "status"	=> "success",
                     "message"   => "Subject deleted successfully"
@@ -237,6 +239,50 @@ class TutorSubjectController extends Controller
             	"status"	=> "failed",
                 "message"   => "Failed deleting",
                 "data"      => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reorder(Request $request)
+    {
+        try {
+
+            $validator = Validator::make($request->all(), [
+    			'tutor_subjects'          => 'required',
+    		]);
+
+            if($validator->fails()){
+    			return response()->json([
+                    'status'    =>'failed',
+                    'message'     =>$validator->errors()
+                ],400);
+    		}
+
+            DB::beginTransaction();
+
+            $tutor_subjects = $request->input("tutor_subjects");
+
+            // die($tutor_subjects);
+
+            foreach ($tutor_subjects as $item) {
+                $item_tutor_subjects = TutorSubject::findOrFail($item["tutor_subject_id"]);
+                $item_tutor_subjects->priority = $item["priority"];
+                $item_tutor_subjects->save();
+            }
+
+            DB::commit();
+
+            return response([
+                "status"	=> "success",
+                "message"   => "Subject reordered"
+            ], 200);
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response([
+            	"status"	=> "failed",
+                "message"   => "Failed reordering",
+                "data"      => $th->getMessage()
             ], 500);
         }
     }
