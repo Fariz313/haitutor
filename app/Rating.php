@@ -17,4 +17,9 @@ class Rating extends Model
     {
         return $this->hasOne('App\User', 'id', 'target_id');
     }
+
+    public function serviceable()
+    {
+        return $this->morphTo();
+    }
 }

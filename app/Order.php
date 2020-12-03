@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App;
 
 class Order extends Model
 {
@@ -16,6 +17,21 @@ class Order extends Model
     const TYPE_CODE = array(
         "INTERNAL" => 0,
         "PAYMENT_GATEWAY" => 1
+    );
+
+    const PAYMENT_PROVIDER = array(
+        "DUITKU"    => "DUITKU",
+        "MIDTRANS"  => "MIDTRANS"
+    );
+
+    const ENVIRONMENT = array(
+        "DEVELOPMENT"   => "0",
+        "PRODUCTION"    => "1"
+    );
+
+    const IS_VA = array(
+        "TRUE"  => "1",
+        "FALSE" => "0"
     );
 
     const DUITKU_ATTRIBUTES = array(
@@ -42,6 +58,27 @@ class Order extends Model
         "VC", "BK", "OV"
     );
 
+    const PAYMENT = array(
+        "DUITKU"    => array(
+            "PRODUCTION"    => array(
+                "MERCHANT_CODE" => "D4709",
+                "MERCHANT_KEY"  => "842145221e885c65e84ecc91084e757e",
+                "RETURN_URL"    => "https://haitutor.id/backend-educhat/api/callback",
+                "CALLBACK_URL"  => "https://haitutor.id/backend-educhat/api/callback"
+            ),
+            "DEVELOPMENT"   => array(
+                "MERCHANT_CODE" => "D7176",
+                "MERCHANT_KEY"  => "e5739c71cb0ed538c749e127233e2c12",
+                "RETURN_URL"    => "https://haitutor.id/backend-educhat-dev/api/callback",
+                "CALLBACK_URL"  => "https://haitutor.id/backend-educhat-dev/api/callback"
+            )
+        ),
+        "MIDTRANS"  => array(
+            "PRODUCTION"    => "",
+            "DEVELOPMENT"   => ""
+        )
+    );
+
     public function package()
     {
         return $this->hasOne('App\Package','id','package_id');
@@ -53,6 +90,15 @@ class Order extends Model
     public function payment_method()
     {
         return $this->hasOne('App\PaymentMethod', 'id', 'method_id');
+    }
+
+    public static function getEnvironment()
+    {
+        if (App::environment("local")) {
+            return 0;
+        } else if (App::environment("production")) {
+            return 1;
+        }
     }
 
 }

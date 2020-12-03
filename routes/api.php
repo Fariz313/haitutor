@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['cors'])->group(function(){
 
-
     Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
@@ -83,6 +82,9 @@ Route::middleware(['cors'])->group(function(){
 
     Route::post('pushNotification', 'NotificationController@pushNotification');
 
+    Route::get('show-otp', 'OtpController@showOtp');
+    Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
+
     Route::prefix('/company')->group(function () {
         Route::get('/', 'CompanyController@index');
         Route::get('/{id}', 'CompanyController@show');
@@ -126,6 +128,74 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/cancel/{id}', 'DisbursementController@cancelDisbursement');
         Route::put('/info/{userId}', 'TutorController@updateDisbursementDoc');
         Route::get('/request/check', 'DisbursementController@checkRequirements');
+    });
+
+    Route::prefix('/payment')->group(function () {
+
+        Route::prefix('/method')->group(function () {
+            Route::get('/list/all', 'PaymentMethodController@getAll');
+            Route::get('/list/enable', 'PaymentMethodController@getAllEnabledPaymentMethod');
+            Route::get('/{id}','PaymentMethodController@getOne');
+            Route::get('/provider/{id}','PaymentMethodController@getPaymentMethodByMethodProviderId');
+            Route::get('/available/provider/{idPaymentMethod}','PaymentMethodController@getAvailablePaymentMethodProvider');
+
+            Route::post('/', 'PaymentMethodController@store');
+
+            Route::put('/{id}','PaymentMethodController@update');
+            Route::put('/enable/{id}', 'PaymentMethodController@EnablePaymentMethod');
+            Route::put('/disable/{id}', 'PaymentMethodController@DisablePaymentMethod');
+
+            Route::delete('/{id}','PaymentMethodController@destroy');
+        });
+
+        Route::prefix('/category')->group(function () {
+            Route::get('/list/all', 'PaymentCategoryController@index');
+            Route::get('/{id}','PaymentCategoryController@show');
+
+            Route::post('/', 'PaymentCategoryController@store');
+
+            Route::put('/{id}','PaymentCategoryController@update');
+            Route::put('/enable/{id}', 'PaymentCategoryController@enablePaymentCategory');
+            Route::put('/disable/{id}', 'PaymentCategoryController@disablePaymentCategory');
+
+            Route::delete('/{id}','PaymentCategoryController@destroy');
+        });
+
+        Route::prefix('/provider')->group(function () {
+            Route::get('/list/all', 'PaymentProviderController@index');
+            Route::get('/list/method', 'PaymentProviderController@getPaymentMethodList');
+            Route::get('/{id}','PaymentProviderController@show');
+
+            Route::post('/', 'PaymentProviderController@store');
+
+            Route::put('/{id}','PaymentProviderController@update');
+            Route::put('/enable/{id}', 'PaymentProviderController@enablePaymentProvider');
+            Route::put('/disable/{id}', 'PaymentProviderController@disablePaymentProvider');
+
+            Route::put('/include/{paymentMethodId}', 'PaymentProviderController@includePaymentMethod');
+            Route::put('/exclude/{paymentMethodId}', 'PaymentProviderController@excludePaymentMethod');
+            Route::put('/method/enable/{idPaymentMethodProvider}', 'PaymentProviderController@enablePaymentMethodProvider');
+            Route::put('/method/disable/{idPaymentMethodProvider}', 'PaymentProviderController@disablePaymentMethodProvider');
+
+            Route::delete('/{id}','PaymentProviderController@destroy');
+
+            Route::prefix('/variable')->group(function () {
+                Route::get('/list/all', 'PaymentProviderController@getAllPaymentProviderVariable');
+                Route::get('/{id}','PaymentProviderController@getPaymentProviderVariableById');
+                Route::post('/','PaymentProviderController@addPaymentProviderVariable');
+                Route::put('/{id}','PaymentProviderController@updatePaymentProviderVariable');
+                Route::delete('/{id}','PaymentProviderController@deletePaymentProviderVariable');
+            });
+
+            Route::prefix('/method/variable')->group(function () {
+                Route::get('/list/all', 'PaymentProviderController@getAllPaymentMethodProviderVariable');
+                Route::get('/{id}','PaymentProviderController@getPaymentMethodProviderVariableById');
+                Route::post('/','PaymentProviderController@addPaymentMethodProviderVariable');
+                Route::put('/{id}','PaymentProviderController@updatePaymentMethodProviderVariable');
+                Route::delete('/{id}','PaymentProviderController@deletePaymentMethodProviderVariable');
+            });
+        });
+
     });
 
     Route::middleware(['user.tutor'])->group(function(){

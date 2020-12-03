@@ -8,6 +8,9 @@ use App\User;
 use App\Package;
 use App\PaymentMethod;
 use App\Notification;
+use App\PaymentMethodProvider;
+use App\PaymentMethodProviderVariable;
+use App\PaymentProviderVariable;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -87,57 +90,63 @@ class OrderController extends Controller
     {
         try{
 
+            $idPaymentMethodProvider    = $request->input('id_payment_method_provider');
+            $activePaymentMethod        = PaymentMethod::select('payment_method.*', 
+                                                'payment_method_provider.id as id_payment_method_provider', 
+                                                'payment_method_provider.id_payment_provider', 
+                                                'payment_provider.name as provider_name')
+                                            ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
+                                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                            ->with('paymentMethodProviderVariable')
+                                            ->where('payment_method_provider.id', $idPaymentMethodProvider)
+                                            ->first();
+
+            $providerVariable           = PaymentProviderVariable::where('environment', Order::getEnvironment())
+                                            ->where('id_payment_provider', $activePaymentMethod->id_payment_provider)
+                                            ->get();
+
+            $paymentMethodProviderVariable = PaymentMethodProviderVariable::where('id_payment_method_provider', $idPaymentMethodProvider)
+                                            ->get();
+
             // Get Required Object (Order, Package and User)
             $data               = new Order();
             $dataPackage        = Package::findOrFail($package_id);
             $user               = JWTAuth::parseToken()->authenticate();
-            $paymentMethod      = PaymentMethod::where('code', $request->input('payment_method'))->first();
 
             // Fill initial value of Order object
             $data->user_id      = $user->id;
             $data->package_id   = $package_id;
-            $data->method_id    = $paymentMethod->id;
+            $data->method_id    = $idPaymentMethodProvider;
             $data->invoice      = "";
             $data->amount       = $dataPackage->price;
             $data->detail       = "Pembelian " . $dataPackage->name . " (" . $dataPackage->balance . " Token)";
             $data->pos          = Order::POS_STATUS["DEBET"];
             $data->type_code    = Order::TYPE_CODE["PAYMENT_GATEWAY"];
-            $data->save();
 
-            // Request Transaction with Payment Gateway
-            $body = [
-                "merchantCode" => Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"],
-                "paymentAmount" => $data->amount,
-                "merchantOrderId" => $data->id,
-                "productDetails" => $data->detail,
-                "email" => $user->email,
-                "paymentMethod" => $request->input('payment_method'),
-                "returnUrl" => Order::DUITKU_ATTRIBUTES["RETURN_URL"],
-                "callbackUrl" => Order::DUITKU_ATTRIBUTES["CALLBACK_URL"],
-                "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $data->id. $data->amount. Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
-            ];
+            $const                                  = array();
+            $const['user']                          = $user;
+            $const['dataOrder']                     = $data;
+            $const['activePaymentMethod']           = $activePaymentMethod;
+            $const['providerVariable']              = $providerVariable;
+            $const['paymentMethodProviderVariable'] = $paymentMethodProviderVariable;
 
-            $responsePayment    = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);
+            if ($activePaymentMethod->provider_name == Order::PAYMENT_PROVIDER["DUITKU"]){
+                $returnValue    = $this->orderDuitku($const);
 
-            // Update Order object with response value
-            $responseObject      = json_decode($responsePayment);
-            $isUseVA             = in_array($paymentMethod->code, Order::NON_VA);
-
-            if($isUseVA){
-                $data->va_number    = $responseObject->paymentUrl;
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Order added successfully',
+                    'data'      => $returnValue,
+                    'order'     => $data
+                ], 201);
             } else {
-                $data->va_number    = $responseObject->vaNumber;
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Provider Not Available'
+                ], 201);
             }
 
-            $data->invoice      = $responseObject->reference;
-            $data->save();
-
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Order added successfully',
-                'data'      => $responseObject,
-                'order'     => $data
-            ], 201);
+            return $activePaymentMethod;
 
         } catch(\Exception $e){
             return response()->json([
@@ -146,6 +155,52 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    private function convertToList($variables){
+        $listVariable   = array();
+        foreach ($variables as $providerVariable) {
+            $listVariable += array($providerVariable->variable => $providerVariable->value);
+        }
+        return $listVariable;
+    }
+
+    private function orderDuitku($const){
+        $const['dataOrder']->save();
+
+        $listProviderVariable   = $this->convertToList($const['providerVariable']);
+        $listMethodVariable     = $this->convertToList($const['paymentMethodProviderVariable']);
+        
+        // Request Transaction with Payment Gateway
+        $body = [
+            "merchantCode" => $listProviderVariable["MERCHANT_CODE"],
+            "paymentAmount" => $const['dataOrder']->amount,
+            "merchantOrderId" => $const['dataOrder']->id,
+            "productDetails" => $const['dataOrder']->detail,
+            "email" => $const['user']->email,
+            "paymentMethod" => $listMethodVariable["CODE"],
+            "returnUrl" => $listProviderVariable["RETURN_URL"],
+            "callbackUrl" => $listProviderVariable["CALLBACK_URL"],
+            "signature" => md5($listProviderVariable["MERCHANT_CODE"]. $const['dataOrder']->id. $const['dataOrder']->amount. $listProviderVariable["MERCHANT_KEY"])
+        ];
+
+        $requestAPI = $listProviderVariable["API_REQUEST"];
+        $responsePayment    = Http::post($requestAPI, $body);
+
+        // Update Order object with response value
+        $responseObject      = json_decode($responsePayment);
+
+        if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
+            $const['dataOrder']->va_number  = $responseObject->vaNumber;
+        } else {
+            $const['dataOrder']->va_number  = $responseObject->paymentUrl;
+        }
+
+        $const['dataOrder']->invoice        = $responseObject->reference;
+        $const['dataOrder']->save();
+
+        return $responseObject;
+    }
+
     public function verify($id)
     {
         try{
@@ -236,6 +291,9 @@ class OrderController extends Controller
                             }))
                             ->with(array('payment_method' => function ($query) {
                                 $query->select('id', 'name', 'code');
+                            }))
+                            ->with(array("user" => function ($query) {
+                                $query->select("id", "name", "email", "role");
                             }))->first();
 
             for ($i=0; $i < sizeof($non_va); $i++) {
@@ -423,6 +481,18 @@ class OrderController extends Controller
     }
 
     public function requestTransaction(Request $request){
+        // $body = [
+        //     "merchantCode" => $request->input('merchantCode'),
+        //     "paymentAmount" => $request->input('paymentAmount'),
+        //     "merchantOrderId" => $request->input('merchantOrderId'),
+        //     "productDetails" => $request->input('productDetails'),
+        //     "email" => $request->input('email'),
+        //     "paymentMethod" => $request->input('paymentMethod'),
+        //     "returnUrl" => $request->input('returnUrl'),
+        //     "callbackUrl" => $request->input('callbackUrl'),
+        //     "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+        // ];
+
         $body = [
             "merchantCode" => $request->input('merchantCode'),
             "paymentAmount" => $request->input('paymentAmount'),
@@ -432,7 +502,7 @@ class OrderController extends Controller
             "paymentMethod" => $request->input('paymentMethod'),
             "returnUrl" => $request->input('returnUrl'),
             "callbackUrl" => $request->input('callbackUrl'),
-            "signature" => md5(Order::DUITKU_ATTRIBUTES["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::DUITKU_ATTRIBUTES["MERCHANT_KEY"])
+            "signature" => md5(Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_CODE"]. $request->input('merchantOrderId'). $request->input('paymentAmount'). Order::PAYMENT["DUITKU"]["DEVELOPMENT"]["MERCHANT_KEY"])
         ];
 
         $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry', $body);

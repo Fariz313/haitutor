@@ -14,7 +14,9 @@ use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
 use App\Helpers\CloudKilatHelper;
+use App\Otp;
 use Kreait\Firebase\Auth;
+use View;
 
 class UserController extends Controller
 {
@@ -502,13 +504,39 @@ class UserController extends Controller
         }
 
         try{
-        Mail::send([], [], function ($message) use ($request, $pw,$password)
-        {
-            $message->subject('Contoh Otp');
-            $message->to($request->email);
-            $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$password.'</b></h1>','text/html');
 
-        });
+            $data = Information::get();
+
+            foreach ($data as $key) {
+                if ($key->variable == "no_telp") {
+                    $no_telp = $key->value;
+                }
+
+                if ($key->variable == "alamat") {
+                    $alamat = $key->value;
+                }
+
+            }
+
+            Mail::send([], [], function ($message) use ($request, $password, $alamat, $no_telp)
+            {
+                $message->subject('Kode OTP Akun HaiTutor');
+                $message->to($request->email);
+                $view = View::make('otpVerification', [
+                    Otp::OTP_PAYLOAD["OTP"] => $password,
+                    Otp::OTP_PAYLOAD["TITLE"] => "Reset Password",
+                    Otp::OTP_PAYLOAD["TYPE"] => Otp::OTP_TYPE["RESET_PASSWORD"],
+                    Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
+                    Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
+                    Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut:",
+                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda.",
+                ]);
+
+                $html = $view->render();
+                $message->setBody($html,'text/html');
+                // $message->setBody('<p> Hi!! </p><h1>password anda</h1><br/><h1><b>'.$password.'</b></h1>','text/html');
+
+            });
         }catch(\throwable $e){
             return response()->json([
                 'status' => 'failed',
