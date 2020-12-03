@@ -7,6 +7,8 @@ use App\TutorSubject;
 use App\Subject;
 use JWTAuth;
 use Illuminate\Support\Facades\Validator;
+use DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 class TutorSubjectController extends Controller
@@ -28,7 +30,7 @@ class TutorSubjectController extends Controller
                 $data = TutorSubject::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('type','LIKE','%'.$query.'%');
-                } )->paginate($paginate);    
+                } )->paginate($paginate);
             }else{
                 $data = TutorSubject::select('users.name AS tutor_name','subject.name AS subject_name')
                                     ->join('users','users.id','=','tutor_subject.user_id')
@@ -52,19 +54,20 @@ class TutorSubjectController extends Controller
     public function getSubjectTutor($tutor_id)
     {
         $paginate = 10;
-        
+
         try {
             $data = TutorSubject::select('tutor_subject.*', 'subject.*', 'tutor_subject.id as tutor_subject_id')
                                 ->join('users','users.id','=','tutor_subject.user_id')
                                 ->join('subject','subject.id','=','tutor_subject.subject_id')
                                 ->where('users.id', '=', $tutor_id)
+                                ->orderBy("priority", "ASC")
                                 ->paginate($paginate);
-        
+
             return $data;
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'failed',
-                'data'      =>  'No Data Picked',
+                'data'      =>  $th->getMessage(),
                 'message'   =>  'Get Data Failed'
             ]);
         }
@@ -89,11 +92,16 @@ class TutorSubjectController extends Controller
                     'status'    =>'failed validate',
                     'error'     =>$validator->errors()
                 ],400);
-    		}
+            }
+
             $user               = JWTAuth::parseToken()->authenticate();
+
+            $last_priority_number = TutorSubject::where("user_id", $user->id)->max("priority");
+
             $data               = new TutorSubject();
             $data->user_id      = $user->id;
             $data->subject_id   = $request->input('subject_id');
+            $data->priority     = $last_priority_number + 1;
 	        $data->save();
 
     		return response()->json([
@@ -192,23 +200,43 @@ class TutorSubjectController extends Controller
     {
         try{
 
-            $delete = TutorSubject::where("id", $id)->delete();
+            DB::beginTransaction();
 
-            if($delete){
-              return response([
-              	"status"	=> "success",
-                  "message"   => "Subject deleted successfully"
-              ], 200);
-            } else {
-              return response([
-                "status"  => "failed",
-                  "message"   => "Failed delete data"
-              ], 500);
+            $tutor_subject = TutorSubject::where("id", $id)->firstOrFail(); // Ambil tutor_subject yang akan dihapus
+
+            $data = TutorSubject::where("user_id", $tutor_subject->user_id)->get();
+
+            $delete_tutor_subject = $tutor_subject->delete();
+
+            if ($delete_tutor_subject) {
+                foreach ($data as $item) {
+                    /*
+                        Jika priority item tutor_subject lebih dari priority tutor_subject yang akan didelete, ubah priority item tutor_subject
+                    */
+                    if ($item->priority > $tutor_subject->priority) {
+                        $item->priority = $item->priority - 1;
+                        $item->save();
+                    }
+                }
+
+                return response([
+                    "status"	=> "success",
+                    "message"   => "Subject deleted successfully"
+                ], 200);
             }
-        } catch(\Exception $e){
+
+        }catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollback();
             return response([
             	"status"	=> "failed",
-                "message"   => "Failed deleting"
+                "message"   => "Tutor subject not found"
+            ], 500);
+        } catch(\Exception $e){
+            DB::rollback();
+            return response([
+            	"status"	=> "failed",
+                "message"   => "Failed deleting",
+                "data"      => $e->getMessage()
             ], 500);
         }
     }
