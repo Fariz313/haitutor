@@ -133,11 +133,23 @@ class OrderController extends Controller
             if ($activePaymentMethod->provider_name == Order::PAYMENT_PROVIDER["DUITKU"]){
                 $returnValue    = $this->orderDuitku($const);
 
+                $result         = Order::where('id', $data->id)
+                                    ->with(array('package' => function ($query) {
+                                        $query->select("id", "price", "balance", "name");
+                                    }))
+                                    ->with(array('payment_method' => function($query){
+                                        $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                                ->with(array('paymentMethodProviderVariable'));
+                                    }))
+                                    ->with(array("user" => function ($query) {
+                                        $query->select("id", "name", "email", "role");
+                                    }))->first();
+
                 return response()->json([
                     'status'	=> 'Success',
                     'message'	=> 'Order added successfully',
                     'data'      => $returnValue,
-                    'order'     => $data
+                    'order'     => $result
                 ], 201);
             } else {
                 return response()->json([
@@ -283,27 +295,17 @@ class OrderController extends Controller
 
             $data       = Order::findOrFail($id);
 
-            $non_va     = Order::NON_VA;
-
             $data       = Order::where('id', $id)
                             ->with(array('package' => function ($query) {
                                 $query->select("id", "price", "balance", "name");
                             }))
-                            ->with(array('payment_method' => function ($query) {
-                                $query->select('id', 'name', 'code');
+                            ->with(array('payment_method' => function($query){
+                                $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->with(array('paymentMethodProviderVariable'));
                             }))
                             ->with(array("user" => function ($query) {
                                 $query->select("id", "name", "email", "role");
                             }))->first();
-
-            for ($i=0; $i < sizeof($non_va); $i++) {
-                if ($data->payment_method->code == $non_va[$i]) {
-                    $data->payment_method->is_va = "false";
-                    break;
-                } else {
-                    $data->payment_method->is_va = "true";
-                }
-            }
 
             return response()->json([
                 'status'    => "success",
