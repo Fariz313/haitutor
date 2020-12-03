@@ -262,8 +262,6 @@ class TutorSubjectController extends Controller
 
             $tutor_subjects = $request->input("tutor_subjects");
 
-            // die($tutor_subjects);
-
             foreach ($tutor_subjects as $item) {
                 $item_tutor_subjects = TutorSubject::findOrFail($item["tutor_subject_id"]);
                 $item_tutor_subjects->priority = $item["priority"];
