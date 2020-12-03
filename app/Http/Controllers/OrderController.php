@@ -190,15 +190,15 @@ class OrderController extends Controller
         $responseObject      = json_decode($responsePayment);
 
         if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
-            $const['dataOrder']->va_number  = $responseObject->paymentUrl;
-        } else {
             $const['dataOrder']->va_number  = $responseObject->vaNumber;
+        } else {
+            $const['dataOrder']->va_number  = $responseObject->paymentUrl;
         }
 
         $const['dataOrder']->invoice        = $responseObject->reference;
         $const['dataOrder']->save();
 
-        return $responseObject;
+        return $listMethodVariable["IS_VA"];
     }
 
     public function verify($id)
