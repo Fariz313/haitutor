@@ -30,8 +30,8 @@ class Order extends Model
     );
 
     const IS_VA = array(
-        "TRUE"  => 1,
-        "FALSE" => 0
+        "TRUE"  => "1",
+        "FALSE" => "0"
     );
 
     const DUITKU_ATTRIBUTES = array(
