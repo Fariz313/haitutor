@@ -198,7 +198,7 @@ class OrderController extends Controller
         $const['dataOrder']->invoice        = $responseObject->reference;
         $const['dataOrder']->save();
 
-        return $listMethodVariable["IS_VA"];
+        return $responseObject;
     }
 
     public function verify($id)
