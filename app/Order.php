@@ -21,7 +21,14 @@ class Order extends Model
 
     const PAYMENT_PROVIDER = array(
         "DUITKU"    => "DUITKU",
-        "MIDTRANS"  => "MIDTRANS"
+        "MIDTRANS"  => "MIDTRANS",
+        "TRIPAY"    => "TRIPAY"
+    );
+
+    const ORDER_STATUS = array(
+        "SUCCESS"   => "success",
+        "PENDING"   => "pending",
+        "FAILED"   => "failed"
     );
 
     const ENVIRONMENT = array(
@@ -89,7 +96,7 @@ class Order extends Model
     }
     public function payment_method()
     {
-        return $this->hasOne('App\PaymentMethod', 'id', 'method_id');
+        return $this->hasOne('App\PaymentMethodProvider', 'id', 'method_id');
     }
 
     public static function getEnvironment()

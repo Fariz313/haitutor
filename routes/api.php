@@ -69,6 +69,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('tutor_subject/{id}', 'TutorSubjectController@show');
     Route::post('tutor_subject', 'TutorSubjectController@store');
     Route::delete('tutor_subject/{id}', 'TutorSubjectController@destroy');
+    Route::put('tutor_subject/reorder', 'TutorSubjectController@reorder');
 
     Route::get('tutor_by_subject/{subject_id}', 'TutorController@getTutorBySubject');
     Route::get('subject_tutor/{tutor_id}', 'TutorSubjectController@getSubjectTutor');
@@ -182,7 +183,7 @@ Route::middleware(['cors'])->group(function(){
             Route::prefix('/variable')->group(function () {
                 Route::get('/list/all', 'PaymentProviderController@getAllPaymentProviderVariable');
                 Route::get('/{id}','PaymentProviderController@getPaymentProviderVariableById');
-                Route::post('/','PaymentProviderController@addPaymentProviderVariable');
+                Route::post('/add','PaymentProviderController@addPaymentProviderVariable');
                 Route::put('/{id}','PaymentProviderController@updatePaymentProviderVariable');
                 Route::delete('/{id}','PaymentProviderController@deletePaymentProviderVariable');
             });
