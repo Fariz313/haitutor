@@ -54,6 +54,7 @@ Route::middleware(['cors'])->group(function(){
     Route::get('order-user', 'OrderController@show');
     Route::post('order/{id}', 'OrderController@store');
     Route::post('callback', 'OrderController@callbackTransaction');
+    Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
     Route::post('request/order', 'OrderController@requestTransaction');
     Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
 
