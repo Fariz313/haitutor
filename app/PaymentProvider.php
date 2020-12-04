@@ -27,4 +27,14 @@ class PaymentProvider extends Model
     {
         return $this->hasMany('App\PaymentProviderVariable','id_payment_provider','id');
     }
+
+    public function providerVariablesDevelopment()
+    {
+        return $this->hasMany('App\PaymentProviderVariable','id_payment_provider','id');
+    }
+
+    public function providerVariablesProduction()
+    {
+        return $this->hasMany('App\PaymentProviderVariable','id_payment_provider','id');
+    }
 }

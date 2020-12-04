@@ -92,7 +92,14 @@ class PaymentProviderController extends Controller
     public function show($id)
     {
         try {
-            $data = PaymentProvider::where('id', $id)->with('providerVariables')->first();
+            $data = PaymentProvider::where('id', $id)->with(array(
+                'providerVariablesDevelopment' => function($query){
+                    $query->where('environment', PaymentProviderVariable::PAYMENT_PROVIDER_VAR_ENVIRONMENT["DEVELOPMENT"]);
+                },
+                'providerVariablesProduction' => function($query){
+                    $query->where('environment', PaymentProviderVariable::PAYMENT_PROVIDER_VAR_ENVIRONMENT["PRODUCTION"]);
+                }
+                ))->first();
 
             $dataPaymentMethod = PaymentMethod::select('payment_method.*', 
                                         'payment_method_category.name as category_name',
