@@ -21,7 +21,14 @@ class Order extends Model
 
     const PAYMENT_PROVIDER = array(
         "DUITKU"    => "DUITKU",
-        "MIDTRANS"  => "MIDTRANS"
+        "MIDTRANS"  => "MIDTRANS",
+        "TRIPAY"    => "TRIPAY"
+    );
+
+    const ORDER_STATUS = array(
+        "SUCCESS"   => "success",
+        "PENDING"   => "pending",
+        "FAILED"   => "failed"
     );
 
     const ENVIRONMENT = array(
