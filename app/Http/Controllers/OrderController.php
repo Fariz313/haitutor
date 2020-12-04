@@ -312,7 +312,9 @@ class OrderController extends Controller
                                 $query->select("id", "price", "balance", "name");
                             }))
                             ->with(array('payment_method' => function($query){
-                                $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                $query->select("payment_method.*", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
                                         ->with(array('paymentMethodProviderVariable'));
                             }))
                             ->with(array("user" => function ($query) {
