@@ -144,13 +144,23 @@ class OrderController extends Controller
                                     ->with(array("user" => function ($query) {
                                         $query->select("id", "name", "email", "role");
                                     }))->first();
-
-                return response()->json([
-                    'status'	=> 'Success',
-                    'message'	=> 'Order added successfully',
-                    'data'      => $returnValue,
-                    'order'     => $result
-                ], 201);
+                
+                if($result->statusCode == "00"){
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Order added successfully',
+                        'data'      => $returnValue,
+                        'order'     => $result
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> $returnValue->Message,
+                        'data'      => $returnValue,
+                        'order'     => $result
+                    ], 201);
+                }
+                
             } else {
                 return response()->json([
                     'status'	=> 'Failed',
@@ -200,17 +210,26 @@ class OrderController extends Controller
 
         // Update Order object with response value
         $responseObject      = json_decode($responsePayment);
-
-        if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
-            $const['dataOrder']->va_number  = $responseObject->vaNumber;
+        
+        // return $responseObject;
+        if(isset($responseObject->statusCode) && $responseObject->statusCode == "00"){
+            if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
+                $const['dataOrder']->va_number  = $responseObject->vaNumber;
+            } else {
+                $const['dataOrder']->va_number  = $responseObject->paymentUrl;
+            }
+    
+            $const['dataOrder']->invoice        = $responseObject->reference;
+            $const['dataOrder']->save();
+    
+            return $responseObject;
         } else {
-            $const['dataOrder']->va_number  = $responseObject->paymentUrl;
+            $const['dataOrder']->status         = Order::ORDER_STATUS["FAILED"];
+            $const['dataOrder']->save();
+
+            $responseObject->statusCode = "01";
+            return $responseObject;
         }
-
-        $const['dataOrder']->invoice        = $responseObject->reference;
-        $const['dataOrder']->save();
-
-        return $responseObject;
     }
 
     public function verify($id)
