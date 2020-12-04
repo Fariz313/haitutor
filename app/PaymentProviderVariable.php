@@ -12,4 +12,9 @@ class PaymentProviderVariable extends Model
         "ACTIVE"    => 0,
         "DELETED"   => 1
     );
+
+    const PAYMENT_PROVIDER_VAR_ENVIRONMENT = array(
+        "DEVELOPMENT"   => 0,
+        "PRODUCTION"    => 1
+    );
 }
