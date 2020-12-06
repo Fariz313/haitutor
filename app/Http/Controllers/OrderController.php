@@ -232,6 +232,36 @@ class OrderController extends Controller
         }
     }
 
+    private function orderTripay($const){
+
+        $header = [
+            'Authorization'=> 'Bearer DEV-CYJkpTwOQta20ZRplLctm5TLvXi74ekQunsjbpKe',
+        ];
+
+        // Request Transaction with Payment Gateway
+        $body = [
+            "method" => "BRIVA",
+            "merchant_ref" => 1,
+            "amount" => 10000,
+            "customer_name" => "Akhmad Muzanni",
+            "customer_email" => "akhmadmuzannisafii@gmail.com",
+            "order_items" => [
+                [
+                    "name" => "Paket 1",
+                    "price" => 10000,
+                    "quantity" => 1
+                ]
+            ],
+            "returnUrl" => "https://haitutor.id/restfull_api/api/return",
+            "callbackUrl" => "https://haitutor.id/restfull_api/api/return",
+            "signature" => "5f1cebf1bc289332f01f3046898780155bd4f51a569dd9a7c2999e1b5001f10b"
+        ];
+
+        $response = Http::withHeaders($header)->post('https://payment.tripay.co.id/api-sandbox/transaction/create', $body);
+
+        return $response;
+    }
+
     public function verify($id)
     {
         try{
@@ -500,6 +530,25 @@ class OrderController extends Controller
                 'save_data' => true
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Callback Transaction',
+                'data'      => $data
+            ], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function callbackTransactionTripay(Request $request){
+        try{
+
+            $data = $request->input('merchant_ref');
 
     		return response()->json([
     			'status'	=> 'Success',
