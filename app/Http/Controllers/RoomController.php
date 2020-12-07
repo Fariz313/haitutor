@@ -261,8 +261,10 @@ class RoomController extends Controller
             }
 
             $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
+            $channelName  = Notification::CHANNEL_NOTIF_NAMES[11];
             if("open" == $room->status){
                 $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
+                $channelName  = Notification::CHANNEL_NOTIF_NAMES[12];
             }
 
             $dataNotif = [
@@ -270,8 +272,9 @@ class RoomController extends Controller
                 "message" => $messageNotif,
                 "sender_id" => $sender->id,
                 "target_id" => $target->id,
-                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
+                "channel_name"   => $channelName,
                 'token_recipient' => $target->firebase_token,
+                "room_chat"       => $room,
                 'save_data' => true
             ];
             $responseNotif = FCM::pushNotification($dataNotif);
