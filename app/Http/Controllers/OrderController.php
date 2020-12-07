@@ -145,7 +145,7 @@ class OrderController extends Controller
                                         $query->select("id", "name", "email", "role");
                                     }))->first();
                 
-                if($result->statusCode == "00"){
+                if($returnValue->statusCode == "00"){
                     return response()->json([
                         'status'	=> 'Success',
                         'message'	=> 'Order added successfully',
@@ -170,7 +170,7 @@ class OrderController extends Controller
                                         $query->select("id", "price", "balance", "name");
                                     }))
                                     ->with(array('payment_method' => function($query){
-                                        $query->select("payment_method.*")->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        $query->select("payment_method.*", 'payment_method_provider.id')->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
                                                 ->with(array('paymentMethodProviderVariable'));
                                     }))
                                     ->with(array("user" => function ($query) {
@@ -363,10 +363,10 @@ class OrderController extends Controller
                                     $query->select("id", "price", "balance", "name");
                                 }))
                                 ->with(array('payment_method' => function($query){
-                                    $query->select("payment_method.*", "payment_provider.name as active_provider_name")
-                                            ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
-                                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
-                                            ->with(array('paymentMethodProviderVariable'));
+                                    $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                        ->with(array('paymentMethodProviderVariable'));
                                 }))
                                 ->orderBy('created_at','DESC')
                                 ->where("type_code", 'LIKE', '%'.$type_code.'%')
@@ -384,10 +384,10 @@ class OrderController extends Controller
                                     $query->select("id", "price", "balance", "name");
                                 }))
                                 ->with(array('payment_method' => function($query){
-                                    $query->select("payment_method.*", "payment_provider.name as active_provider_name")
-                                            ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
-                                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
-                                            ->with(array('paymentMethodProviderVariable'));
+                                    $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                        ->with(array('paymentMethodProviderVariable'));
                                 }))
                                 ->orderBy('created_at','DESC')
                                 ->paginate(10);
@@ -415,7 +415,7 @@ class OrderController extends Controller
                                 $query->select("id", "price", "balance", "name");
                             }))
                             ->with(array('payment_method' => function($query){
-                                $query->select("payment_method.*", "payment_provider.name as active_provider_name")
+                                $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
                                         ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
                                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
                                         ->with(array('paymentMethodProviderVariable'));
