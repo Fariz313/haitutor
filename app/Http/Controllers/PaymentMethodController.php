@@ -47,8 +47,7 @@ class PaymentMethodController extends Controller {
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
-                    })->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
-                    ->paginate(10);
+                    })->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
 
             } else {
                 
@@ -68,13 +67,29 @@ class PaymentMethodController extends Controller {
                     ->orderBy('status','DESC')
                     ->orderBy('category_order','ASC')
                     ->orderBy('order','ASC')
-                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
-                    ->paginate(10);
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
             }
+
+            $allData = PaymentMethod::select('payment_method.*',
+                            'payment_method_category.name as category_name', 
+                            'payment_method_category.order as category_order')
+                            ->selectSub(function ($query) {
+                                $query->selectRaw("0");
+                            }, 'id_payment_method')
+                            ->selectSub(function ($query) {
+                                $query->selectRaw('0');
+                            }, 'active_provider_id')
+                            ->selectSub(function ($query) {
+                                $query->selectRaw("''");
+                            }, 'active_provider_name')
+                            ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                            ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
+                            ->union($data)
+                            ->paginate(10);
             
             return response()->json([
                 'status'    =>  'Success',
-                'data'      =>  $data,
+                'data'      =>  $allData,
                 'message'   =>  'Get Data Success'
             ], 200);
         
