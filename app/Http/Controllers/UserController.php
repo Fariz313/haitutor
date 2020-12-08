@@ -820,15 +820,16 @@ class UserController extends Controller
             $googleClient = new Google_Client;
             $googleClient->useApplicationDefaultCredentials();
             $googleClient->setScopes($scopes);
-            $googleClient->refreshTokenWithAssertion();
+            $googleClient->fetchAccessTokenWithAssertion();
 
             $token = $googleClient->getAccessToken();
 
             return response()->json([
-                    'status'    =>  'Success',
+                    'status'    =>  'success',
                     'message'   =>  'Fetch storage token credentials',
                     'data'      =>  array(
-                        "token_credentials" => $token["access_token"]
+                        "token_credentials" => $token["access_token"],
+                        "token_type"        => "Bearer"
                     )
                 ], 200);
 
