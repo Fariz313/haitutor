@@ -227,6 +227,20 @@ class PaymentMethodController extends Controller {
             $data->is_deleted           = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"];
             $data->save();
 
+            if ($request->input('id_payment_provider')) {
+                $dataPaymentProvider = new PaymentMethodProvider();
+                $dataPaymentProvider->id_payment_method     = $data->id;
+                $dataPaymentProvider->id_payment_provider   = $request->input('id_payment_provider');
+                $dataPaymentProvider->status                = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["ENABLED"];
+                $dataPaymentProvider->isActive              = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"];
+                $dataPaymentProvider->save();
+
+                $provider                                   = PaymentProvider::findOrFail($dataPaymentProvider->id_payment_provider);
+                $data->payment_provider_id                  = $provider->id;
+                $data->payment_provider_name                = $provider->name;
+                $data->payment_method_provider_id           = $dataPaymentProvider->id;
+            }
+
             $this->tidyOrder();
 
     		return response()->json([
@@ -272,20 +286,26 @@ class PaymentMethodController extends Controller {
             if ($request->input('icon')) {
                 $data->icon = $request->input('icon');
             }
+
+            $data->save();
+
             if ($request->input('id_payment_method_provider')) {
                 $dataPaymentProvider = PaymentMethodProvider::where('id_payment_method', $data->id)->get();
 
                 foreach($dataPaymentProvider as $provider){
                     if($provider->id == $request->input('id_payment_method_provider')){
                         $provider->isActive = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"];
+
+                        $dataProvider                               = PaymentProvider::findOrFail($provider->id_payment_provider);
+                        $data->payment_provider_id                  = $dataProvider->id;
+                        $data->payment_provider_name                = $dataProvider->name;
+                        $data->payment_method_provider_id           = $provider->id;
                     } else {
                         $provider->isActive = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
                     }
                     $provider->save();
                 }
             }
-
-            $data->save();
             
 
     		return response()->json([
