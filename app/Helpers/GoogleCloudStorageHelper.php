@@ -8,7 +8,7 @@ use App;
 
 class GoogleCloudStorageHelper
 {
-    public static function put($file_request, $dir, $file_type = "other")
+    public static function put($file_request, $dir, $file_type = "other", $user_id)
     {
         try {
 
@@ -27,7 +27,7 @@ class GoogleCloudStorageHelper
                 // END CREATING FILENAME & DIRECTORY
 
                 // UPLOAD TO GCS
-                Storage::disk('cloud_kilat')->put($directory, $img);
+                Storage::disk('gcs')->put($directory, $img);
                 // END UPLOAD TO GCS
 
                 return $filename;

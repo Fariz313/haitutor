@@ -154,7 +154,8 @@ class ArticleController extends Controller {
             $article   = Article::findOrFail($id);
 
             // Delete from s3
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
+            GoogleCloudStorageHelper::delete('/photos/article'.$article->image);
 
             $delete = Article::findOrFail($id)->delete();
 

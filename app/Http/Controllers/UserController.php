@@ -14,6 +14,7 @@ use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 use App\Otp;
 use Kreait\Firebase\Auth;
 use View;
@@ -188,8 +189,11 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user           = User::findOrFail($userDetail->id);
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/user'.$user->photo);
-            $user->photo    = CloudKilatHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/user'.$user->photo);
+            GoogleCloudStorageHelper::delete('/photos/user'.$user->photo);
+            // $user->photo    = CloudKilatHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
+            $user->photo    = GoogleCloudStorageHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
+
             $user->save();
             return response()->json([
                 'status'    =>'success',
@@ -647,7 +651,8 @@ class UserController extends Controller
                 $user->history_vc()->delete();
             }
 
-            CloudKilatHelper::delete($user->photo);
+            // CloudKilatHelper::delete($user->photo);
+            GoogleCloudStorageHelper::delete($user->photo);
             $delete = $user->delete();
 
             if($delete){

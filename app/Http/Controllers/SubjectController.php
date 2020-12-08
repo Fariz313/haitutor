@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Subject;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Support\Str;
 
 class SubjectController extends Controller
@@ -106,7 +107,9 @@ class SubjectController extends Controller
                 ],400);
     		}
 
-            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+            // $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+            $icon_path = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+
 
             $data               = new Subject();
             $data->name         = $request->input('name');
@@ -224,8 +227,9 @@ class SubjectController extends Controller
 
             $data               = Subject::findOrFail($id);
 
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$data->icon_path);
-            $icon_path = CloudKilatHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$data->icon_path);
+            GoogleCloudStorageHelper::delete('/photos/subject'.$data->icon_path);
+            $icon_path = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/subject', 'image', Str::random(3));
 
             $data->icon_path = $icon_path;
 
@@ -256,7 +260,8 @@ class SubjectController extends Controller
         try{
 
             $subject = Subject::findOrFail($id);
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$subject->icon_path);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/subject'.$subject->icon_path);
+            GoogleCloudStorageHelper::delete('/photos/subject'.$subject->icon_path);
             $delete = $subject->delete();
 
             if($delete){
