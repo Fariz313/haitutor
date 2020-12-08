@@ -17,6 +17,8 @@ use App\Helpers\CloudKilatHelper;
 use App\Otp;
 use Kreait\Firebase\Auth;
 use View;
+use Google\Auth\ApplicationDefaultCredentials;
+use Google_Client;
 
 class UserController extends Controller
 {
@@ -800,6 +802,35 @@ class UserController extends Controller
             return response()->json([
                 'status'    =>  'failed',
                 'message'   =>  'failed to fetch user restricted status',
+                'data'      =>  $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function getStorageTokenCredentials()
+    {
+        try {
+            $scopes = ["https://www.googleapis.com/auth/devstorage.read_only"];
+
+            $googleClient = new Google_Client;
+            $googleClient->useApplicationDefaultCredentials();
+            $googleClient->setScopes($scopes);
+            $googleClient->refreshTokenWithAssertion();
+
+            $token = $googleClient->getAccessToken();
+
+            return response()->json([
+                    'status'    =>  'Success',
+                    'message'   =>  'Fetch storage token credentials',
+                    'data'      =>  array(
+                        "token_credentials" => $token["access_token"]
+                    )
+                ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'failed to fetch storage token credentials',
                 'data'      =>  $th->getMessage()
             ], 400);
         }
