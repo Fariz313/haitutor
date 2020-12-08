@@ -17,7 +17,7 @@ class CreateEbookCategoryTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug');
-            $table->integer('is_deleted');
+            $table->integer('is_deleted')->default(0);
             $table->timestamps();
         });
     }

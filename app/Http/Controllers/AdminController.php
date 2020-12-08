@@ -119,64 +119,106 @@ class AdminController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|max:255',
-            'email'         => 'required|string|email|max:255|unique:users',
-            'password'      => 'required|string|min:6',
-            'birth_date'    => 'required|date',
-            'photo'         => 'file',
-            'contact'       => 'required|string|max:20',
-            'company_id'    => 'integer|max:20',
-            'address'       => 'required|string',
-            'nip'           => 'required|string|unique:admin_detail',
-        ]);
-
-        if($validator->fails()){
-            return response()->json([
-                'status'    =>'failed',
-                'error'     =>$validator->errors()
-            ],400);
-        }
-        $message = "Upload";
         try {
-            $registrator      =   JWTAuth::parseToken()->authenticate();
-            $user = User::create([
-                'name'          => $request->get('name'),
-                'email'         => $request->get('email'),
-                'password'      => Hash::make($request->get('password')),
-                'birth_date'    => $request->get('birth_date'),
-                'role'          => "admin",
-                'contact'       => $request->get('contact'),
-                'company_id'    => $request->get('company_id'),
-                'address'       => $request->get('address'),
-            ]);
-            $user_detail                = new AdminDetail();
-            $user_detail->nip           = $request->get('nip');
-            $user_detail->user_id       = $user->id;
-            $user_detail->registrator_id= $registrator->id;
-            $user_detail->save();
-            try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $user->photo = $photo_name;
+            if($request->get('role') == User::ROLE["PUBLISHER"] || $request->get('role') == User::ROLE["SCHOOL"]){
+
+                $validator = Validator::make($request->all(), [
+                    'name'          => 'required|string|max:255',
+                    'photo'         => 'file',
+                    'contact'       => 'required|string|max:20',
+                    'address'       => 'required|string'
+                ]);
+        
+                if($validator->fails()){
+                    return response()->json([
+                        'status'    => 'Failed',
+                        'error'     => $validator->errors()
+                    ],400);
+                }
+
+                $user = User::create([
+                    'name'          => $request->get('name'),
+                    'email'         => "",
+                    'password'      => Hash::make('haitutor123'),
+                    'birth_date'    => '01/01/2001',
+                    'role'          => $request->get('role'),
+                    'contact'       => $request->get('contact'),
+                    'address'       => $request->get('address')
+                ]);
+
+                $user->email        = $user->role . $user->id . "@haitutor.id";
+                $user->status       = User::STATUS["VERIFIED"];
                 $user->save();
-                    $message = "Upload Success";
-            }catch(\throwable $e){
-                    $message = "Upload Success no image";
+
+                return response()->json([
+                    'status'    => 'Success',
+                    'message'   => 'Register User Succeeded',
+                    'error'     => $user], 200);
+                
+            } else {
+
+                $validator = Validator::make($request->all(), [
+                    'name'          => 'required|string|max:255',
+                    'email'         => 'required|string|email|max:255|unique:users',
+                    'password'      => 'required|string|min:6',
+                    'birth_date'    => 'required|date',
+                    'photo'         => 'file',
+                    'contact'       => 'required|string|max:20',
+                    'address'       => 'required|string',
+                    'nip'           => 'required|string|unique:admin_detail',
+                ]);
+        
+                if($validator->fails()){
+                    return response()->json([
+                        'status'    =>'failed',
+                        'error'     =>$validator->errors()
+                    ],400);
+                }
+                $message = "Upload";
+                try {
+                    $registrator      =   JWTAuth::parseToken()->authenticate();
+                    $user = User::create([
+                        'name'          => $request->get('name'),
+                        'email'         => $request->get('email'),
+                        'password'      => Hash::make($request->get('password')),
+                        'birth_date'    => $request->get('birth_date'),
+                        'role'          => "admin",
+                        'contact'       => $request->get('contact'),
+                        'company_id'    => $request->get('company_id'),
+                        'address'       => $request->get('address'),
+                    ]);
+                    $user_detail                = new AdminDetail();
+                    $user_detail->nip           = $request->get('nip');
+                    $user_detail->user_id       = $user->id;
+                    $user_detail->registrator_id= $registrator->id;
+                    $user_detail->save();
+                    try{
+                        $photo = $request->file('photo');
+                        $tujuan_upload = 'temp';
+                        $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
+                        $photo->move($tujuan_upload,$photo_name);
+                        $user->photo = $photo_name;
+                        $user->save();
+                            $message = "Upload Success";
+                    }catch(\throwable $e){
+                            $message = "Upload Success no image";
+                    }
+                    $token = JWTAuth::fromUser($user);
+
+                    return response()->json(compact('user','user_detail','token','message'),201);
+                } catch (\Throwable $th) {
+                    $user       = 'no admin';
+                    $token      = 'no token';
+                    $message    = 'Failed To Create Admin';
+                    return response()->json(compact('user','token','message'),500);
+                }
             }
-            $token = JWTAuth::fromUser($user);
-        } catch (\Throwable $th) {
-            $user       = 'no admin';
-            $token      = 'no token';
-            $message    = 'Failed To Create Admin';
-            return response()->json(compact('user','token','message'),500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Register User Failed',
+                'error'     => $e->getMessage()], 500);
         }
-
-
-
-        return response()->json(compact('user','user_detail','token','message'),201);
     }
 
     /**

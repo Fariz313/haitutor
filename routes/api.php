@@ -200,6 +200,38 @@ Route::middleware(['cors'])->group(function(){
 
     });
 
+    Route::prefix('/ebook')->group(function () {
+        Route::get('/', 'EbookController@index');
+        Route::post('/', 'EbookController@store');
+        Route::get('/{id}', 'EbookController@show');
+        Route::put('/{id}', 'EbookController@update');
+        Route::delete('/{id}', 'EbookController@destroy');
+
+        Route::prefix('/category')->group(function () {
+            Route::get('/', 'EbookCategoryController@index');
+            Route::post('/', 'EbookCategoryController@store');
+            Route::get('/{id}', 'EbookCategoryController@show');
+            Route::put('/{id}', 'EbookCategoryController@update');
+            Route::delete('/{id}', 'EbookCategoryController@destroy');
+        });
+
+        Route::prefix('/redeem')->group(function () {
+            Route::get('/', 'EbookRedeemController@index');
+            Route::post('/', 'EbookRedeemController@store');
+            Route::get('/{id}', 'EbookRedeemController@show');
+            Route::put('/{id}', 'EbookRedeemController@update');
+            Route::delete('/{id}', 'EbookRedeemController@destroy');
+
+            Route::prefix('/history')->group(function () {
+                Route::get('/', 'EbookRedeemController@getRedeemHistory');
+                Route::post('/', 'EbookRedeemController@doRedeem');
+                Route::get('/{id}', 'EbookRedeemController@getDetailRedeemHistory');
+                Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
+            });
+        });
+
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
