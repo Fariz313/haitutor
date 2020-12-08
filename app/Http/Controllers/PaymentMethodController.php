@@ -84,6 +84,7 @@ class PaymentMethodController extends Controller {
                             }, 'active_provider_name')
                             ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                             ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
+                            ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                             ->union($data)
                             ->paginate(10);
             
