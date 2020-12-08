@@ -19,6 +19,7 @@
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
         "league/flysystem-aws-s3-v3": "^1.0",
+        "superbalist/laravel-google-cloud-storage": "^2.2",
         "tymon/jwt-auth": "dev-develop"
     },
     "require-dev": {
