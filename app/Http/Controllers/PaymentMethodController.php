@@ -159,7 +159,9 @@ class PaymentMethodController extends Controller {
                                                 ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
                                                 ->groupBy('id_payment_method');
 
-            $data   =   PaymentMethod::select('payment_method.*', 
+            if(count($activePaymentMethodProvider->where('id_payment_method', $id)->get()) > 0){
+                // Show Detail for Payment Method with Existing Active Payment Method Provider
+                $data   =   PaymentMethod::select('payment_method.*', 
                             'payment_method_category.name as category_name', 
                             'payment_method_category.order as category_order', 
                             'active_method.active_provider_name', 
@@ -177,6 +179,20 @@ class PaymentMethodController extends Controller {
                         }))
                         ->with('paymentMethodProviderVariable')
                         ->where('payment_method.id', $id)->first();
+            } else {
+                // Show Detail for Payment Method with No Existing Active Payment Method Provider
+                $data   =   PaymentMethod::select('payment_method.*', 
+                            'payment_method_category.name as category_name', 
+                            'payment_method_category.order as category_order')
+                        ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                        ->with(array('availablePaymentProvider' => function($query){
+                            $query->select('payment_method_provider.*',
+                            'payment_provider.name as provider_name')
+                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
+                        }))
+                        ->with('paymentMethodProviderVariable')
+                        ->where('payment_method.id', $id)->first();
+            }                                   
             
             return response()->json([
                 'status'    =>  'Success',
