@@ -19,7 +19,7 @@ class EbookCategoryController extends Controller
                 $query  = $request->get('search');
                 $data   = EbookCategory::where(function ($where) use ($query){
                     $where->where('name','LIKE','%'.$query.'%')
-                    ->where('slug','LIKE','%'.$query.'%');
+                    ->orWhere('slug','LIKE','%'.$query.'%');
                 })->where('is_deleted', EbookCategory::EBOOK_CATEGORY_DELETED_STATUS["ACTIVE"])->paginate(10);
             } else {
                 $data = EbookCategory::where('is_deleted', EbookCategory::EBOOK_CATEGORY_DELETED_STATUS["ACTIVE"])->paginate(10);

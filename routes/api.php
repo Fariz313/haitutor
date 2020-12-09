@@ -202,30 +202,40 @@ Route::middleware(['cors'])->group(function(){
 
     Route::prefix('/ebook')->group(function () {
         Route::get('/', 'EbookController@index');
-        Route::post('/', 'EbookController@store');
+        Route::get('/list/free', 'EbookController@getAllFreeEbook');
+        Route::get('/list/paid', 'EbookController@getAllPaidEbook');
         Route::get('/{id}', 'EbookController@show');
-        Route::put('/{id}', 'EbookController@update');
+
+        Route::post('/', 'EbookController@store');
+        Route::post('/{id}', 'EbookController@update');
+
         Route::delete('/{id}', 'EbookController@destroy');
 
         Route::prefix('/category')->group(function () {
             Route::get('/list/all', 'EbookCategoryController@index');
-            Route::post('/', 'EbookCategoryController@store');
             Route::get('/{id}', 'EbookCategoryController@show');
+
+            Route::post('/', 'EbookCategoryController@store');
+            
             Route::put('/{id}', 'EbookCategoryController@update');
             Route::delete('/{id}', 'EbookCategoryController@destroy');
         });
 
         Route::prefix('/redeem')->group(function () {
             Route::get('/', 'EbookRedeemController@index');
-            Route::post('/', 'EbookRedeemController@store');
             Route::get('/{id}', 'EbookRedeemController@show');
+
+            Route::post('/', 'EbookRedeemController@store');
+            
             Route::put('/{id}', 'EbookRedeemController@update');
             Route::delete('/{id}', 'EbookRedeemController@destroy');
 
             Route::prefix('/history')->group(function () {
                 Route::get('/', 'EbookRedeemController@getRedeemHistory');
-                Route::post('/', 'EbookRedeemController@doRedeem');
                 Route::get('/{id}', 'EbookRedeemController@getDetailRedeemHistory');
+                
+                Route::post('/', 'EbookRedeemController@doRedeem');
+                
                 Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
             });
         });
