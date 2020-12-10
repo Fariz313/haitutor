@@ -62,7 +62,7 @@ return [
         'gcs' => [
             'driver' => 'gcs',
             'project_id' => env('GCS_PROJECT_ID'),
-            'key_file' => env('GCS_KEY_FILE'),
+            'key_file' => base_path()."/haitutor-storage-owner-user.json",
             'bucket' => env('GCS_BUCKET'),
             'path_prefix' => env('GCS_STORAGE_PATH_PREFIX'),
             'storage_api_uri' => env('GCS_STORAGE_URI'),
