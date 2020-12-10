@@ -148,6 +148,7 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/{id}','PaymentMethodController@update');
             Route::put('/enable/{id}', 'PaymentMethodController@EnablePaymentMethod');
             Route::put('/disable/{id}', 'PaymentMethodController@DisablePaymentMethod');
+            Route::put('/list/order', 'PaymentMethodController@setOrderPaymentMethod');
 
             Route::delete('/{id}','PaymentMethodController@destroy');
         });
@@ -161,6 +162,7 @@ Route::middleware(['cors'])->group(function(){
             Route::put('/{id}','PaymentCategoryController@update');
             Route::put('/enable/{id}', 'PaymentCategoryController@enablePaymentCategory');
             Route::put('/disable/{id}', 'PaymentCategoryController@disablePaymentCategory');
+            Route::put('/list/order', 'PaymentCategoryController@setOrderPaymentCategory');
 
             Route::delete('/{id}','PaymentCategoryController@destroy');
         });
