@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ebook;
+use App\EbookLibrary;
 use App\User;
 use App\Helpers\CloudKilatHelper;
 use Illuminate\Http\Request;
@@ -335,6 +336,110 @@ class EbookController extends Controller
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addEbooksToLibrary(Request $request, $idUser)
+    {
+        try {
+            $newData = array();
+            foreach($request->input('id_ebooks') as $idEbook){
+                $tempData = EbookLibrary::where('id_user', $idUser)->where('id_ebook', $idEbook)->first();
+                if($tempData == null){
+                    $data           = new EbookLibrary();
+                    $data->id_user  = $idUser;
+                    $data->id_ebook = $idEbook;
+                    
+                    $data->save();
+                    array_push($newData, $data);
+                }
+            }
+
+            if(count($newData) == 0){
+                $status     = 'Failed';
+                $message    = 'All Ebooks Failed to be Added';
+            } else if (count($newData) == count($request->input('id_ebooks'))){
+                $status     = 'Success';
+                $message    = 'All Ebooks Succeeded to be Added';
+            } else {
+                $status     = 'Success';
+                $message    = 'Some Ebooks Succeeded to be Added';
+            }
+
+            return response()->json([
+                'status'    =>  $status,
+                'data'      =>  $newData,
+                'message'   =>  $message
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllEbookInStudentLibrary($idUser)
+    {
+        try {
+            $data = Ebook::select("ebook.*", 'ebook_library.status as library_status')
+                        ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
+                        ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                        ->where('ebook_library.id_user', $idUser)
+                        ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                            $query->select('id','name', 'email');
+                        }))
+                        ->orderBy('ebook.type','DESC')
+                        ->paginate(10);
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteEbooksFromStudentLibrary(Request $request, $idUser)
+    {
+        try {
+            $deletedData = array();
+            foreach($request->input('id_ebooks') as $idEbook){
+                $tempData = EbookLibrary::where('id_user', $idUser)->where('id_ebook', $idEbook)->first();
+                if($tempData != null){
+                    array_push($deletedData, $tempData);
+                    $tempData->delete();
+                }
+            }
+
+            if(count($deletedData) == 0){
+                $status     = 'Failed';
+                $message    = 'All Ebooks Failed to be Deleted';
+            } else if (count($deletedData) == count($request->input('id_ebooks'))){
+                $status     = 'Success';
+                $message    = 'All Ebooks Succeeded to be Deleted';
+            } else {
+                $status     = 'Success';
+                $message    = 'Some Ebooks Succeeded to be Deleted';
+            }
+
+            return response()->json([
+                'status'    =>  $status,
+                'data'      =>  $deletedData,
+                'message'   =>  $message
+            ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",

@@ -221,6 +221,12 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/{id}', 'EbookCategoryController@destroy');
         });
 
+        Route::prefix('/library')->group(function () {
+            Route::get('/{id_user}', 'EbookController@getAllEbookInStudentLibrary');
+            Route::post('/{id_user}', 'EbookController@addEbooksToLibrary');
+            Route::post('/delete/{id_user}', 'EbookController@deleteEbooksFromStudentLibrary');
+        });
+
         Route::prefix('/redeem')->group(function () {
             Route::get('/', 'EbookRedeemController@index');
             Route::get('/{id}', 'EbookRedeemController@show');
