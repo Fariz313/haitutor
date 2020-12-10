@@ -10,6 +10,7 @@ use JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 use FCM;
 
 
@@ -87,7 +88,9 @@ class TutorDocController extends Controller
             $data->information  = "";
             $data->tutor_id     = $user->id;
 
-            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+            // $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+            $file = GoogleCloudStorageHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+
 
             $data->file = $file;
 
@@ -160,8 +163,10 @@ class TutorDocController extends Controller
             $data->information  = "";
             $data->tutor_id     = $user->id;
 
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
-            $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
+            GoogleCloudStorageHelper::delete('/document/tutor'.$data->file);
+            // $file = CloudKilatHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
+            $file = GoogleCloudStorageHelper::put($request->file('file'), '/document/tutor', 'file', $user->id);
 
             $data->file = $file;
 
@@ -192,7 +197,8 @@ class TutorDocController extends Controller
         try{
 
             $data = TutorDoc::findOrFail($id);
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/tutor'.$data->file);
+            GoogleCloudStorageHelper::delete('/document/tutor'.$data->file);
             $delete = $data->delete();
 
             if($delete){

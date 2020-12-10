@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Article;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
@@ -81,7 +82,8 @@ class ArticleController extends Controller {
             $data                  = new Article();
             $data->title           = $request->input('title');
             $data->content         = $request->input('content');
-            $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
+            // $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
+            $data->image           = GoogleCloudStorageHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
             $data->save();
 
     		return response()->json([
@@ -123,8 +125,10 @@ class ArticleController extends Controller {
             }
             if ($request->input('image')) {
 
-                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$data->image);
-                $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
+                // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$data->image);
+                GoogleCloudStorageHelper::delete('/photos/article'.$data->image);
+                // $data->image           = CloudKilatHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
+                $data->image           = GoogleCloudStorageHelper::put($request->file('image'), '/photos/article', 'image', Str::random(3));
 
             }
 	        $data->save();
@@ -150,7 +154,8 @@ class ArticleController extends Controller {
             $article   = Article::findOrFail($id);
 
             // Delete from s3
-            CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
+            // CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/photos/article'.$article->image);
+            GoogleCloudStorageHelper::delete('/photos/article'.$article->image);
 
             $delete = Article::findOrFail($id)->delete();
 
