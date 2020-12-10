@@ -253,4 +253,46 @@ class PaymentCategoryController extends Controller
             ], 500);
         }
     }
+
+    public function setOrderPaymentCategory(Request $request)
+    {
+        try {
+            if($request->input('id_categories')){
+                $id_categories = $request->input('id_categories');
+
+                for ($i = 0; $i < count($id_categories); $i++) {
+                    $dataCategory   = PaymentMethodCategory::findOrFail($id_categories[$i]);
+                    $dataCategory->order = $i + 1;
+                    $dataCategory->save();
+                }
+
+                $this->tidyOrder();
+
+                $data = PaymentMethodCategory::where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["ACTIVE"])
+                        ->orderBy('order','ASC')->paginate(10);
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Set Order Payment Category Succeeded'
+                ], 200);
+                
+            } else {
+                $data = PaymentMethodCategory::where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["ACTIVE"])
+                        ->orderBy('order','ASC')->paginate(10);
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Tidy Order Payment Category Succeeded'
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
 }
