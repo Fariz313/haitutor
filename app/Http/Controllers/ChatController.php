@@ -12,6 +12,7 @@ use App\Notification;
 use Carbon\Carbon;
 use FCM;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 
 class ChatController extends Controller
 {
@@ -46,7 +47,8 @@ class ChatController extends Controller
                     $requestCount   +=   1;
                     $file           = $request->file('file');
                     $message        = "Photo";
-                    $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
+                    // $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
+                    $file = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
                     $data->file = $file;
                     $data->save();
                 } catch (\Throwable $th) {
