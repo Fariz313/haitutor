@@ -41,9 +41,6 @@ class PaymentMethodController extends Controller {
                         'payment_provider.name as provider_name')
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
-                    ->orderBy('status','DESC')
-                    ->orderBy('category_order','ASC')
-                    ->orderBy('order','ASC')
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
@@ -64,9 +61,6 @@ class PaymentMethodController extends Controller {
                         'payment_provider.name as provider_name')
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
-                    ->orderBy('status','DESC')
-                    ->orderBy('category_order','ASC')
-                    ->orderBy('order','ASC')
                     ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
             }
 
@@ -86,6 +80,9 @@ class PaymentMethodController extends Controller {
                             ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
                             ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                             ->union($data)
+                            ->orderBy('status','DESC')
+                            ->orderBy('category_order','ASC')
+                            ->orderBy('order','ASC')
                             ->paginate(10);
             
             return response()->json([
@@ -323,7 +320,8 @@ class PaymentMethodController extends Controller {
                     $provider->save();
                 }
             }
-            
+
+            $this->tidyOrder();
 
     		return response()->json([
     			'status'	=> 'Success',
@@ -350,6 +348,8 @@ class PaymentMethodController extends Controller {
                 $data->status = '0';
             }
             $data->save();
+
+            $this->tidyOrder();
             
     		return response()->json([
     			'status'	=> 'Success',
@@ -373,6 +373,8 @@ class PaymentMethodController extends Controller {
             $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
             $data->order        = 0;
             $data->save();
+
+            $this->tidyOrder();
 
             return response()->json([
     			'status'	=> 'Success',
@@ -453,6 +455,35 @@ class PaymentMethodController extends Controller {
                 $data[$j]->order    = $j + 1;
                 $data[$j]->save();
             }
+        }
+    }
+    public function setOrderPaymentMethod(Request $request)
+    {
+        try {
+            if($request->input('id_methods')){
+                $id_methods = $request->input('id_methods');
+
+                for ($i = 0; $i < count($id_methods); $i++) {
+                    $dataMethod         = PaymentMethod::findOrFail($id_methods[$i]);
+                    $dataMethod->order  = $i + 1;
+                    $dataMethod->save();
+                }
+
+                $this->tidyOrder();
+
+                return $this->getAll(new Request());
+                
+            } else {
+                $this->tidyOrder();
+
+                return $this->getAll(new Request());
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
     
