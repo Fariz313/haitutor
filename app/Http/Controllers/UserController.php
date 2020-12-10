@@ -818,7 +818,7 @@ class UserController extends Controller
             $scopes = ["https://www.googleapis.com/auth/devstorage.read_only"];
 
             $googleClient = new Google_Client;
-            $googleClient->useApplicationDefaultCredentials();
+            $googleClient->setAuthConfig(base_path()."/haitutor-storage-read-only-user.json");
             $googleClient->setScopes($scopes);
             $googleClient->fetchAccessTokenWithAssertion();
 
