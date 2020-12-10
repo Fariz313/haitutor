@@ -30,11 +30,18 @@ class OrderController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
                 $dataRaw = Order::where(function ($where) use ($query){
-                    $where->where('name','LIKE','%'.$query.'%');
-                })->where('type_code', '1');
-            }else{
-                $dataRaw = Order::where('type_code', '1')->with(array('user','package'));
+                    $where->where('detail','LIKE','%'.$query.'%');
+                })->where('type_code', '1')
+                ->with(array('user','package','payment_method' => function($query){
+                    $query->with(array('paymentMethod', 'paymentProvider'))->get();
+                }));
+            } else{
+                $dataRaw = Order::where('type_code', '1')
+                ->with(array('user','package','payment_method' => function($query){
+                    $query->with(array('paymentMethod', 'paymentProvider'))->get();
+                }));
             }
+
             if($request->get('filter')){
                 if($request->get('filter') == "pending"){
                     $data = $dataRaw->where('status','pending')

@@ -34,7 +34,7 @@ class PaymentMethodProvider extends Model
 
     public function paymentProvider()
     {
-        return $this->hasOne('App\PaymentProvider', 'id_payment_provider');
+        return $this->hasOne('App\PaymentProvider', 'id', 'id_payment_provider');
     }
 
     public function paymentMethodProviderVariable()
