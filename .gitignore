@@ -12,3 +12,5 @@ npm-debug.log
 yarn-error.log
 haitutor-dev-91dbb50ce789.json
 tutor-chat-4ffcc-78d58a856a24.json
+haitutor-storage-owner-user.json
+haitutor-storage-read-only-user.json
