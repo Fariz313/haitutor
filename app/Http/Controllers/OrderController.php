@@ -145,7 +145,7 @@ class OrderController extends Controller
                                         $query->select("id", "name", "email", "role");
                                     }))->first();
                 
-                if($result->statusCode == "00"){
+                if($returnValue->statusCode == "00"){
                     return response()->json([
                         'status'	=> 'Success',
                         'message'	=> 'Order added successfully',
@@ -160,6 +160,40 @@ class OrderController extends Controller
                         'order'     => $result
                     ], 201);
                 }
+            
+                
+            } else if ($activePaymentMethod->provider_name == Order::PAYMENT_PROVIDER["TRIPAY"]){
+                $returnValue    = $this->orderTripay($const);
+
+                $result         = Order::where('id', $data->id)
+                                    ->with(array('package' => function ($query) {
+                                        $query->select("id", "price", "balance", "name");
+                                    }))
+                                    ->with(array('payment_method' => function($query){
+                                        $query->select("payment_method.*", 'payment_method_provider.id')->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                                ->with(array('paymentMethodProviderVariable'));
+                                    }))
+                                    ->with(array("user" => function ($query) {
+                                        $query->select("id", "name", "email", "role");
+                                    }))->first();
+                
+                if($returnValue->success){
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Order added successfully',
+                        'data'      => $returnValue->data,
+                        'order'     => $result
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> $returnValue->message,
+                        'data'      => $returnValue,
+                        'order'     => $result
+                    ], 201);
+                }
+
+                return $returnValue;
                 
             } else {
                 return response()->json([
@@ -167,8 +201,6 @@ class OrderController extends Controller
                     'message'	=> 'Payment Provider Not Available'
                 ], 201);
             }
-
-            return $activePaymentMethod;
 
         } catch(\Exception $e){
             return response()->json([
@@ -211,7 +243,6 @@ class OrderController extends Controller
         // Update Order object with response value
         $responseObject      = json_decode($responsePayment);
         
-        // return $responseObject;
         if(isset($responseObject->statusCode) && $responseObject->statusCode == "00"){
             if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
                 $const['dataOrder']->va_number  = $responseObject->vaNumber;
@@ -233,33 +264,56 @@ class OrderController extends Controller
     }
 
     private function orderTripay($const){
+        $const['dataOrder']->save();
+
+        $listProviderVariable   = $this->convertToList($const['providerVariable']);
+        $listMethodVariable     = $this->convertToList($const['paymentMethodProviderVariable']);
 
         $header = [
-            'Authorization'=> 'Bearer DEV-CYJkpTwOQta20ZRplLctm5TLvXi74ekQunsjbpKe',
+            'Authorization'=> 'Bearer '. $listProviderVariable["API_KEY"],
         ];
 
         // Request Transaction with Payment Gateway
         $body = [
-            "method" => "BRIVA",
-            "merchant_ref" => 1,
-            "amount" => 10000,
+            "method" => $listMethodVariable["CODE"],
+            "merchant_ref" => $const['dataOrder']->id,
+            "amount" => $const['dataOrder']->amount,
             "customer_name" => "Akhmad Muzanni",
             "customer_email" => "akhmadmuzannisafii@gmail.com",
             "order_items" => [
                 [
-                    "name" => "Paket 1",
-                    "price" => 10000,
+                    "name" => $const['dataOrder']->detail,
+                    "price" => $const['dataOrder']->amount,
                     "quantity" => 1
                 ]
             ],
-            "returnUrl" => "https://haitutor.id/restfull_api/api/return",
-            "callbackUrl" => "https://haitutor.id/restfull_api/api/return",
-            "signature" => "5f1cebf1bc289332f01f3046898780155bd4f51a569dd9a7c2999e1b5001f10b"
+            "returnUrl" => $listProviderVariable["RETURN_URL"],
+            "callbackUrl" => $listProviderVariable["CALLBACK_URL"],
+            "signature" => hash_hmac('sha256', $listProviderVariable["MERCHANT_CODE"] . $const['dataOrder']->id . $const['dataOrder']->amount, $listProviderVariable["MERCHANT_KEY"])
         ];
 
-        $response = Http::withHeaders($header)->post('https://payment.tripay.co.id/api-sandbox/transaction/create', $body);
+        $requestAPI = $listProviderVariable["API_REQUEST"];
+        $responsePayment = Http::withHeaders($header)->post($requestAPI, $body);
 
-        return $response;
+        $responseObject      = json_decode($responsePayment);
+
+        if(isset($responseObject->success) && $responseObject->success){
+            if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
+                $const['dataOrder']->va_number  = $responseObject->data->pay_code;
+            } else {
+                $const['dataOrder']->va_number  = $responseObject->data->pay_code;
+            }
+    
+            $const['dataOrder']->invoice        = $responseObject->data->reference;
+            $const['dataOrder']->save();
+    
+            return $responseObject;
+        } else {
+            $const['dataOrder']->status         = Order::ORDER_STATUS["FAILED"];
+            $const['dataOrder']->save();
+            
+            return $responseObject;
+        }
     }
 
     public function verify($id)
@@ -309,10 +363,10 @@ class OrderController extends Controller
                                     $query->select("id", "price", "balance", "name");
                                 }))
                                 ->with(array('payment_method' => function($query){
-                                    $query->select("payment_method.*", "payment_provider.name as active_provider_name")
-                                            ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
-                                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
-                                            ->with(array('paymentMethodProviderVariable'));
+                                    $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                        ->with(array('paymentMethodProviderVariable'));
                                 }))
                                 ->orderBy('created_at','DESC')
                                 ->where("type_code", 'LIKE', '%'.$type_code.'%')
@@ -330,10 +384,10 @@ class OrderController extends Controller
                                     $query->select("id", "price", "balance", "name");
                                 }))
                                 ->with(array('payment_method' => function($query){
-                                    $query->select("payment_method.*", "payment_provider.name as active_provider_name")
-                                            ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
-                                            ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
-                                            ->with(array('paymentMethodProviderVariable'));
+                                    $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                        ->with(array('paymentMethodProviderVariable'));
                                 }))
                                 ->orderBy('created_at','DESC')
                                 ->paginate(10);
@@ -361,7 +415,7 @@ class OrderController extends Controller
                                 $query->select("id", "price", "balance", "name");
                             }))
                             ->with(array('payment_method' => function($query){
-                                $query->select("payment_method.*", "payment_provider.name as active_provider_name")
+                                $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
                                         ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
                                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
                                         ->with(array('paymentMethodProviderVariable'));
