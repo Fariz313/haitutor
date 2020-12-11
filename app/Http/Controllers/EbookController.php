@@ -94,6 +94,14 @@ class EbookController extends Controller
                 $data                   = new Ebook();
                 $data->id_category      = $request->input('id_category');
                 $data->id_publisher     = $request->input('id_publisher');
+                
+                if($request->input('item_code')){
+                    $data->item_code    = $request->input('item_code');
+                } else {
+                    $data->item_code    = Str::random(10);
+                }
+
+                $data->isbn             = $request->input('isbn');
                 $data->name             = $request->input('name');
                 $data->slug             = $request->input('slug');
                 $data->type             = $request->input('type');

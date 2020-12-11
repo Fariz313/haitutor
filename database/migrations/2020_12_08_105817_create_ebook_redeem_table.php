@@ -17,11 +17,12 @@ class CreateEbookRedeemTable extends Migration
             $table->id();
             $table->string('invoice');
             $table->integer('id_customer');
-            $table->integer('gross_price');
+            $table->integer('gross_price')->default(0);
             $table->integer('net_price');
-            $table->integer('validity_month');
-            $table->integer('status');
-            $table->integer('is_deleted');
+            $table->integer('validity_month')->default(0);
+            $table->integer('status')->default(1);
+            $table->integer('is_deleted')->default(0);
+            $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
     }

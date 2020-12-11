@@ -235,7 +235,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/', 'EbookRedeemController@index');
             Route::get('/{id}', 'EbookRedeemController@show');
 
-            Route::post('/', 'EbookRedeemController@store');
+            Route::post('/request', 'EbookRedeemController@store');
             
             Route::put('/{id}', 'EbookRedeemController@update');
             Route::delete('/{id}', 'EbookRedeemController@destroy');

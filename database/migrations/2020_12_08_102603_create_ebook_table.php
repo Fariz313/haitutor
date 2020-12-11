@@ -17,6 +17,8 @@ class CreateEbookTable extends Migration
             $table->id();
             $table->integer('id_category');
             $table->integer('id_publisher');
+            $table->string('item_code')->unique();
+            $table->string('isbn')->nullable();
             $table->string('name');
             $table->string('slug');
             $table->string('type')->default(1);
