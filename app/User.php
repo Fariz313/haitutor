@@ -13,12 +13,22 @@ class User extends Authenticatable implements JWTSubject
 
     const ROLE = array(
         "TUTOR" => "tutor",
-        "STUDENT" => "student"
+        "STUDENT" => "student",
+        "ADMIN" => "admin",
+        "PUBLISHER" => "publisher",
+        "SCHOOL" => "school",
+        "MARKETING" => "marketing",
+        "COMPANY" => "company"
     );
 
     const IS_RESTRICTED = array(
         "TRUE"  => 1,
         "FALSE" => 0
+    );
+
+    const STATUS = array(
+        "VERIFIED"      => "verified",
+        "UNVERIFIED"    => "unverified"
     );
 
     /**
