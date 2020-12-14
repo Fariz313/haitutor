@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateEbookRedeemTable extends Migration
+class CreateEbookOrderTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateEbookRedeemTable extends Migration
      */
     public function up()
     {
-        Schema::create('ebook_redeem', function (Blueprint $table) {
+        Schema::create('ebook_order', function (Blueprint $table) {
             $table->id();
             $table->string('invoice');
             $table->integer('id_customer');
@@ -24,7 +24,6 @@ class CreateEbookRedeemTable extends Migration
             $table->integer('validity_month')->default(0);
             $table->integer('status')->default(1);
             $table->integer('is_deleted')->default(0);
-            $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
     }
@@ -36,6 +35,6 @@ class CreateEbookRedeemTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ebook_redeem');
+        Schema::dropIfExists('ebook_order');
     }
 }

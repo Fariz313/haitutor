@@ -15,6 +15,6 @@ class EbookRedeemDetail extends Model
 
     public function ebook()
     {
-        return $this->hasOne('App\User','id','id_ebook');
+        return $this->hasOne('App\Ebook','id','id_ebook');
     }
 }

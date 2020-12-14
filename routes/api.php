@@ -232,7 +232,7 @@ Route::middleware(['cors'])->group(function(){
         });
 
         Route::prefix('/redeem')->group(function () {
-            Route::get('/', 'EbookRedeemController@index');
+            Route::get('/list/all', 'EbookRedeemController@index');
             Route::get('/{id}', 'EbookRedeemController@show');
 
             Route::post('/request', 'EbookRedeemController@store');

@@ -16,7 +16,9 @@ class User extends Authenticatable implements JWTSubject
         "STUDENT" => "student",
         "ADMIN" => "admin",
         "PUBLISHER" => "publisher",
-        "SCHOOL" => "school"
+        "SCHOOL" => "school",
+        "MARKETING" => "marketing",
+        "COMPANY" => "company"
     );
 
     const IS_RESTRICTED = array(
