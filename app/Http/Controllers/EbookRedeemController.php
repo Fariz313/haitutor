@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\EbookLibrary;
 use App\EbookRedeem;
 use App\EbookRedeemDetail;
+use App\EbookRedeemHistory;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
+
+use function PHPSTORM_META\elementType;
 
 class EbookRedeemController extends Controller
 {
@@ -331,6 +335,49 @@ class EbookRedeemController extends Controller
                 'message'   =>  "Claim Order Rejected"
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function doRedeem(Request $request)
+    {
+        try {
+            $dataRedeemDetail   = EbookRedeemDetail::where('redeem_code', $request->input('redeem_code'))->first();
+            $userId             = JWTAuth::parseToken()->authenticate()->id;
+
+            $data = new EbookRedeemHistory();
+            $data->id_redeem_detail     = $dataRedeemDetail->id;
+            $data->id_user              = $userId;
+
+            $dataLibrary                = EbookLibrary::where('id_user', $userId)->where('id_ebook', $dataRedeemDetail->id_ebook)->first();
+            if($dataLibrary == null){
+                $newLibrary             = new EbookLibrary();
+                $newLibrary->id_user    = $userId;
+                $newLibrary->id_ebook   = $dataRedeemDetail->id_ebook;
+                $newLibrary->save();
+
+                $dataRedeemDetail->redeem_amount    = $dataRedeemDetail->redeem_amount - 1;
+                $dataRedeemDetail->save();
+
+                $data->save();
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Ebook Redeem Succeeded'
+                ], 200);
+            } else {
+                return response()->json([
+                    'status'    =>  'Failed',
+                    'message'   =>  'This Ebook already exist at The Library'
+                ], 200);
+            }
+            
+            
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",

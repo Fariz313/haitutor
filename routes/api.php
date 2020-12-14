@@ -236,11 +236,12 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/{id}', 'EbookRedeemController@show');
 
             Route::post('/request', 'EbookRedeemController@store');
+            Route::post('/execute', 'EbookRedeemController@doRedeem');
             
             Route::put('/{id}', 'EbookRedeemController@update');
             Route::put('/accept/{id}', 'EbookRedeemController@acceptClaimRedeem');
             Route::put('/reject/{id}', 'EbookRedeemController@rejectClaimRedeem');
-            
+
             Route::delete('/{id}', 'EbookRedeemController@destroy');
 
             Route::prefix('/history')->group(function () {
