@@ -245,10 +245,8 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/{id}', 'EbookRedeemController@destroy');
 
             Route::prefix('/history')->group(function () {
-                Route::get('/', 'EbookRedeemController@getRedeemHistory');
-                Route::get('/{id}', 'EbookRedeemController@getDetailRedeemHistory');
-                
-                Route::post('/', 'EbookRedeemController@doRedeem');
+                Route::get('/list/all', 'EbookRedeemController@getAllEbookRedeemHistory');
+                Route::get('/{id}', 'EbookRedeemController@getDetailEbookRedeemHistory');
                 
                 Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
             });
