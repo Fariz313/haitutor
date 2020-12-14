@@ -238,6 +238,9 @@ Route::middleware(['cors'])->group(function(){
             Route::post('/request', 'EbookRedeemController@store');
             
             Route::put('/{id}', 'EbookRedeemController@update');
+            Route::put('/accept/{id}', 'EbookRedeemController@acceptClaimRedeem');
+            Route::put('/reject/{id}', 'EbookRedeemController@rejectClaimRedeem');
+            
             Route::delete('/{id}', 'EbookRedeemController@destroy');
 
             Route::prefix('/history')->group(function () {
