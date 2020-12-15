@@ -120,7 +120,7 @@ class AdminController extends Controller
     public function register(Request $request)
     {
         try {
-            if($request->get('role') == User::ROLE["PUBLISHER"] || $request->get('role') == User::ROLE["SCHOOL"]){
+            if($request->get('role') != User::ROLE["ADMIN"]){
 
                 $validator = Validator::make($request->all(), [
                     'name'          => 'required|string|max:255',
