@@ -21,8 +21,9 @@ class CreateEbookTable extends Migration
             $table->string('isbn')->nullable();
             $table->string('name');
             $table->string('slug');
-            $table->string('type')->default(1);
-            $table->string('price')->default(0);
+            $table->integer('type')->default(1);
+            $table->integer('jenjang')->default(1);
+            $table->integer('price')->default(0);
             $table->integer('is_published')->default(1);
             $table->integer('is_deleted')->default(0);
             $table->text('description')->nullable();
