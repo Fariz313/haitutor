@@ -841,4 +841,30 @@ class UserController extends Controller
             ], 400);
         }
     }
+
+    public function getUserByRole(Request $request)
+    {
+        try {
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = User::where('role', $request->get('role'))
+                            ->where('name','LIKE','%'.$query.'%')
+                            ->paginate(10);
+            } else {
+                $data = User::where('role', $request->get('role'))
+                            ->paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
 }
