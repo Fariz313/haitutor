@@ -6,6 +6,7 @@ use App\Ebook;
 use App\EbookLibrary;
 use App\User;
 use App\Helpers\CloudKilatHelper;
+use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -107,14 +108,14 @@ class EbookController extends Controller
                 $data->type             = $request->input('type');
                 $data->price            = $request->input('price');
                 $data->description      = $request->input('description');
-                $data->content_file     = CloudKilatHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
+                $data->content_file     = GoogleCloudStorageHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
 
                 if($request->file('front_cover')){
-                    $data->front_cover  = CloudKilatHelper::put($request->file('front_cover'), '/photos/ebook', 'image', Str::random(3));
+                    $data->front_cover  = GoogleCloudStorageHelper::put($request->file('front_cover'), '/photos/ebook', 'image', Str::random(3));
                 }
 
                 if($request->file('back_cover')){
-                    $data->back_cover   = CloudKilatHelper::put($request->file('back_cover'), '/photos/ebook', 'image', Str::random(3));
+                    $data->back_cover  = GoogleCloudStorageHelper::put($request->file('back_cover'), '/photos/ebook', 'image', Str::random(3));
                 }
 
                 $data->save();
@@ -217,16 +218,16 @@ class EbookController extends Controller
                 $data->description  = $request->input('description');
             }
             if($request->file('content_file')){
-                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/ebook'.$data->content_file);
-                $data->content_file = CloudKilatHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
+                GoogleCloudStorageHelper::delete('/document/ebook/'.$data->content_file);
+                $data->content_file = GoogleCloudStorageHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
             }
             if($request->file('front_cover')){
-                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/ebook'.$data->front_cover);
-                $data->front_cover  = CloudKilatHelper::put($request->file('front_cover'), '/photos/ebook', 'image', Str::random(3));
+                GoogleCloudStorageHelper::delete('/photos/ebook/'.$data->front_cover);
+                $data->front_cover  = GoogleCloudStorageHelper::put($request->file('front_cover'), '/photos/ebook', 'image', Str::random(3));
             }
             if($request->file('back_cover')){
-                CloudKilatHelper::delete(CloudKilatHelper::getEnvironment().'/document/ebook'.$data->back_cover);
-                $data->back_cover   = CloudKilatHelper::put($request->file('back_cover'), '/photos/ebook', 'image', Str::random(3));
+                GoogleCloudStorageHelper::delete('/photos/ebook/'.$data->back_cover);
+                $data->back_cover   = GoogleCloudStorageHelper::put($request->file('back_cover'), '/photos/ebook', 'image', Str::random(3));
             }
             
             $data->save();

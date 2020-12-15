@@ -91,6 +91,10 @@ class EbookOrderController extends Controller
             $data->id_customer      = $request->input('id_customer');
             $data->net_price        = $request->input('net_price');
 
+            if($request->input('id_publisher')){
+                $data->id_publisher = $request->input('id_publisher');
+            }
+
             if($request->input('gross_price')){
                 $data->gross_price  = $request->input('gross_price');
             } else {
@@ -216,6 +220,10 @@ class EbookOrderController extends Controller
             if($data->status != EbookOrder::EBOOK_ORDER_STATUS["ACTIVE"]){
                 if($request->input('id_customer')){
                     $data->id_customer      = $request->input('id_customer');
+                }
+
+                if($request->input('id_publisher')){
+                    $data->id_publisher = $request->input('id_publisher');
                 }
     
                 if($request->input('net_price')){

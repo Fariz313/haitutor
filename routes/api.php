@@ -210,7 +210,7 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/list/paid', 'EbookController@getAllPaidEbook');
         Route::get('/{id}', 'EbookController@show');
 
-        Route::post('/', 'EbookController@store');
+        Route::post('/add', 'EbookController@store');
         Route::post('/{id}', 'EbookController@update');
 
         Route::delete('/{id}', 'EbookController@destroy');
