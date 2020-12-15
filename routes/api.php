@@ -219,7 +219,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/list/all', 'EbookCategoryController@index');
             Route::get('/{id}', 'EbookCategoryController@show');
 
-            Route::post('/', 'EbookCategoryController@store');
+            Route::post('/add', 'EbookCategoryController@store');
             
             Route::put('/{id}', 'EbookCategoryController@update');
             Route::delete('/{id}', 'EbookCategoryController@destroy');
@@ -236,18 +236,33 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/{id}', 'EbookRedeemController@show');
 
             Route::post('/request', 'EbookRedeemController@store');
+            Route::post('/execute', 'EbookRedeemController@doRedeem');
             
             Route::put('/{id}', 'EbookRedeemController@update');
+            Route::put('/accept/{id}', 'EbookRedeemController@acceptClaimRedeem');
+            Route::put('/reject/{id}', 'EbookRedeemController@rejectClaimRedeem');
+
             Route::delete('/{id}', 'EbookRedeemController@destroy');
 
             Route::prefix('/history')->group(function () {
-                Route::get('/', 'EbookRedeemController@getRedeemHistory');
-                Route::get('/{id}', 'EbookRedeemController@getDetailRedeemHistory');
-                
-                Route::post('/', 'EbookRedeemController@doRedeem');
+                Route::get('/list/all', 'EbookRedeemController@getAllEbookRedeemHistory');
+                Route::get('/{id}', 'EbookRedeemController@getDetailEbookRedeemHistory');
                 
                 Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
             });
+        });
+
+        Route::prefix('/order')->group(function () {
+            Route::get('/list/all', 'EbookOrderController@index');
+            Route::get('/{id}', 'EbookOrderController@show');
+
+            Route::post('/request', 'EbookOrderController@store');
+
+            Route::put('/{id}', 'EbookOrderController@update');
+            Route::put('/accept/{id}', 'EbookOrderController@acceptEbookManualOrder');
+            Route::put('/reject/{id}', 'EbookOrderController@rejectEbookManualOrder');
+
+            Route::delete('/{id}', 'EbookOrderController@destroy');
         });
 
     });
