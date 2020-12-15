@@ -219,7 +219,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/list/all', 'EbookCategoryController@index');
             Route::get('/{id}', 'EbookCategoryController@show');
 
-            Route::post('/', 'EbookCategoryController@store');
+            Route::post('/add', 'EbookCategoryController@store');
             
             Route::put('/{id}', 'EbookCategoryController@update');
             Route::delete('/{id}', 'EbookCategoryController@destroy');
