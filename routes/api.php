@@ -252,6 +252,19 @@ Route::middleware(['cors'])->group(function(){
             });
         });
 
+        Route::prefix('/order')->group(function () {
+            Route::get('/list/all', 'EbookOrderController@index');
+            Route::get('/{id}', 'EbookOrderController@show');
+
+            Route::post('/request', 'EbookOrderController@store');
+
+            Route::put('/{id}', 'EbookOrderController@update');
+            Route::put('/accept/{id}', 'EbookOrderController@acceptEbookManualOrder');
+            Route::put('/reject/{id}', 'EbookOrderController@rejectEbookManualOrder');
+
+            Route::delete('/{id}', 'EbookOrderController@destroy');
+        });
+
     });
 
     Route::middleware(['user.tutor'])->group(function(){
