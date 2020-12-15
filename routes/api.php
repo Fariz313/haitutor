@@ -204,6 +204,69 @@ Route::middleware(['cors'])->group(function(){
 
     });
 
+    Route::prefix('/ebook')->group(function () {
+        Route::get('/', 'EbookController@index');
+        Route::get('/list/free', 'EbookController@getAllFreeEbook');
+        Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/{id}', 'EbookController@show');
+
+        Route::post('/', 'EbookController@store');
+        Route::post('/{id}', 'EbookController@update');
+
+        Route::delete('/{id}', 'EbookController@destroy');
+
+        Route::prefix('/category')->group(function () {
+            Route::get('/list/all', 'EbookCategoryController@index');
+            Route::get('/{id}', 'EbookCategoryController@show');
+
+            Route::post('/add', 'EbookCategoryController@store');
+            
+            Route::put('/{id}', 'EbookCategoryController@update');
+            Route::delete('/{id}', 'EbookCategoryController@destroy');
+        });
+
+        Route::prefix('/library')->group(function () {
+            Route::get('/{id_user}', 'EbookController@getAllEbookInStudentLibrary');
+            Route::post('/{id_user}', 'EbookController@addEbooksToLibrary');
+            Route::post('/delete/{id_user}', 'EbookController@deleteEbooksFromStudentLibrary');
+        });
+
+        Route::prefix('/redeem')->group(function () {
+            Route::get('/list/all', 'EbookRedeemController@index');
+            Route::get('/{id}', 'EbookRedeemController@show');
+
+            Route::post('/request', 'EbookRedeemController@store');
+            Route::post('/execute', 'EbookRedeemController@doRedeem');
+            
+            Route::put('/{id}', 'EbookRedeemController@update');
+            Route::put('/accept/{id}', 'EbookRedeemController@acceptClaimRedeem');
+            Route::put('/reject/{id}', 'EbookRedeemController@rejectClaimRedeem');
+
+            Route::delete('/{id}', 'EbookRedeemController@destroy');
+
+            Route::prefix('/history')->group(function () {
+                Route::get('/list/all', 'EbookRedeemController@getAllEbookRedeemHistory');
+                Route::get('/{id}', 'EbookRedeemController@getDetailEbookRedeemHistory');
+                
+                Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
+            });
+        });
+
+        Route::prefix('/order')->group(function () {
+            Route::get('/list/all', 'EbookOrderController@index');
+            Route::get('/{id}', 'EbookOrderController@show');
+
+            Route::post('/request', 'EbookOrderController@store');
+
+            Route::put('/{id}', 'EbookOrderController@update');
+            Route::put('/accept/{id}', 'EbookOrderController@acceptEbookManualOrder');
+            Route::put('/reject/{id}', 'EbookOrderController@rejectEbookManualOrder');
+
+            Route::delete('/{id}', 'EbookOrderController@destroy');
+        });
+
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
@@ -374,10 +437,17 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/faq/{id}','FaqController@getOne');
             Route::delete('/faq/{id}','FaqController@destroy');
 
-            Route::get('/user/admin/', 'AdminController@index');
-            Route::get('/user/admin/{id}', 'AdminController@showAdmin');
-            Route::put('/user/admin/{id}', 'AdminController@updateAdmin');
-            Route::delete('/user/admin/{id}', 'AdminController@destroyAdmin');
+            Route::prefix('/user')->group(function (){
+                Route::prefix('/admin')->group(function (){
+                    Route::get('/', 'AdminController@index');
+                    Route::get('/{id}', 'AdminController@showAdmin');
+                    Route::put('/{id}', 'AdminController@updateAdmin');
+                    Route::delete('/{id}', 'AdminController@destroyAdmin');
+                });
+
+                Route::get('/list', 'UserController@getUserByRole');
+            });
+            
 
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
