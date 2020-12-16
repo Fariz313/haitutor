@@ -82,7 +82,7 @@ class EbookController extends Controller
                     'slug'          => 'required|string',
                     'type'          => 'required|string',
                     'price'         => 'required|string',
-                    'content_file'  => 'required|file'
+                    'content_file'  => 'required'
                 ]);
 
                 if($validator->fails()){
