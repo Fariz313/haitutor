@@ -107,7 +107,21 @@ class EbookController extends Controller
                 $data->slug             = $request->input('slug');
                 $data->type             = $request->input('type');
                 $data->price            = $request->input('price');
+                $data->jenjang          = $request->input('jenjang');
                 $data->description      = $request->input('description');
+
+                if($request->input('isbn')){
+                    $data->isbn         = $request->input('isbn');
+                }
+
+                if($request->input('item_code')){
+                    $data->item_code    = $request->input('item_code');
+                }
+
+                if($request->file('is_published')){
+                    $data->is_published = $request->input('is_published');
+                }
+
                 $data->content_file     = GoogleCloudStorageHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
 
                 if($request->file('front_cover')){
@@ -202,6 +216,12 @@ class EbookController extends Controller
             if($request->input('id_publisher')){
                 $data->id_publisher = $request->input('id_publisher');
             }
+            if($request->input('isbn')){
+                $data->isbn         = $request->input('isbn');
+            }
+            if($request->input('item_code')){
+                $data->item_code    = $request->input('item_code');
+            }
             if($request->input('name')){
                 $data->name         = $request->input('name');
             }
@@ -210,6 +230,12 @@ class EbookController extends Controller
             }
             if($request->input('type')){
                 $data->type         = $request->input('type');
+            }
+            if($request->input('is_published')){
+                $data->is_published = $request->input('is_published');
+            }
+            if($request->input('jenjang')){
+                $data->jenjang      = $request->input('jenjang');
             }
             if($request->input('price')){
                 $data->price        = $request->input('price');
