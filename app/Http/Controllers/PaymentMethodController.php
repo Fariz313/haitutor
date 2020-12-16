@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Http\Request;
 use App\PaymentMethod;
 use App\PaymentMethodCategory;
@@ -235,7 +236,11 @@ class PaymentMethodController extends Controller {
 
             $data->name                 = $request->input('name');
             $data->code                 = $request->input('code');
-            $data->icon                 = 'credit_card.png';
+            if($request->file('icon')){
+                $data->icon             = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/payment_method', 'image', Str::random(3));
+            } else {
+                $data->icon             = 'credit_card.png';
+            }
             $data->status               = 0;
             $data->order                = $maxOrder + 1;
             $data->is_deleted           = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"];
@@ -297,8 +302,8 @@ class PaymentMethodController extends Controller {
             if ($request->input('code')) {
                 $data->code = $request->input('code');
             }
-            if ($request->input('icon')) {
-                $data->icon = $request->input('icon');
+            if($request->file('icon')){
+                $data->icon  = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/payment_method', 'image', Str::random(3));
             }
 
             $data->save();
