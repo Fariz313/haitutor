@@ -118,7 +118,7 @@ class EbookController extends Controller
                     $data->item_code    = $request->input('item_code');
                 }
 
-                if($request->file('is_published')){
+                if($request->file('is_published') != null){
                     $data->is_published = $request->input('is_published');
                 }
 
@@ -228,13 +228,13 @@ class EbookController extends Controller
             if($request->get('slug')){
                 $data->slug         = $request->get('slug');
             }
-            if($request->get('type')){
+            if($request->get('type') != null){
                 $data->type         = $request->get('type');
             }
-            if($request->get('is_published')){
+            if($request->get('is_published') != null){
                 $data->is_published = $request->get('is_published');
             }
-            if($request->get('jenjang')){
+            if($request->get('jenjang') != null){
                 $data->jenjang      = $request->get('jenjang');
             }
             if($request->get('price')){
