@@ -146,8 +146,8 @@ Route::middleware(['cors'])->group(function(){
             Route::post('/', 'PaymentMethodController@store');
 
             Route::post('/edit/{id}','PaymentMethodController@update');
-            Route::put('/enable/{id}', 'PaymentMethodController@EnablePaymentMethod');
-            Route::put('/disable/{id}', 'PaymentMethodController@DisablePaymentMethod');
+            Route::put('/enable/{id}', 'PaymentMethodController@enablePaymentMethod');
+            Route::put('/disable/{id}', 'PaymentMethodController@disablePaymentMethod');
             Route::put('/list/order', 'PaymentMethodController@setOrderPaymentMethod');
 
             Route::delete('/{id}','PaymentMethodController@destroy');
