@@ -210,39 +210,42 @@ class EbookController extends Controller
                         $query->select('id','name', 'email');
                     }))->first();
 
-            if($request->input('id_category')){
-                $data->id_category  = $request->input('id_category');
+            if($request->get('id_category')){
+                $data->id_category  = $request->get('id_category');
             }
-            if($request->input('id_publisher')){
-                $data->id_publisher = $request->input('id_publisher');
+            if($request->get('id_publisher')){
+                $data->id_publisher = $request->get('id_publisher');
             }
-            if($request->input('isbn')){
-                $data->isbn         = $request->input('isbn');
+            if($request->get('isbn')){
+                $data->isbn         = $request->get('isbn');
             }
-            if($request->input('item_code')){
-                $data->item_code    = $request->input('item_code');
+            if($request->get('item_code')){
+                $data->item_code    = $request->get('item_code');
             }
-            if($request->input('name')){
-                $data->name         = $request->input('name');
+            if($request->get('name')){
+                $data->name         = $request->get('name');
             }
-            if($request->input('slug')){
-                $data->slug         = $request->input('slug');
+            if($request->get('slug')){
+                $data->slug         = $request->get('slug');
             }
-            if($request->input('type')){
-                $data->type         = $request->input('type');
+            if($request->get('type')){
+                $data->type         = $request->get('type');
             }
-            if($request->input('is_published')){
-                $data->is_published = $request->input('is_published');
+            if($request->get('is_published')){
+                $data->is_published = $request->get('is_published');
             }
-            if($request->input('jenjang')){
-                $data->jenjang      = $request->input('jenjang');
+            if($request->get('jenjang')){
+                $data->jenjang      = $request->get('jenjang');
             }
-            if($request->input('price')){
-                $data->price        = $request->input('price');
+            if($request->get('price')){
+                $data->price        = $request->get('price');
             }
-            if($request->input('description')){
-                $data->description  = $request->input('description');
+            if($request->get('description')){
+                $data->description  = $request->get('description');
             }
+
+            $data->save();
+
             if($request->file('content_file')){
                 GoogleCloudStorageHelper::delete('/document/ebook/'.$data->content_file);
                 $data->content_file = GoogleCloudStorageHelper::put($request->file('content_file'), '/document/ebook', 'file', Str::random(3));
