@@ -303,6 +303,7 @@ class PaymentMethodController extends Controller {
                 $data->code = $request->input('code');
             }
             if($request->file('icon')){
+                GoogleCloudStorageHelper::delete('/photos/payment_method'.$data->icon);
                 $data->icon  = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/payment_method', 'image', Str::random(3));
             }
 
