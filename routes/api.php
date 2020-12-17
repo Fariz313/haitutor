@@ -146,8 +146,8 @@ Route::middleware(['cors'])->group(function(){
             Route::post('/', 'PaymentMethodController@store');
 
             Route::post('/edit/{id}','PaymentMethodController@update');
-            Route::put('/enable/{id}', 'PaymentMethodController@EnablePaymentMethod');
-            Route::put('/disable/{id}', 'PaymentMethodController@DisablePaymentMethod');
+            Route::put('/enable/{id}', 'PaymentMethodController@enablePaymentMethod');
+            Route::put('/disable/{id}', 'PaymentMethodController@disablePaymentMethod');
             Route::put('/list/order', 'PaymentMethodController@setOrderPaymentMethod');
 
             Route::delete('/{id}','PaymentMethodController@destroy');
@@ -208,6 +208,7 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'EbookController@index');
         Route::get('/list/free', 'EbookController@getAllFreeEbook');
         Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/list/publish', 'EbookController@getEbookPublished');
         Route::get('/{id}', 'EbookController@show');
 
         Route::post('/add', 'EbookController@store');
@@ -227,6 +228,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/library')->group(function () {
             Route::get('/{id_user}', 'EbookController@getAllEbookInStudentLibrary');
+            Route::get('/publish/{id_user}', 'EbookController@getAllPublishedEbookInStudentLibrary');
             Route::post('/{id_user}', 'EbookController@addEbooksToLibrary');
             Route::post('/delete/{id_user}', 'EbookController@deleteEbooksFromStudentLibrary');
         });

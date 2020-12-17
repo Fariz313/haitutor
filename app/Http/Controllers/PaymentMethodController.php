@@ -8,6 +8,7 @@ use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
 use App\PaymentProvider;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -102,6 +103,10 @@ class PaymentMethodController extends Controller {
 
     public function getAllEnabledPaymentMethod(){
         try{
+            // Get Category with Existing Active Payment Method
+            $validCategory = DB::table('view_active_payment_method')
+                    ->where('status_payment_method', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])->groupBy('id_payment_category')->pluck('id_payment_category')->toArray();
+
             // Get All Provider for each Payment Method
             $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id',
                                                     'payment_method_provider.id_payment_method',
@@ -115,7 +120,7 @@ class PaymentMethodController extends Controller {
                         $where->where('status', PaymentMethodCategory::PAYMENT_CATEGORY_STATUS["ENABLED"])
                             ->where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS['ACTIVE']);
                     })
-                    ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider){
+                    ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider, $validCategory){
                         $query->select('payment_method.*', 
                             'active_method.active_provider_name', 
                             'active_method.active_provider_id',
@@ -127,6 +132,7 @@ class PaymentMethodController extends Controller {
                         ->with('paymentMethodProviderVariable')
                         ->orderBy('order','ASC');
                     }))
+                    ->whereIn('id', $validCategory)
                     ->orderBy('order','ASC')
                     ->get();
             

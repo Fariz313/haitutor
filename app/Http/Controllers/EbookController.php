@@ -10,6 +10,7 @@ use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use JWTAuth;
 
 class EbookController extends Controller
 {
@@ -171,6 +172,14 @@ class EbookController extends Controller
             $data = Ebook::where('id', $id)->with(array('ebookCategory', 'ebookPublisher' => function($query){
                         $query->select('id','name', 'email');
                     }))->first();
+
+            $user = JWTAuth::parseToken()->authenticate();
+            $dataLibrary = EbookLibrary::where('id_user', $user->id)->where('id_ebook', $id)->first();
+            if($dataLibrary != null){
+                $data->is_in_library    = EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"];
+            } else {
+                $data->is_in_library    = EbookLibrary::EBOOK_LIBRARY_STATUS["NON_ACTIVE"];
+            }
 
             return response()->json([
                 'status'    =>  'Success',
@@ -478,6 +487,69 @@ class EbookController extends Controller
                 'message'   =>  $message
             ], 200);
 
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getEbookPublished(Request $request)
+    {
+        try {
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = Ebook::where(function ($where) use ($query){
+                    $where->where('name','LIKE','%'.$query.'%')
+                    ->orWhere('slug','LIKE','%'.$query.'%');
+                })->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->paginate(10);
+            } else {
+                $data = Ebook::where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllPublishedEbookInStudentLibrary($idUser)
+    {
+        try {
+            $data = Ebook::select("ebook.*", 'ebook_library.status as library_status')
+                        ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
+                        ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                        ->where('ebook_library.id_user', $idUser)
+                        ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                        ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                            $query->select('id','name', 'email');
+                        }))
+                        ->orderBy('ebook.type','DESC')
+                        ->paginate(10);
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
