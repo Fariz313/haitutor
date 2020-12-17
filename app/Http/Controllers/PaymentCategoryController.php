@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use Illuminate\Http\Request;
 
@@ -163,11 +164,20 @@ class PaymentCategoryController extends Controller
             if($data->isDeleted == PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["DELETED"]){
                 $message    = 'Payment Category Already Deleted';
             } else {
+                // Set Payment Category
+                $data->status       = PaymentMethodCategory::PAYMENT_CATEGORY_STATUS["DISABLED"];
                 $data->isDeleted    = PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["DELETED"];
-                $data->save();
-            }
 
-            $this->tidyOrder();
+                // Set Payment Method
+                $dataPaymentMethod  = PaymentMethod::where('id_payment_category', $data->id)->get();
+                foreach($dataPaymentMethod as $payment){
+                    $payment->id_payment_category   = 0;
+                    $payment->save();
+                }
+
+                $data->save();
+                $this->tidyOrder();
+            }
 
             return response()->json([
                 'status'    =>  'Success',
