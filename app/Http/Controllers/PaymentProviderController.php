@@ -213,7 +213,31 @@ class PaymentProviderController extends Controller
             if($data->isDeleted == PaymentProvider::PAYMENT_PROVIDER_DELETED_STATUS["DELETED"]){
                 $message    = 'Payment Provider Already Deleted';
             } else {
+                // Set Payment Provider
                 $data->isDeleted    = PaymentProvider::PAYMENT_PROVIDER_DELETED_STATUS["DELETED"];
+
+                // Set Payment Method Provider
+                $dataPaymentMethodProvider  = PaymentMethodProvider::where('id_payment_provider', $data->id)->get();
+                foreach($dataPaymentMethodProvider as $paymentMethodProvider){
+                    $paymentMethodProvider->status      = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $paymentMethodProvider->isActive    = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    $paymentMethodProvider->isDeleted   = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"];
+
+                    // Delete Payment Method Provider Variable
+                    $dataPaymentMethodProviderVariable = PaymentMethodProviderVariable::where('id_payment_method_provider', $paymentMethodProvider->id)->get();
+                    foreach($dataPaymentMethodProviderVariable as $variable){
+                        $variable->delete();
+                    }
+
+                    $paymentMethodProvider->save();
+                }
+
+                // Delete Payment Provider Variable
+                $dataPaymentProviderVariable  = PaymentProviderVariable::where('id_payment_provider', $data->id)->get();
+                foreach($dataPaymentProviderVariable as $variable){
+                    $variable->delete();
+                }
+
                 $data->save();
                 $message            = 'Payment Provider Deleted';
             }
@@ -296,7 +320,7 @@ class PaymentProviderController extends Controller
 
             if($data != null){
                 if($data->isDeleted == PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"]){
-                    $data->status       = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $data->status       = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["ENABLED"];
                     $data->isActive     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
                     $data->isDeleted    = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["ACTIVE"];
                     $message            = 'Payment Method Reincluded';
@@ -340,6 +364,8 @@ class PaymentProviderController extends Controller
                     $message            = 'Payment Method Already Excluded';
                 } else {
                     $data->isDeleted    = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"];
+                    $data->isActive     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    $data->status       = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
                     $message            = 'Payment Method Excluded';
                     $data->save();
                 }
@@ -398,6 +424,7 @@ class PaymentProviderController extends Controller
                 $message    = 'Payment Method Provider Already Disabled';
             } else {
                 $data->status   = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                $data->isActive = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
                 $data->save();
             }
 
