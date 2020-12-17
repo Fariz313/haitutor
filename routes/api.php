@@ -208,6 +208,7 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'EbookController@index');
         Route::get('/list/free', 'EbookController@getAllFreeEbook');
         Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/list/publish', 'EbookController@getEbookPublished');
         Route::get('/{id}', 'EbookController@show');
 
         Route::post('/add', 'EbookController@store');
@@ -227,6 +228,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/library')->group(function () {
             Route::get('/{id_user}', 'EbookController@getAllEbookInStudentLibrary');
+            Route::get('/publish/{id_user}', 'EbookController@getAllPublishedEbookInStudentLibrary');
             Route::post('/{id_user}', 'EbookController@addEbooksToLibrary');
             Route::post('/delete/{id_user}', 'EbookController@deleteEbooksFromStudentLibrary');
         });
