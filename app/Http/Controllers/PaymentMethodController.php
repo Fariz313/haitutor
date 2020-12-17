@@ -10,8 +10,6 @@ use App\PaymentMethodProvider;
 use App\PaymentProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
 
 
@@ -349,25 +347,75 @@ class PaymentMethodController extends Controller {
         }
     }
 
-    public function updateStatus(Request $request, $id)
+    public function enablePaymentMethod($id)
     {
         try{
-            $data = PaymentMethod::findOrFail($id);
-            if ($data->status == '0') {
-                $data->status = '1';
-            }
-            else{
-                $data->status = '0';
-            }
-            $data->save();
 
-            $this->tidyOrder();
-            
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Status Payment Method Updated Successfully',
-                'data'      => $data
-    		], 201);
+            $data = PaymentMethod::findOrFail($id);
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method Already Enabled'
+                ], 201);
+                
+            } else {
+                // Get Category with Existing Active Payment Method
+                $activePaymentMethodProvider = DB::table('view_active_payment_method')
+                        ->where('id_payment_method', $id)->get();
+                if(count($activePaymentMethodProvider) > 0){
+                    $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"];
+                    $data->save();
+
+                    $this->tidyOrder();
+                    
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Payment Method Enabled',
+                        'data'      => $data
+                    ], 201);
+
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> "Payment Method doesn't have active provider"
+                    ], 201);
+                    
+                }
+            }
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function disablePaymentMethod($id)
+    {
+        try{
+
+            $data = PaymentMethod::findOrFail($id);
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method Already Disabled'
+                ], 201);
+                
+            } else {
+                $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->save();
+
+                $this->tidyOrder();
+                
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Disabled',
+                    'data'      => $data
+                ], 201);
+            }
 
         } catch(\Exception $e){
             return response()->json([
