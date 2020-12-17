@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
+use App\PaymentMethodProviderVariable;
 use App\PaymentProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -356,7 +357,7 @@ class PaymentMethodController extends Controller {
             if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"]){
                 return response()->json([
                     'status'	=> 'Failed',
-                    'message'	=> 'Payment Method Already Enabled'
+                    'message'	=> 'Payment Method was already enabled'
                 ], 201);
                 
             } else {
@@ -401,7 +402,7 @@ class PaymentMethodController extends Controller {
             if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"]){
                 return response()->json([
                     'status'	=> 'Failed',
-                    'message'	=> 'Payment Method Already Disabled'
+                    'message'	=> 'Payment Method was already disabled'
                 ], 201);
                 
             } else {
@@ -429,18 +430,45 @@ class PaymentMethodController extends Controller {
     {
         try{
             $data   = PaymentMethod::findOrFail($id);
-            $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
-            $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
-            $data->order        = 0;
-            $data->save();
 
-            $this->tidyOrder();
+            if($data->is_deleted == PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already deleted'
+                ], 200);
 
-            return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Payment Method Deleted',
-                'data'      => $data
-    		], 200);
+            } else {
+                // Set Payment Method
+                $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
+                $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->order        = 0;
+                $data->save();
+
+                // Set Payment Method Provider
+                $dataPaymentMethodProvider = PaymentMethodProvider::where('id_payment_method', $id)->get();
+                foreach($dataPaymentMethodProvider as $methodProvider){
+                    $methodProvider->status     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $methodProvider->isActive   = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    $methodProvider->isDeleted  = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"];
+
+                    // Set Payment Method Provider Variable
+                    $dataPaymentMethodProviderVariable = PaymentMethodProviderVariable::where('id_payment_method_provider', $methodProvider->id)->get();
+                    foreach($dataPaymentMethodProviderVariable as $variable){
+                        $variable->delete();
+                    }
+
+                    $methodProvider->save();
+                }
+
+                $this->tidyOrder();
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Deleted',
+                    'data'      => $data
+                ], 200);
+            }
+            
         } catch(\Exception $e){
             return response([
             	"status"	=> "Failed",
