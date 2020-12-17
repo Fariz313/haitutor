@@ -7,11 +7,10 @@ use Illuminate\Http\Request;
 use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
+use App\PaymentMethodProviderVariable;
 use App\PaymentProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
 
 
@@ -349,25 +348,75 @@ class PaymentMethodController extends Controller {
         }
     }
 
-    public function updateStatus(Request $request, $id)
+    public function enablePaymentMethod($id)
     {
         try{
-            $data = PaymentMethod::findOrFail($id);
-            if ($data->status == '0') {
-                $data->status = '1';
-            }
-            else{
-                $data->status = '0';
-            }
-            $data->save();
 
-            $this->tidyOrder();
-            
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Status Payment Method Updated Successfully',
-                'data'      => $data
-    		], 201);
+            $data = PaymentMethod::findOrFail($id);
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already enabled'
+                ], 201);
+                
+            } else {
+                // Get Category with Existing Active Payment Method
+                $activePaymentMethodProvider = DB::table('view_active_payment_method')
+                        ->where('id_payment_method', $id)->get();
+                if(count($activePaymentMethodProvider) > 0){
+                    $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"];
+                    $data->save();
+
+                    $this->tidyOrder();
+                    
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Payment Method Enabled',
+                        'data'      => $data
+                    ], 201);
+
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> "Payment Method doesn't have active provider"
+                    ], 201);
+                    
+                }
+            }
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function disablePaymentMethod($id)
+    {
+        try{
+
+            $data = PaymentMethod::findOrFail($id);
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already disabled'
+                ], 201);
+                
+            } else {
+                $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->save();
+
+                $this->tidyOrder();
+                
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Disabled',
+                    'data'      => $data
+                ], 201);
+            }
 
         } catch(\Exception $e){
             return response()->json([
@@ -381,18 +430,45 @@ class PaymentMethodController extends Controller {
     {
         try{
             $data   = PaymentMethod::findOrFail($id);
-            $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
-            $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
-            $data->order        = 0;
-            $data->save();
 
-            $this->tidyOrder();
+            if($data->is_deleted == PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already deleted'
+                ], 200);
 
-            return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Payment Method Deleted',
-                'data'      => $data
-    		], 200);
+            } else {
+                // Set Payment Method
+                $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
+                $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->order        = 0;
+                $data->save();
+
+                // Set Payment Method Provider
+                $dataPaymentMethodProvider = PaymentMethodProvider::where('id_payment_method', $id)->get();
+                foreach($dataPaymentMethodProvider as $methodProvider){
+                    $methodProvider->status     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $methodProvider->isActive   = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    $methodProvider->isDeleted  = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"];
+
+                    // Set Payment Method Provider Variable
+                    $dataPaymentMethodProviderVariable = PaymentMethodProviderVariable::where('id_payment_method_provider', $methodProvider->id)->get();
+                    foreach($dataPaymentMethodProviderVariable as $variable){
+                        $variable->delete();
+                    }
+
+                    $methodProvider->save();
+                }
+
+                $this->tidyOrder();
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Deleted',
+                    'data'      => $data
+                ], 200);
+            }
+            
         } catch(\Exception $e){
             return response([
             	"status"	=> "Failed",

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Ebook;
 use App\EbookLibrary;
 use App\User;
-use App\Helpers\CloudKilatHelper;
 use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
