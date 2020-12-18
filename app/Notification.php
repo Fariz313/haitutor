@@ -22,5 +22,6 @@ class Notification extends Model
         10 => "CHANNEL_DOCUMENT_VERIFICATION",
         11 => "CHANNEL_ROOM_CHAT_CLOSE",
         12 => "CHANNEL_ROOM_CHAT_OPEN",
+        13 => "CHANNEL_EBOOK_PURCHASE",
     );
 }

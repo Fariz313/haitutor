@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Order extends Migration
+class CreateEbookPurchaseTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,19 +13,16 @@ class Order extends Migration
      */
     public function up()
     {
-        Schema::create('order', function (Blueprint $table) {
+        Schema::create('ebook_purchase', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
-            $table->integer('package_id')->default(0);
-            $table->integer('method_id')->nullable();
+            $table->integer('ebook_id');
+            $table->integer('method_id')->default(0);
+            $table->text('payment_information')->nullable();
             $table->string('invoice')->nullable();
-            $table->text('va_number')->nullable();
-            $table->string('proof')->nullable();
             $table->text('detail')->nullable();
-            $table->integer('amount')->nullable();
-            $table->integer('pos')->nullable();
-            $table->integer('type_code')->nullable();
-            $table->enum('status',['pending','failed','completed']);
+            $table->integer('amount');
+            $table->integer('status')->default(0);
             $table->integer('is_deleted')->default(0);
             $table->timestamps();
         });
@@ -38,6 +35,6 @@ class Order extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('order');
+        Schema::dropIfExists('ebook_purchase');
     }
 }
