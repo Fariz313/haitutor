@@ -20,6 +20,7 @@ use Kreait\Firebase\Auth;
 use View;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google_Client;
+use App\Helpers\LogApps;
 
 class UserController extends Controller
 {
@@ -41,6 +42,13 @@ class UserController extends Controller
                 'error'     => 'could_not_create_token',
                 'message'   => 'Cant create authentication, please try again'], 500);
         }
+
+        $dataLog = [
+            "USER" => User::where('email', $request->get('email'))->first(),
+            "USER_IP" => $request->ip()
+        ];
+        
+        LogApps::login($dataLog);
 
         return response()->json([
             'status'    => 'success',
@@ -559,15 +567,22 @@ class UserController extends Controller
         ],200);
     }
 
-    public function logout(){
-            $token = JWTAuth::getToken();
-            JWTAuth::setToken($token)->invalidate();
-            return response()->json([
-                'status'    =>  'success',
-                'message'   =>  'Token now is invalidated'
-            ]);
+    public function logout(Request $request){
 
+        $dataLog = [
+            "USER" => JWTAuth::parseToken()->authenticate(),
+            "USER_IP" => $request->ip()
+        ];
+        LogApps::logout($dataLog);
 
+        $token = JWTAuth::getToken();
+        JWTAuth::setToken($token)->invalidate();
+
+        return response()->json([
+            'status'    =>  'success',
+            'message'   =>  'Token now is invalidated'
+            ]
+        );
     }
 
     public function getAllStudent(Request $request){
