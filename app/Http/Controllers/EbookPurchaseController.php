@@ -497,4 +497,39 @@ class EbookPurchaseController extends Controller
             ], 500);
         }
     }
+
+    public function getEbookPurchaseByIdUser(Request $request, $user_id)
+    {
+        try {
+            if($request->get('search')){
+                $query = $request->get('search');
+                $dataRaw = EbookPurchase::where(function ($where) use ($query){
+                    $where->where('detail','LIKE','%'.$query.'%');
+                })
+                ->where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                ->with(array('user','ebook','payment_method' => function($query){
+                    $query->with(array('paymentMethod', 'paymentProvider'))->get();
+                }));
+            } else{
+                $dataRaw = EbookPurchase::where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                            ->with(array('user','ebook','payment_method' => function($query){
+                                $query->with(array('paymentMethod', 'paymentProvider'))->get();
+                            }));
+            }
+
+            $data = $dataRaw->paginate(10);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  $th->getMessage()
+            ], 400);
+        }
+    }
 }
