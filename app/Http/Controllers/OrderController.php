@@ -481,29 +481,36 @@ class OrderController extends Controller
     public function destroy($id)
     {
         try {
-
             $data           = Order::where("id", $id)->firstOrfail();
-
-            $delete         = $data->delete();
-
-            if ($delete) {
+            if($data->status == Order::ORDER_STATUS["COMPLETED"]){
                 return response()->json([
-                    'status'    =>  'success',
-                    'message'   =>  'Delete order history success'
-                ],200);
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Order Cannot be Changed"
+                ], 200);
+
+            } else if($data->is_deleted == Order::ORDER_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Order Already Deleted"
+                ], 200);
+
             } else {
+                $data->status       = Order::ORDER_STATUS["FAILED"];
+                $data->is_deleted   = Order::ORDER_DELETED_STATUS["DELETED"];
+                $data->save();
+
                 return response()->json([
-                    'status'    =>  'failed',
-                    'message'   =>  'Failed to delete order history'
-                ],400);
+                    'status'    =>  "Success",
+                    'data'      =>  $data,
+                    'message'   =>  "Data Order Deleted"
+                ], 200);
             }
 
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return response()->json([
-                'status'    =>  'failed',
-                'message'   =>  'Failed to delete order history',
-                'data'      =>  $th->getMessage()
-            ],400);
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
 

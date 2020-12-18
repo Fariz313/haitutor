@@ -31,6 +31,11 @@ class Order extends Model
         "FAILED"    => "failed"
     );
 
+    const ORDER_DELETED_STATUS = array(
+        "DELETED"   => 1,
+        "ACTIVE"    => 0
+    );
+
     const ENVIRONMENT = array(
         "DEVELOPMENT"   => "0",
         "PRODUCTION"    => "1"

@@ -31,13 +31,15 @@ class EbookPurchaseController extends Controller
                 $dataRaw = EbookPurchase::where(function ($where) use ($query){
                     $where->where('detail','LIKE','%'.$query.'%');
                 })
+                ->where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
                 ->with(array('user','ebook','payment_method' => function($query){
                     $query->with(array('paymentMethod', 'paymentProvider'))->get();
                 }));
             } else{
-                $dataRaw = EbookPurchase::with(array('user','ebook','payment_method' => function($query){
-                    $query->with(array('paymentMethod', 'paymentProvider'))->get();
-                }));
+                $dataRaw = EbookPurchase::where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                            ->with(array('user','ebook','payment_method' => function($query){
+                                $query->with(array('paymentMethod', 'paymentProvider'))->get();
+                            }));
             }
 
             if($request->get('filter')){
@@ -389,7 +391,38 @@ class EbookPurchaseController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $data   = EbookPurchase::findOrFail($id);
+            if($data->status == EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"]){
+                return response()->json([
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Ebook Purchase Cannot be Changed"
+                ], 200);
+
+            } else if($data->is_deleted == EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Ebook Purchase Already Deleted"
+                ], 200);
+
+            } else {
+                $data->status       = EbookPurchase::EBOOK_PURCHASE_STATUS["FAILED"];
+                $data->is_deleted   = EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["DELETED"];
+                $data->save();
+
+                return response()->json([
+                    'status'    =>  "Success",
+                    'data'      =>  $data,
+                    'message'   =>  "Data Ebook Purchase Deleted"
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function acceptEbookPurchase($id){
