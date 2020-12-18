@@ -26,9 +26,9 @@ class Order extends Model
     );
 
     const ORDER_STATUS = array(
-        "SUCCESS"   => "success",
+        "COMPLETED" => "completed",
         "PENDING"   => "pending",
-        "FAILED"   => "failed"
+        "FAILED"    => "failed"
     );
 
     const ENVIRONMENT = array(

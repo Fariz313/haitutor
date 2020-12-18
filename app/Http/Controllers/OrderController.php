@@ -565,7 +565,7 @@ class OrderController extends Controller
             if($request->input('merchantOrderId')[0] == 'E'){
                 // If Callback for Ebook Transaction
 
-                $purchase_id       = str_replace("E", "", $request->input('merchantOrderId'));
+                $purchase_id    = str_replace("E", "", $request->input('merchantOrderId'));
                 
                 $data           = EbookPurchase::findOrFail($purchase_id);
                 $dataUser       = User::findOrFail($data->user_id);
@@ -660,13 +660,83 @@ class OrderController extends Controller
     public function callbackTransactionTripay(Request $request){
         try{
 
-            $data = $request->input('merchant_ref');
+            if($request->input('merchant_ref')[0] == 'E'){
+                // Callback for Ebook Transaction
 
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Callback Transaction',
-                'data'      => $data
-            ], 201);
+                $purchase_id    = str_replace("E", "", $request->input('merchant_ref'));
+                
+                $data           = EbookPurchase::findOrFail($purchase_id);
+                $dataUser       = User::findOrFail($data->user_id);
+
+                if($request->input('total_amount')){
+                    if('PAID' == $request->input('status')){
+                        $newLibrary             = new EbookLibrary();
+                        $newLibrary->id_user    = $data->user_id;
+                        $newLibrary->id_ebook   = $data->ebook_id;
+                        $newLibrary->save();
+
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"];
+                    } else {
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["FAILED"];
+                    }
+                }
+
+                $data->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[13],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
+            } else {
+                // Callback for Token Transaction
+                $data           = Order::findOrFail($request->input('merchant_ref'));
+                $dataUser       = User::findOrFail($data->user_id);
+                $dataPackage    = Package::findOrFail($data->package_id);
+
+                if($request->input('total_amount')){
+                    if('PAID' == $request->input('status')){
+                        $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+                        $data->status   = Order::ORDER_STATUS["COMPLETED"];
+                    } else {
+                        $data->status   = Order::ORDER_STATUS["FAILED"];
+                    }
+                }
+
+                $data->save();
+                $dataUser->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'amount' => $dataPackage->balance,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
+            }
 
         } catch(\Exception $e){
             return response()->json([
