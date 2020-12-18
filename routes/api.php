@@ -267,6 +267,19 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/{id}', 'EbookOrderController@destroy');
         });
 
+        Route::prefix('/purchase')->group(function () {
+            Route::get('/list/all', 'EbookPurchaseController@index');
+            Route::get('/{id}', 'EbookPurchaseController@show');
+
+            Route::post('/request/{ebook_id}', 'EbookPurchaseController@store');
+
+            Route::put('/{id}', 'EbookPurchaseController@update');
+            Route::put('/accept/{id}', 'EbookPurchaseController@acceptEbookPurchase');
+            Route::put('/reject/{id}', 'EbookPurchaseController@rejectEbookPurchase');
+
+            Route::delete('/{id}', 'EbookPurchaseController@destroy');
+        });
+
     });
 
     Route::middleware(['user.tutor'])->group(function(){
