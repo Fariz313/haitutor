@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Ebook;
+use App\EbookLibrary;
 use App\EbookPurchase;
+use App\Notification;
 use App\Order;
 use App\PaymentMethod;
 use App\PaymentMethodProviderVariable;
 use App\PaymentProviderVariable;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use JWTAuth;
+use FCM;
 
 class EbookPurchaseController extends Controller
 {
@@ -323,7 +327,35 @@ class EbookPurchaseController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+
+            $data       = EbookPurchase::where('id', $id)
+                            ->with(array('ebook' => function ($query) {
+                                $query->select("id", "price", "name");
+                            }))
+                            ->with(array('payment_method' => function($query){
+                                $query->select("payment_method.*", "payment_method_provider.id", "payment_provider.name as active_provider_name")
+                                        ->join("payment_method", "payment_method_provider.id_payment_method", "=", "payment_method.id")
+                                        ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
+                                        ->with(array('paymentMethodProviderVariable'));
+                            }))
+                            ->with(array("user" => function ($query) {
+                                $query->select("id", "name", "email", "role");
+                            }))->first();
+
+            return response()->json([
+                'status'    => "Success",
+                'message'   => "Get Detail Ebook Purchase Succeeded",
+                'data'      => $data
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'Get Detail Ebook Purchase Failed',
+                'data'      =>  $th->getMessage()
+            ],400);
+        }
     }
 
     /**
@@ -358,5 +390,78 @@ class EbookPurchaseController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function acceptEbookPurchase($id){
+        try {
+            $data                   = EbookPurchase::findOrFail($id);
+            $dataUser               = User::findOrFail($data->user_id);
+
+            $data->status           = EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"];
+
+            $newLibrary             = new EbookLibrary();
+            $newLibrary->id_user    = $data->user_id;
+            $newLibrary->id_ebook   = $data->ebook_id;
+            
+            $newLibrary->save();
+            $data->save();
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $data->detail . " berhasil",
+                "sender_id" => 0,
+                "target_id" => $dataUser->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[13],
+                'token_recipient' => $dataUser->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                'status'    =>  "Success",
+                'data'      =>  $data,
+                'message'   =>  "Ebook Purchase Succeeded"
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function rejectEbookPurchase($id){
+        try {
+            $data                   = EbookPurchase::findOrFail($id);
+            $dataUser               = User::findOrFail($data->user_id);
+
+            $data->status           = EbookPurchase::EBOOK_PURCHASE_STATUS["FAILED"];
+            
+            $data->save();
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $data->detail . " gagal",
+                "sender_id" => 0,
+                "target_id" => $dataUser->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[13],
+                'token_recipient' => $dataUser->firebase_token,
+                'save_data' => true
+            ];
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                'status'    =>  "Success",
+                'data'      =>  $data,
+                'message'   =>  "Ebook Purchase Failed"
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
     }
 }

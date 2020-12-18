@@ -273,7 +273,6 @@ Route::middleware(['cors'])->group(function(){
 
             Route::post('/request/{ebook_id}', 'EbookPurchaseController@store');
 
-            Route::put('/{id}', 'EbookPurchaseController@update');
             Route::put('/accept/{id}', 'EbookPurchaseController@acceptEbookPurchase');
             Route::put('/reject/{id}', 'EbookPurchaseController@rejectEbookPurchase');
 
