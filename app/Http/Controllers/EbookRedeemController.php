@@ -220,26 +220,33 @@ class EbookRedeemController extends Controller
             $data->save();
 
             $newData = array();
-            foreach(json_decode(json_encode($request->input('ebooks')), FALSE) as $ebook){
-                if($ebook->is_deleted && $ebook->is_deleted == EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["DELETED"]){
-                    $dataDetail = EbookRedeemDetail::where('id_redeem', $id)->where('id_ebook', $ebook->id_ebook)->first();
-                    $dataDetail->delete();
-                } else {
-                    if($ebook->id && $ebook->id != 0){
-                        $dataDetail                 = EbookRedeemDetail::findOrFail($ebook->id);
-                        $dataDetail->redeem_amount  = $ebook->amount;
-                        $dataDetail->save();
-                    } else {
-                        $dataDetail                 = new EbookRedeemDetail();
-                        $dataDetail->id_redeem      = $data->id;
-                        $dataDetail->id_ebook       = $ebook->id_ebook;
-                        $dataDetail->redeem_amount  = $ebook->amount;
-                        $dataDetail->save();
-                        $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
-                        $dataDetail->save();
-                    }
+            $ebookId = json_decode(json_encode($request->input('ebook_id_array')), FALSE);
+            $ebookAmount = json_decode(json_encode($request->input('ebook_limit_array')), FALSE);
+            $existingEbook = EbookRedeemDetail::where('id_redeem', $id)->get();
+
+            // Delete Nonmatch Ebook
+            foreach($existingEbook as $exist){
+                if(!in_array($exist->id_ebook, $ebookId)){
+                    $exist->delete();
                 }
-                
+            }
+
+            // Check Update of Existing Ebook and Create the new one
+            $existingEbookId = EbookRedeemDetail::where('id_redeem', $id)->pluck('id_ebook')->toArray();
+            foreach($ebookId as $idx => $inputEbookId){
+                if(in_array($inputEbookId, $existingEbookId)){
+                    $dataDetail                 = EbookRedeemDetail::where('id_ebook',$inputEbookId)->where('id_redeem', $id)->first();
+                    $dataDetail->redeem_amount  = $ebookAmount[$idx];
+                    $dataDetail->save();
+                } else {
+                    $dataDetail                 = new EbookRedeemDetail();
+                    $dataDetail->id_redeem      = $data->id;
+                    $dataDetail->id_ebook       = $inputEbookId;
+                    $dataDetail->redeem_amount  = $ebookAmount[$idx];
+                    $dataDetail->save();
+                    $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
+                    $dataDetail->save();
+                }
                 array_push($newData, $dataDetail);
             }
 
