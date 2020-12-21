@@ -118,10 +118,10 @@ class EbookOrderController extends Controller
             $data->save();
 
             $newData = array();
-            foreach(json_decode(json_encode($request->input('ebooks')), FALSE) as $ebook){
+            foreach(json_decode(json_encode($request->input('ebook_id_array')), FALSE) as $ebookId){
                 $dataDetail                 = new EbookOrderDetail();
                 $dataDetail->id_order       = $data->id;
-                $dataDetail->id_ebook       = $ebook->id;
+                $dataDetail->id_ebook       = $ebookId;
                 $dataDetail->amount         = 1;
                 
                 $dataLibrary                = EbookLibrary::where('id_user', $data->id_customer)->where('id_ebook', $dataDetail->id_ebook)->first();

@@ -122,11 +122,12 @@ class EbookRedeemController extends Controller
             $data->save();
 
             $newData = array();
-            foreach(json_decode(json_encode($request->input('ebooks')), FALSE) as $ebook){
+            $ebookLimit = json_decode(json_encode($request->input('ebook_limit_array')), FALSE);
+            foreach(json_decode(json_encode($request->input('ebook_id_array')), FALSE) as $idx => $ebookId){
                 $dataDetail                 = new EbookRedeemDetail();
                 $dataDetail->id_redeem      = $data->id;
-                $dataDetail->id_ebook       = $ebook->id;
-                $dataDetail->redeem_amount  = $ebook->amount;
+                $dataDetail->id_ebook       = $ebookId;
+                $dataDetail->redeem_amount  = $ebookLimit[$idx];
                 $dataDetail->save();
                 $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
                 $dataDetail->save();
