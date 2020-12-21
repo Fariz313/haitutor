@@ -16,7 +16,7 @@ class CreateSubMenuTable extends Migration
         Schema::create('sub_menu', function (Blueprint $table) {
             $table->id();
             $table->integer("id_parent_menu");
-            $table->integer("is_child_menu");
+            $table->integer("id_child_menu");
             $table->timestamps();
         });
     }
