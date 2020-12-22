@@ -184,11 +184,15 @@ class MenuController extends Controller
         }
     }
 
-    public function getPrimaryMenu(){
+    public function getPrimaryMenu($id_role = 1){
         try {
-            $data = PrimaryMenu::with(array('subMenu' => function($query){
+            $data = PrimaryMenu::select('view_primary_menu.*')
+            ->with(array('subMenu' => function($query){
                 $query->select('menu.*','sub_menu.*')->join("menu", "sub_menu.id_child_menu", "=", "menu.id");
-            }))->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
+            }))
+            ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
+            ->where('menu_role.id_role', $id_role)
+            ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
             
             return response()->json([
                 'status'    =>  'Success',
