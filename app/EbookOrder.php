@@ -24,6 +24,11 @@ class EbookOrder extends Model
         return $this->hasOne('App\User','id','id_customer');
     }
 
+    public function publisher()
+    {
+        return $this->hasOne('App\User','id','id_publisher');
+    }
+
     public function detail()
     {
         return $this->hasMany('App\EbookOrderDetail','id_order','id');
