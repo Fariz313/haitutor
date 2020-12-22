@@ -177,7 +177,11 @@ class EbookOrderController extends Controller
         try {
             $data = EbookOrder::where('is_deleted', EbookOrder::EBOOK_ORDER_DELETED_STATUS["ACTIVE"])
                         ->with(array('customer', 'detail' => function($query){
-                            $query->with(array('ebook'))->get();
+                            $query->with(array('ebook' => function($query){
+                                $query->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                                    $query->select('id','name', 'email');
+                                }));
+                            }))->get();
                         }))
                         ->where('id', $id)
                         ->first();
