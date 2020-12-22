@@ -14,8 +14,8 @@ class Menu extends Model
     );
 
     const STATUS_MENU_DELETED = array(
-        "ACTIVE"    => 1,
-        "DELETED"   => 0
+        "ACTIVE"    => 0,
+        "DELETED"   => 1
     );
 
     const ACTION_METHOD = array(

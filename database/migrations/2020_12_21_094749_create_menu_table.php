@@ -19,9 +19,9 @@ class CreateMenuTable extends Migration
             $table->string("action_url");
             $table->string("action_method");
             $table->string("icon")->nullable();
-            $table->integer("order");
-            $table->integer("is_menu");
-            $table->integer("is_deleted");
+            $table->integer("order")->default(0);
+            $table->integer("is_menu")->default(0);
+            $table->integer("is_deleted")->default(0);
             $table->timestamps();
         });
     }

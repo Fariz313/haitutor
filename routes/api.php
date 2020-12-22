@@ -282,6 +282,21 @@ Route::middleware(['cors'])->group(function(){
 
     });
 
+    Route::prefix('/menu')->group(function(){
+        Route::get('/', 'MenuController@getPrimaryMenu');
+        Route::post('/', 'MenuController@store');
+        Route::put('/{id}', 'MenuController@update');
+        Route::delete('/{id}', 'MenuController@destroy');
+    });
+
+    Route::prefix('/role')->group(function(){
+        Route::get('/', 'RoleController@index');
+        Route::post('/', 'RoleController@store');
+        Route::put('/{id}', 'RoleController@update');
+        Route::put('/menu/list', 'RoleController@updateMenuRole');
+        Route::delete('/{id}', 'RoleController@destroy');
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
