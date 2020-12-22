@@ -118,10 +118,10 @@ class EbookOrderController extends Controller
             $data->save();
 
             $newData = array();
-            foreach(json_decode(json_encode($request->input('ebooks')), FALSE) as $ebook){
+            foreach(json_decode(json_encode($request->input('ebook_id_array')), FALSE) as $ebookId){
                 $dataDetail                 = new EbookOrderDetail();
                 $dataDetail->id_order       = $data->id;
-                $dataDetail->id_ebook       = $ebook->id;
+                $dataDetail->id_ebook       = $ebookId;
                 $dataDetail->amount         = 1;
                 
                 $dataLibrary                = EbookLibrary::where('id_user', $data->id_customer)->where('id_ebook', $dataDetail->id_ebook)->first();
@@ -233,21 +233,31 @@ class EbookOrderController extends Controller
                 $data->save();
     
                 $newData = array();
-                foreach(json_decode(json_encode($request->input('ebooks')), FALSE) as $ebook){
-                    if($ebook->is_deleted && $ebook->is_deleted == EbookOrder::EBOOK_ORDER_DELETED_STATUS["DELETED"]){
-                        $dataDetail = EbookOrderDetail::where('id_order', $id)->where('id_ebook', $ebook->id_ebook)->first();
-                        $dataDetail->delete();
-    
-                        array_push($newData, $dataDetail);
-                    } else if(!$ebook->id || $ebook->id == 0){
+
+                $ebookId = json_decode(json_encode($request->input('ebook_id_array')), FALSE);
+                $existingEbook = EbookOrderDetail::where('id_order', $id)->get();
+
+                // Delete Nonmatch Ebook
+                foreach($existingEbook as $exist){
+                    if(!in_array($exist->id_ebook, $ebookId)){
+                        $exist->delete();
+                    }
+                }
+
+                // Check Update of Existing Ebook and Create the new one
+                $existingEbookId = EbookOrderDetail::where('id_order', $id)->pluck('id_ebook')->toArray();
+                foreach($ebookId as $inputEbookId){
+                    if(!in_array($inputEbookId, $existingEbookId)){
                         $dataDetail                 = new EbookOrderDetail();
                         $dataDetail->id_order       = $data->id;
-                        $dataDetail->id_ebook       = $ebook->id_ebook;
+                        $dataDetail->id_ebook       = $inputEbookId;
                         $dataDetail->amount         = 1;
                         $dataDetail->save();
-    
-                        array_push($newData, $dataDetail);
+                    } else {
+                        $dataDetail                 = EbookOrderDetail::where('id_ebook',$inputEbookId)->where('id_order', $id)->first();
                     }
+                    
+                    array_push($newData, $dataDetail);
                 }
 
                 if($data->status == EbookOrder::EBOOK_ORDER_STATUS["NON_ACTIVE"]){
