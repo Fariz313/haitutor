@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\HistoryVC;
 use App\User;
 use App\Libraries\Agora\RtcTokenBuilder;
+use App\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -139,7 +140,7 @@ class HistoryVCController extends Controller
 
                 $query = $request->get("search");
 
-                if ($user->role == "student") {
+                if ($user->role == Role::ROLE["STUDENT"]) {
                     $data       =   HistoryVC::select('history_vc.*','tutor_table.name as tutor_name')
                                         ->where(function($query) use ($user) {
                                             $query->where('user_id',$user->id)
@@ -160,7 +161,7 @@ class HistoryVCController extends Controller
                                         }))->paginate(10);
 
                     return response()->json($data, 200);
-                } else if ($user->role == "tutor") {
+                } else if ($user->role == Role::ROLE["TUTOR"]) {
                     $data       =   HistoryVC::select('history_vc.*','user_table.name as user_name')
                                         ->where(function($query) use ($user) {
                                             $query->where('user_id',$user->id)

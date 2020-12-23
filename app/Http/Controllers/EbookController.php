@@ -6,6 +6,7 @@ use App\Ebook;
 use App\EbookLibrary;
 use App\User;
 use App\Helpers\GoogleCloudStorageHelper;
+use App\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -73,7 +74,7 @@ class EbookController extends Controller
         try {
 
             $publisher  = User::findOrFail($request->input('id_publisher'));
-            if($publisher->role == User::ROLE["PUBLISHER"]){
+            if($publisher->role == Role::ROLE["PUBLISHER"]){
 
                 $validator = Validator::make($request->all(), [
                     'id_category'   => 'required|string',

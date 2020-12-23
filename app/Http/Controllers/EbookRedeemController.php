@@ -6,6 +6,7 @@ use App\EbookLibrary;
 use App\EbookRedeem;
 use App\EbookRedeemDetail;
 use App\EbookRedeemHistory;
+use App\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -101,7 +102,7 @@ class EbookRedeemController extends Controller
             }
 
             $user = JWTAuth::parseToken()->authenticate();
-            if($user->role == User::ROLE["PUBLISHER"]){
+            if($user->role == Role::ROLE["PUBLISHER"]){
                 // If Redeem is Requested by Publisher
                 $data->status       = EbookRedeem::EBOOK_REDEEM_STATUS["PENDING"];
                 $message            = "Request Claim Redeem Succeeded";

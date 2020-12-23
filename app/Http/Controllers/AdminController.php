@@ -8,6 +8,7 @@ use App\RoomChat;
 use App\RoomVC;
 use App\Order;
 use App\Report;
+use App\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -34,12 +35,12 @@ class AdminController extends Controller
                     $where->where('name','LIKE','%'.$query.'%')
                         ->orWhere('email','LIKE','%'.$query.'%')
                         ->orWhere('address','LIKE','%'.$query.'%');
-                        } )->where('role','admin')->with(array("admin_detail" => function($query)
+                        } )->where('role', Role::ROLE["ADMIN"])->with(array("admin_detail" => function($query)
                         {
                             $query->select("*");
                         }))->paginate(10);
             }else{
-                $data = User::where('role','admin')->with(array("admin_detail" => function($query)
+                $data = User::where('role',Role::ROLE["ADMIN"])->with(array("admin_detail" => function($query)
                 {
                     $query->select("*");
                 }))->paginate(10);
@@ -120,7 +121,7 @@ class AdminController extends Controller
     public function register(Request $request)
     {
         try {
-            if($request->get('role') != User::ROLE["ADMIN"]){
+            if($request->get('role') != Role::ROLE["ADMIN"]){
 
                 $validator = Validator::make($request->all(), [
                     'name'          => 'required|string|max:255',
@@ -146,7 +147,8 @@ class AdminController extends Controller
                     'address'       => $request->get('address')
                 ]);
 
-                $user->email        = $user->role . $user->id . "@haitutor.id";
+                $role               = Role::findOrFail($user->role);
+                $user->email        = strtolower($role->name) . $user->id . "@haitutor.id";
                 $user->status       = User::STATUS["VERIFIED"];
                 $user->save();
 
@@ -182,7 +184,7 @@ class AdminController extends Controller
                         'email'         => $request->get('email'),
                         'password'      => Hash::make($request->get('password')),
                         'birth_date'    => $request->get('birth_date'),
-                        'role'          => "admin",
+                        'role'          => Role::ROLE["ADMIN"],
                         'contact'       => $request->get('contact'),
                         'company_id'    => $request->get('company_id'),
                         'address'       => $request->get('address'),
@@ -239,7 +241,7 @@ class AdminController extends Controller
                     'message'   => 'Email or Password is Wrong'], 400);
             }
             $user = JWTAuth::user();
-            if($user->role == "admin"){
+            if($user->role == Role::ROLE["ADMIN"]){
                 return response()->json([
                     'status'    => 'success',
                     'token'     => $token,
@@ -420,7 +422,7 @@ class AdminController extends Controller
 
                 $admin = User::where("id", $id)->firstOrFail();
 
-                if ($admin->role == "admin") {
+                if ($admin->role == ROLE::ROLE["ADMIN"]) {
                     $delete_detail = AdminDetail::where("user_id", $id)->firstOrFail();
 
                     DB::beginTransaction();
