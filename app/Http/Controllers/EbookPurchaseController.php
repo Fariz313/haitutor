@@ -498,24 +498,14 @@ class EbookPurchaseController extends Controller
         }
     }
 
-    public function getEbookPurchaseByIdUser(Request $request, $user_id)
+    public function getEbookPurchaseByIdUser($user_id)
     {
         try {
-            if($request->get('search')){
-                $query = $request->get('search');
-                $dataRaw = EbookPurchase::where(function ($where) use ($query){
-                    $where->where('detail','LIKE','%'.$query.'%');
-                })
-                ->where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
-                ->with(array('user','ebook','payment_method' => function($query){
-                    $query->with(array('paymentMethod', 'paymentProvider'))->get();
-                }));
-            } else{
-                $dataRaw = EbookPurchase::where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+            $dataRaw = EbookPurchase::where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                            ->where('user_id', $user_id)
                             ->with(array('user','ebook','payment_method' => function($query){
                                 $query->with(array('paymentMethod', 'paymentProvider'))->get();
                             }));
-            }
 
             $data = $dataRaw->paginate(10);
 

@@ -269,7 +269,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/purchase')->group(function () {
             Route::get('/list/all', 'EbookPurchaseController@index');
-            Route::get('/list/user/{user_id}', 'EbookPurchaseController@index');
+            Route::get('/list/user/{user_id}', 'EbookPurchaseController@getEbookPurchaseByIdUser');
             Route::get('/{id}', 'EbookPurchaseController@show');
 
             Route::post('/request/{ebook_id}', 'EbookPurchaseController@store');
