@@ -6,6 +6,7 @@ use App\EbookLibrary;
 use App\EbookOrder;
 use App\EbookOrderDetail;
 use App\EbookRedeem;
+use App\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -103,7 +104,7 @@ class EbookOrderController extends Controller
 
             $user = JWTAuth::parseToken()->authenticate();
             $status                 = 'Success';
-            if($user->role == User::ROLE["PUBLISHER"]){
+            if($user->role == Role::ROLE["PUBLISHER"]){
                 // If Redeem is Requested by Publisher
                 $data->status       = EbookOrder::EBOOK_ORDER_STATUS["PENDING"];
                 $message            = "Request Manual Order Succeeded";

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use App\TutorDetail;
 use App\Notification;
+use App\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +56,7 @@ class TutorController extends Controller
         }
         if($request->get('search')){
             $querySearch    = $request->get('search');
-            $data           = User::where('role','tutor')
+            $data           = User::where('role', Role::ROLE["TUTOR"])
                             ->with(array('detail'=>function($query)
                                         {$query->where('status','verified');},
                                         'tutorSubject'=>function($query)
@@ -69,7 +70,7 @@ class TutorController extends Controller
         }
         $data   =   User::whereHas('detail', function ($q){
                                     $q->where('status','verified');})
-                          ->where('role','tutor')
+                          ->where('role', Role::ROLE["TUTOR"])
                           ->with(array('detail','tutorSubject'=>function($query)
                           {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
                           'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
@@ -81,7 +82,7 @@ class TutorController extends Controller
 
         try {
 
-            $data   =   User::where('role','tutor')
+            $data   =   User::where('role', Role::ROLE["TUTOR"])
                           ->with(array('detail','tutorSubject'=>function($query) {
                               $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                             }, 'rating','avrating'=>function($query){
@@ -107,7 +108,7 @@ class TutorController extends Controller
         }
         if($request->get('search')){
             $querySearch    =$request->get('search');
-            $data           =User::where('role','tutor')
+            $data           =User::where('role', Role::ROLE["TUTOR"])
                             ->with(array('detail','tutorSubject'=>function($query)
                             {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
                             'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
@@ -117,7 +118,7 @@ class TutorController extends Controller
                             })->paginate($paginate);
             return $data;
         }
-        $data   =   User::where('role','tutor')
+        $data   =   User::where('role', Role::ROLE["TUTOR"])
                           ->with(array('detail','tutorSubject'=>function($query)
                           {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
                             ->groupBy('target_id');},))
@@ -131,7 +132,7 @@ class TutorController extends Controller
         }
         if($request->get('search')){
             $querySearch    = $request->get('search');
-            $data           = User::where('role','tutor')
+            $data           = User::where('role', Role::ROLE["TUTOR"])
                             ->with(array('detail'=>function($query)
                                         {$query->where('status','unverified');},
                                         'tutorSubject','rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
@@ -143,7 +144,7 @@ class TutorController extends Controller
         }
         $data   =   User::whereHas('detail', function ($q){
                                     $q->where('status','unverified');})
-                          ->where('role','tutor')
+                          ->where('role', Role::ROLE["TUTOR"])
                           ->with(array('detail','tutorSubject','rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
                             ->groupBy('target_id');}))
                           ->paginate($paginate);
@@ -179,7 +180,7 @@ class TutorController extends Controller
                 'email'         => $request->get('email'),
                 'password'      => Hash::make($request->get('password')),
                 'birth_date'    => $request->get('birth_date'),
-                'role'          => "tutor",
+                'role'          => Role::ROLE["TUTOR"],
                 'contact'       => $request->get('contact'),
                 'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
@@ -296,7 +297,7 @@ class TutorController extends Controller
                 $data = User::select('users.*')
                         ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
                         ->where('status','verified')
-                        ->where('role','tutor')
+                        ->where('role', Role::ROLE["TUTOR"])
                         ->where('name','LIKE','%'.$query.'%')
                         ->where('tutor_subject.subject_id',$subject_id)
                         ->with(array('detail'))
@@ -308,7 +309,7 @@ class TutorController extends Controller
                 $data = User::select('users.*')
                         ->leftJoin('tutor_subject','users.id','=','tutor_subject.user_id')
                         ->where('status','verified')
-                        ->where('role','tutor')
+                        ->where('role', Role::ROLE["TUTOR"])
                         ->where('tutor_subject.subject_id',$subject_id)
                         ->with(array('detail'))
                         ->with(array('tutorSubject'=> function($query) use ($subject_id){

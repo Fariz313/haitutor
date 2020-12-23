@@ -13,6 +13,7 @@ use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Notification;
+use App\Role;
 use JWTAuth;
 use FCM;
 
@@ -364,7 +365,7 @@ class TokenTransactionController extends Controller
 
                             $cekTutor           =   User::findOrFail($tutor_id);
 
-                            if($cekTutor->role!="tutor"){
+                            if($cekTutor->role != Role::ROLE["TUTOR"]){
                                 DB::rollback();
                                 return response()->json([
                                     'status'    =>  'failed',

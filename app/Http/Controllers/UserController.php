@@ -21,6 +21,7 @@ use View;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google_Client;
 use App\Helpers\LogApps;
+use App\Role;
 
 class UserController extends Controller
 {
@@ -84,7 +85,7 @@ class UserController extends Controller
                 'email'         => $request->get('email'),
                 'password'      => Hash::make($request->get('password')),
                 'birth_date'    => $request->get('birth_date'),
-                'role'          => "student",
+                'role'          => Role::ROLE["STUDENT"],
                 'contact'       => $request->get('contact'),
                 'address'       => $request->get('address'),
                 'jenjang'       => $request->get('jenjang')
@@ -142,7 +143,7 @@ class UserController extends Controller
                 'email'         => $request->get('email'),
                 'password'      => Hash::make($request->get('password')),
                 'birth_date'    => $request->get('birth_date'),
-                'role'          => "tutor",
+                'role'          => Role::ROLE["TUTOR"],
                 'contact'       => $request->get('contact'),
                 'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
@@ -592,13 +593,13 @@ class UserController extends Controller
         }
         if($request->get('search')){
             $querySearch = $request->get('search');
-            $data   =   User::where('role','Student')
+            $data   =   User::where('role', Role::ROLE["STUDENT"])
                     ->where(function ($where) use ($querySearch){
                         $where->where('name','LIKE','%'.$querySearch.'%');
                     })->paginate($paginate);
             return $data;
         }
-        $data   =   User::where('role','student')
+        $data   =   User::where('role', Role::ROLE["STUDENT"])
                           ->paginate($paginate);
         return $data;
     }
@@ -660,7 +661,7 @@ class UserController extends Controller
 
             $user = User::where("id", $id)->first();
 
-            if ($user->role == "tutor") {
+            if ($user->role == Role::ROLE["TUTOR"]) {
                 $user->room_vc()->delete();
                 $user->room_chat()->delete();
                 $user->history_vc()->delete();

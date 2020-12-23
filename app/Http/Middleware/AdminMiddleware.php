@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Role;
 use Closure;
 use JWTAuth;
 use Exception;
@@ -21,7 +22,7 @@ class AdminMiddleware extends BaseMiddleware
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            if($user->role == 'admin'){
+            if($user->role == Role::ROLE["ADMIN"]){
                 return $next($request);
             }else{
                 return response()->json([
