@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use Illuminate\Http\Request;
 
@@ -163,11 +164,20 @@ class PaymentCategoryController extends Controller
             if($data->isDeleted == PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["DELETED"]){
                 $message    = 'Payment Category Already Deleted';
             } else {
+                // Set Payment Category
+                $data->status       = PaymentMethodCategory::PAYMENT_CATEGORY_STATUS["DISABLED"];
                 $data->isDeleted    = PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["DELETED"];
-                $data->save();
-            }
 
-            $this->tidyOrder();
+                // Set Payment Method
+                $dataPaymentMethod  = PaymentMethod::where('id_payment_category', $data->id)->get();
+                foreach($dataPaymentMethod as $payment){
+                    $payment->id_payment_category   = 0;
+                    $payment->save();
+                }
+
+                $data->save();
+                $this->tidyOrder();
+            }
 
             return response()->json([
                 'status'    =>  'Success',
@@ -246,6 +256,48 @@ class PaymentCategoryController extends Controller
                 'message'   =>  $message
             ], 200);
             
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function setOrderPaymentCategory(Request $request)
+    {
+        try {
+            if($request->input('id_categories')){
+                $id_categories = $request->input('id_categories');
+
+                for ($i = 0; $i < count($id_categories); $i++) {
+                    $dataCategory   = PaymentMethodCategory::findOrFail($id_categories[$i]);
+                    $dataCategory->order = $i + 1;
+                    $dataCategory->save();
+                }
+
+                $this->tidyOrder();
+
+                $data = PaymentMethodCategory::where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["ACTIVE"])
+                        ->orderBy('order','ASC')->paginate(10);
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Set Order Payment Category Succeeded'
+                ], 200);
+                
+            } else {
+                $data = PaymentMethodCategory::where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS["ACTIVE"])
+                        ->orderBy('order','ASC')->paginate(10);
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Tidy Order Payment Category Succeeded'
+                ], 200);
+            }
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",

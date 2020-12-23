@@ -125,7 +125,7 @@
                             @else
                                 <tr>
                                     <td bgcolor="#ffffff" align="center" style="padding: 0px 30px 0px 30px;color: #666666;font-family: Helvetica, Arial, sans-serif;font-size: 14px;font-weight: 400;line-height: 25px;" >
-                                    <p style="margin: 0;"><b> Jangan berikan KODE OTP kepada siapapun </b></p>
+                                    <p style="margin: 0;"><b> Jangan berikan Password Anda kepada siapapun </b></p>
                                     </td>
                                 </tr>
                             @endif

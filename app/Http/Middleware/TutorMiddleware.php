@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Role;
 use Closure;
 use JWTAuth;
 use Exception;
@@ -21,7 +22,7 @@ class TutorMiddleware extends BaseMiddleware
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            if($user->role == 'tutor'){
+            if($user->role ==  Role::ROLE["TUTOR"]){
                 return $next($request);
             }else{
                 return response()->json([

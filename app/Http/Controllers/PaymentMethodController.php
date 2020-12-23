@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Http\Request;
 use App\PaymentMethod;
 use App\PaymentMethodCategory;
 use App\PaymentMethodProvider;
+use App\PaymentMethodProviderVariable;
 use App\PaymentProvider;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
 
 
@@ -41,9 +42,6 @@ class PaymentMethodController extends Controller {
                         'payment_provider.name as provider_name')
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
-                    ->orderBy('status','DESC')
-                    ->orderBy('category_order','ASC')
-                    ->orderBy('order','ASC')
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
@@ -64,9 +62,6 @@ class PaymentMethodController extends Controller {
                         'payment_provider.name as provider_name')
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
-                    ->orderBy('status','DESC')
-                    ->orderBy('category_order','ASC')
-                    ->orderBy('order','ASC')
                     ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
             }
 
@@ -86,6 +81,9 @@ class PaymentMethodController extends Controller {
                             ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
                             ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                             ->union($data)
+                            ->orderBy('status','DESC')
+                            ->orderBy('category_order','ASC')
+                            ->orderBy('order','ASC')
                             ->paginate(10);
             
             return response()->json([
@@ -104,6 +102,10 @@ class PaymentMethodController extends Controller {
 
     public function getAllEnabledPaymentMethod(){
         try{
+            // Get Category with Existing Active Payment Method
+            $validCategory = DB::table('view_active_payment_method')
+                    ->where('status_payment_method', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])->groupBy('id_payment_category')->pluck('id_payment_category')->toArray();
+
             // Get All Provider for each Payment Method
             $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id',
                                                     'payment_method_provider.id_payment_method',
@@ -117,7 +119,7 @@ class PaymentMethodController extends Controller {
                         $where->where('status', PaymentMethodCategory::PAYMENT_CATEGORY_STATUS["ENABLED"])
                             ->where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS['ACTIVE']);
                     })
-                    ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider){
+                    ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider, $validCategory){
                         $query->select('payment_method.*', 
                             'active_method.active_provider_name', 
                             'active_method.active_provider_id',
@@ -129,6 +131,7 @@ class PaymentMethodController extends Controller {
                         ->with('paymentMethodProviderVariable')
                         ->orderBy('order','ASC');
                     }))
+                    ->whereIn('id', $validCategory)
                     ->orderBy('order','ASC')
                     ->get();
             
@@ -238,7 +241,11 @@ class PaymentMethodController extends Controller {
 
             $data->name                 = $request->input('name');
             $data->code                 = $request->input('code');
-            $data->icon                 = 'credit_card.png';
+            if($request->file('icon')){
+                $data->icon             = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/payment_method', 'image', Str::random(3));
+            } else {
+                $data->icon             = 'credit_card.png';
+            }
             $data->status               = 0;
             $data->order                = $maxOrder + 1;
             $data->is_deleted           = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"];
@@ -300,8 +307,9 @@ class PaymentMethodController extends Controller {
             if ($request->input('code')) {
                 $data->code = $request->input('code');
             }
-            if ($request->input('icon')) {
-                $data->icon = $request->input('icon');
+            if($request->file('icon')){
+                GoogleCloudStorageHelper::delete('/photos/payment_method'.$data->icon);
+                $data->icon  = GoogleCloudStorageHelper::put($request->file('icon'), '/photos/payment_method', 'image', Str::random(3));
             }
 
             $data->save();
@@ -323,7 +331,8 @@ class PaymentMethodController extends Controller {
                     $provider->save();
                 }
             }
-            
+
+            $this->tidyOrder();
 
     		return response()->json([
     			'status'	=> 'Success',
@@ -339,23 +348,75 @@ class PaymentMethodController extends Controller {
         }
     }
 
-    public function updateStatus(Request $request, $id)
+    public function enablePaymentMethod($id)
     {
         try{
+
             $data = PaymentMethod::findOrFail($id);
-            if ($data->status == '0') {
-                $data->status = '1';
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already enabled'
+                ], 201);
+                
+            } else {
+                // Get Category with Existing Active Payment Method
+                $activePaymentMethodProvider = DB::table('view_active_payment_method')
+                        ->where('id_payment_method', $id)->get();
+                if(count($activePaymentMethodProvider) > 0){
+                    $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"];
+                    $data->save();
+
+                    $this->tidyOrder();
+                    
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Payment Method Enabled',
+                        'data'      => $data
+                    ], 201);
+
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> "Payment Method doesn't have active provider"
+                    ], 201);
+                    
+                }
             }
-            else{
-                $data->status = '0';
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function disablePaymentMethod($id)
+    {
+        try{
+
+            $data = PaymentMethod::findOrFail($id);
+
+            if($data->status == PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already disabled'
+                ], 201);
+                
+            } else {
+                $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->save();
+
+                $this->tidyOrder();
+                
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Disabled',
+                    'data'      => $data
+                ], 201);
             }
-            $data->save();
-            
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Status Payment Method Updated Successfully',
-                'data'      => $data
-    		], 201);
 
         } catch(\Exception $e){
             return response()->json([
@@ -369,16 +430,45 @@ class PaymentMethodController extends Controller {
     {
         try{
             $data   = PaymentMethod::findOrFail($id);
-            $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
-            $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
-            $data->order        = 0;
-            $data->save();
 
-            return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Payment Method Deleted',
-                'data'      => $data
-    		], 200);
+            if($data->is_deleted == PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Payment Method was already deleted'
+                ], 200);
+
+            } else {
+                // Set Payment Method
+                $data->is_deleted   = PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["DELETED"];
+                $data->status       = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
+                $data->order        = 0;
+                $data->save();
+
+                // Set Payment Method Provider
+                $dataPaymentMethodProvider = PaymentMethodProvider::where('id_payment_method', $id)->get();
+                foreach($dataPaymentMethodProvider as $methodProvider){
+                    $methodProvider->status     = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_STATUS["DISABLED"];
+                    $methodProvider->isActive   = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["NON_ACTIVE"];
+                    $methodProvider->isDeleted  = PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_DELETED_STATUS["DELETED"];
+
+                    // Set Payment Method Provider Variable
+                    $dataPaymentMethodProviderVariable = PaymentMethodProviderVariable::where('id_payment_method_provider', $methodProvider->id)->get();
+                    foreach($dataPaymentMethodProviderVariable as $variable){
+                        $variable->delete();
+                    }
+
+                    $methodProvider->save();
+                }
+
+                $this->tidyOrder();
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Payment Method Deleted',
+                    'data'      => $data
+                ], 200);
+            }
+            
         } catch(\Exception $e){
             return response([
             	"status"	=> "Failed",
@@ -453,6 +543,35 @@ class PaymentMethodController extends Controller {
                 $data[$j]->order    = $j + 1;
                 $data[$j]->save();
             }
+        }
+    }
+    public function setOrderPaymentMethod(Request $request)
+    {
+        try {
+            if($request->input('id_methods')){
+                $id_methods = $request->input('id_methods');
+
+                for ($i = 0; $i < count($id_methods); $i++) {
+                    $dataMethod         = PaymentMethod::findOrFail($id_methods[$i]);
+                    $dataMethod->order  = $i + 1;
+                    $dataMethod->save();
+                }
+
+                $this->tidyOrder();
+
+                return $this->getAll(new Request());
+                
+            } else {
+                $this->tidyOrder();
+
+                return $this->getAll(new Request());
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
     

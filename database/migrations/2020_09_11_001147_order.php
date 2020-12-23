@@ -26,6 +26,7 @@ class Order extends Migration
             $table->integer('pos')->nullable();
             $table->integer('type_code')->nullable();
             $table->enum('status',['pending','failed','completed']);
+            $table->integer('is_deleted')->default(0);
             $table->timestamps();
         });
     }

@@ -176,6 +176,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\FirebaseNotifServiceProvider::class,
+        App\Providers\LogApplicationServiceProvider::class,
 
     ],
 
@@ -232,7 +233,6 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'FCM' => App\Helpers\FirebaseNotification::class,
         'OTPModel' => App\Otp::class,
-
 
     ],
 

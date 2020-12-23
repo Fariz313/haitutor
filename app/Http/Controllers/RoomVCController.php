@@ -8,6 +8,7 @@ use App\User;
 use App\Notification;
 use FCM;
 use App\Libraries\Agora\RtcTokenBuilder;
+use App\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -71,7 +72,7 @@ class RoomVCController extends Controller
                     'status'    =>  'failed',
                     'message'   =>  'Tutor not found'
                 ]);
-            }if($cekTutor->role!="tutor"){
+            }if($cekTutor->role != Role::ROLE["TUTOR"]){
                 return response()->json([
                     'status'    =>  'failed',
                     'message'   =>  'Invalid tutor'
@@ -122,7 +123,7 @@ class RoomVCController extends Controller
 
                 $query = $request->get("search");
 
-                if ($user->role == "student") {
+                if ($user->role == Role::ROLE["STUDENT"]) {
                     $data   = RoomVC::select('room_vc.*','tutor_table.name as tutor_name')
                                     ->where(function($query) use ($user) {
                                         $query->where('user_id',$user->id)
@@ -141,7 +142,7 @@ class RoomVCController extends Controller
                                     }))->paginate(10);
 
                     return response()->json($data, 200);
-                } else if ($user->role == "tutor") {
+                } else if ($user->role == Role::ROLE["TUTOR"]) {
 
                     $data       =   RoomVC::select('room_vc.*','user_table.name as user_name')
                                     ->where(function($query) use ($user) {
@@ -386,9 +387,9 @@ class RoomVCController extends Controller
 
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            if ($current_user->role == "student") {
+            if ($current_user->role == Role::ROLE["STUDENT"]) {
                 $user_opponent = User::findOrFail($room->tutor_id); // Tutor
-            } else if ($current_user->role == "tutor"){
+            } else if ($current_user->role == Role::ROLE["TUTOR"]){
                 $user_opponent = User::findOrFail($room->user_id); // Student
             } else {
                 $user_opponent = User::findOrFail($room->tutor_id);
@@ -429,9 +430,9 @@ class RoomVCController extends Controller
 
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            if ($current_user->role == "student") {
+            if ($current_user->role == Role::ROLE["STUDENT"]) {
                 $user_opponent = User::findOrFail($room->tutor_id); // Tutor
-            } else if ($current_user->role == "tutor"){
+            } else if ($current_user->role == Role::ROLE["TUTOR"]){
                 $user_opponent = User::findOrFail($room->user_id); // Student
             } else {
                 $user_opponent = User::findOrFail($room->tutor_id);
@@ -474,9 +475,9 @@ class RoomVCController extends Controller
 
             $current_user = JWTAuth::parseToken()->authenticate();
 
-            if ($current_user->role == "student") {
+            if ($current_user->role == Role::ROLE["STUDENT"]) {
                 $user_opponent = User::findOrFail($room->tutor_id); // Tutor
-            } else if ($current_user->role == "tutor"){
+            } else if ($current_user->role == Role::ROLE["TUTOR"]){
                 $user_opponent = User::findOrFail($room->user_id); // Student
             } else {
                 $user_opponent = User::findOrFail($room->tutor_id);

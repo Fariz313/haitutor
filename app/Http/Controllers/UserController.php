@@ -20,6 +20,8 @@ use Kreait\Firebase\Auth;
 use View;
 use Google\Auth\ApplicationDefaultCredentials;
 use Google_Client;
+use App\Helpers\LogApps;
+use App\Role;
 
 class UserController extends Controller
 {
@@ -41,6 +43,13 @@ class UserController extends Controller
                 'error'     => 'could_not_create_token',
                 'message'   => 'Cant create authentication, please try again'], 500);
         }
+
+        $dataLog = [
+            "USER" => User::where('email', $request->get('email'))->first(),
+            "USER_IP" => $request->ip()
+        ];
+        
+        LogApps::login($dataLog);
 
         return response()->json([
             'status'    => 'success',
@@ -76,7 +85,7 @@ class UserController extends Controller
                 'email'         => $request->get('email'),
                 'password'      => Hash::make($request->get('password')),
                 'birth_date'    => $request->get('birth_date'),
-                'role'          => "student",
+                'role'          => Role::ROLE["STUDENT"],
                 'contact'       => $request->get('contact'),
                 'address'       => $request->get('address'),
                 'jenjang'       => $request->get('jenjang')
@@ -134,7 +143,7 @@ class UserController extends Controller
                 'email'         => $request->get('email'),
                 'password'      => Hash::make($request->get('password')),
                 'birth_date'    => $request->get('birth_date'),
-                'role'          => "tutor",
+                'role'          => Role::ROLE["TUTOR"],
                 'contact'       => $request->get('contact'),
                 'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
@@ -394,7 +403,7 @@ class UserController extends Controller
             $payload = JWTAuth::parseToken()->getPayload();
             $expires_at = date('d M Y h:i', $payload->get('exp'));
 
-            if($user->role == User::ROLE["TUTOR"]){
+            if($user->role == Role::ROLE["TUTOR"]){
                 $userId = $user->id;
                 $tutor = User::where('id', $userId)
                         ->with(array(
@@ -526,7 +535,7 @@ class UserController extends Controller
 
             Mail::send([], [], function ($message) use ($request, $password, $alamat, $no_telp)
             {
-                $message->subject('Kode OTP Akun HaiTutor');
+                $message->subject('Password Baru Akun HaiTutor');
                 $message->to($request->email);
                 $view = View::make('otpVerification', [
                     Otp::OTP_PAYLOAD["OTP"] => $password,
@@ -535,7 +544,7 @@ class UserController extends Controller
                     Otp::OTP_PAYLOAD["NO_TELP"] => $no_telp,
                     Otp::OTP_PAYLOAD["ALAMAT"] => $alamat,
                     Otp::OTP_PAYLOAD["ACTION_USER"] => "Jika Anda tidak merasa melakukan permintaan ini, segera hubungi Admin HaiTutor melalui tombol berikut:",
-                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut Kode OTP untuk digunakan sebagai password, mohon untuk segera mengganti password setelah masuk ke akun Anda.",
+                    Otp::OTP_PAYLOAD["MESSAGE"] => "Anda telah mengajukan reset password. Berikut password baru Anda, mohon untuk segera mengganti password setelah masuk ke akun Anda.",
                 ]);
 
                 $html = $view->render();
@@ -559,15 +568,22 @@ class UserController extends Controller
         ],200);
     }
 
-    public function logout(){
-            $token = JWTAuth::getToken();
-            JWTAuth::setToken($token)->invalidate();
-            return response()->json([
-                'status'    =>  'success',
-                'message'   =>  'Token now is invalidated'
-            ]);
+    public function logout(Request $request){
 
+        $dataLog = [
+            "USER" => JWTAuth::parseToken()->authenticate(),
+            "USER_IP" => $request->ip()
+        ];
+        LogApps::logout($dataLog);
 
+        $token = JWTAuth::getToken();
+        JWTAuth::setToken($token)->invalidate();
+
+        return response()->json([
+            'status'    =>  'success',
+            'message'   =>  'Token now is invalidated'
+            ]
+        );
     }
 
     public function getAllStudent(Request $request){
@@ -577,13 +593,13 @@ class UserController extends Controller
         }
         if($request->get('search')){
             $querySearch = $request->get('search');
-            $data   =   User::where('role','Student')
+            $data   =   User::where('role', Role::ROLE["STUDENT"])
                     ->where(function ($where) use ($querySearch){
                         $where->where('name','LIKE','%'.$querySearch.'%');
                     })->paginate($paginate);
             return $data;
         }
-        $data   =   User::where('role','student')
+        $data   =   User::where('role', Role::ROLE["STUDENT"])
                           ->paginate($paginate);
         return $data;
     }
@@ -645,7 +661,7 @@ class UserController extends Controller
 
             $user = User::where("id", $id)->first();
 
-            if ($user->role == "tutor") {
+            if ($user->role == Role::ROLE["TUTOR"]) {
                 $user->room_vc()->delete();
                 $user->room_chat()->delete();
                 $user->history_vc()->delete();
@@ -839,6 +855,32 @@ class UserController extends Controller
                 'message'   =>  'failed to fetch storage token credentials',
                 'data'      =>  $th->getMessage()
             ], 400);
+        }
+    }
+
+    public function getUserByRole(Request $request)
+    {
+        try {
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = User::where('role', $request->get('role'))
+                            ->where('name','LIKE','%'.$query.'%')
+                            ->paginate(10);
+            } else {
+                $data = User::where('role', $request->get('role'))
+                            ->paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
 }

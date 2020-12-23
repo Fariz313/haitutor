@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Ebook;
+use App\EbookLibrary;
+use App\EbookPurchase;
 use Illuminate\Http\Request;
 use App\Order;
 use App\User;
@@ -285,8 +288,8 @@ class OrderController extends Controller
             "method" => $listMethodVariable["CODE"],
             "merchant_ref" => $const['dataOrder']->id,
             "amount" => $const['dataOrder']->amount,
-            "customer_name" => "Akhmad Muzanni",
-            "customer_email" => "akhmadmuzannisafii@gmail.com",
+            "customer_name" => $const['user']->name,
+            "customer_email" => $const['user']->email,
             "order_items" => [
                 [
                     "name" => $const['dataOrder']->detail,
@@ -478,29 +481,36 @@ class OrderController extends Controller
     public function destroy($id)
     {
         try {
-
             $data           = Order::where("id", $id)->firstOrfail();
-
-            $delete         = $data->delete();
-
-            if ($delete) {
+            if($data->status == Order::ORDER_STATUS["COMPLETED"]){
                 return response()->json([
-                    'status'    =>  'success',
-                    'message'   =>  'Delete order history success'
-                ],200);
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Order Cannot be Changed"
+                ], 200);
+
+            } else if($data->is_deleted == Order::ORDER_DELETED_STATUS["DELETED"]){
+                return response()->json([
+                    'status'    =>  "Failed",
+                    'message'   =>  "Data Order Already Deleted"
+                ], 200);
+
             } else {
+                $data->status       = Order::ORDER_STATUS["FAILED"];
+                $data->is_deleted   = Order::ORDER_DELETED_STATUS["DELETED"];
+                $data->save();
+
                 return response()->json([
-                    'status'    =>  'failed',
-                    'message'   =>  'Failed to delete order history'
-                ],400);
+                    'status'    =>  "Success",
+                    'data'      =>  $data,
+                    'message'   =>  "Data Order Deleted"
+                ], 200);
             }
 
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             return response()->json([
-                'status'    =>  'failed',
-                'message'   =>  'Failed to delete order history',
-                'data'      =>  $th->getMessage()
-            ],400);
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -559,44 +569,92 @@ class OrderController extends Controller
     {
         try{
 
-            $data           = Order::findOrFail($request->input('merchantOrderId'));
-            $dataUser       = User::findOrFail($data->user_id);
-            $dataPackage    = Package::findOrFail($data->package_id);
+            if($request->input('merchantOrderId')[0] == 'E'){
+                // If Callback for Ebook Transaction
 
-            $data->invoice  = $request->input('reference');
-            $data->detail   = $request->input('productDetail');
-            $data->amount   = $request->input('amount');
+                $purchase_id    = str_replace("E", "", $request->input('merchantOrderId'));
+                
+                $data           = EbookPurchase::findOrFail($purchase_id);
+                $dataUser       = User::findOrFail($data->user_id);
 
-            $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+                $data->invoice  = $request->input('reference');
+                $data->detail   = $request->input('productDetail');
+                $data->amount   = $request->input('amount');
 
-            if($request->input('amount')){
-                if('00' == $request->input('resultCode')){
-                    $data->status = 'completed';
-                } else {
-                    $data->status = 'failed';
+                if($request->input('amount')){
+                    if('00' == $request->input('resultCode')){
+                        $newLibrary             = new EbookLibrary();
+                        $newLibrary->id_user    = $data->user_id;
+                        $newLibrary->id_ebook   = $data->ebook_id;
+                        $newLibrary->save();
+
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"];
+                    } else {
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["FAILED"];
+                    }
                 }
+
+                $data->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[13],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
+            } else {
+                // If Callback for Token Transaction
+
+                $data           = Order::findOrFail($request->input('merchantOrderId'));
+                $dataUser       = User::findOrFail($data->user_id);
+                $dataPackage    = Package::findOrFail($data->package_id);
+
+                $data->invoice  = $request->input('reference');
+                $data->detail   = $request->input('productDetail');
+                $data->amount   = $request->input('amount');
+
+                if($request->input('amount')){
+                    if('00' == $request->input('resultCode')){
+                        $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+                        $data->status = 'completed';
+                    } else {
+                        $data->status = 'failed';
+                    }
+                }
+
+                $data->save();
+                $dataUser->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'amount' => $dataPackage->balance,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
             }
-
-            $data->save();
-            $dataUser->save();
-
-            $dataNotif = [
-                "title" => "HaiTutor",
-                "message" => $data->detail . " berhasil",
-                "sender_id" => 0,
-                "target_id" => $dataUser->id,
-                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
-                'token_recipient' => $dataUser->firebase_token,
-                'amount' => $dataPackage->balance,
-                'save_data' => true
-            ];
-            $responseNotif = FCM::pushNotification($dataNotif);
-
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Callback Transaction',
-                'data'      => $data
-            ], 201);
 
         } catch(\Exception $e){
             return response()->json([
@@ -609,13 +667,83 @@ class OrderController extends Controller
     public function callbackTransactionTripay(Request $request){
         try{
 
-            $data = $request->input('merchant_ref');
+            if($request->input('merchant_ref')[0] == 'E'){
+                // Callback for Ebook Transaction
 
-    		return response()->json([
-    			'status'	=> 'Success',
-                'message'	=> 'Callback Transaction',
-                'data'      => $data
-            ], 201);
+                $purchase_id    = str_replace("E", "", $request->input('merchant_ref'));
+                
+                $data           = EbookPurchase::findOrFail($purchase_id);
+                $dataUser       = User::findOrFail($data->user_id);
+
+                if($request->input('total_amount')){
+                    if('PAID' == $request->input('status')){
+                        $newLibrary             = new EbookLibrary();
+                        $newLibrary->id_user    = $data->user_id;
+                        $newLibrary->id_ebook   = $data->ebook_id;
+                        $newLibrary->save();
+
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"];
+                    } else {
+                        $data->status = EbookPurchase::EBOOK_PURCHASE_STATUS["FAILED"];
+                    }
+                }
+
+                $data->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[13],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
+            } else {
+                // Callback for Token Transaction
+                $data           = Order::findOrFail($request->input('merchant_ref'));
+                $dataUser       = User::findOrFail($data->user_id);
+                $dataPackage    = Package::findOrFail($data->package_id);
+
+                if($request->input('total_amount')){
+                    if('PAID' == $request->input('status')){
+                        $dataUser->balance = $dataUser->balance + $dataPackage->balance;
+                        $data->status   = Order::ORDER_STATUS["COMPLETED"];
+                    } else {
+                        $data->status   = Order::ORDER_STATUS["FAILED"];
+                    }
+                }
+
+                $data->save();
+                $dataUser->save();
+
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => $data->detail . " berhasil",
+                    "sender_id" => 0,
+                    "target_id" => $dataUser->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[4],
+                    'token_recipient' => $dataUser->firebase_token,
+                    'amount' => $dataPackage->balance,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Callback Transaction',
+                    'data'      => $data
+                ], 201);
+
+            }
 
         } catch(\Exception $e){
             return response()->json([

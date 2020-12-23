@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\RoomChat;
 use App\User;
 use App\Notification;
+use App\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -71,7 +72,7 @@ class RoomController extends Controller
                     'status'    =>  'failed',
                     'message'   =>  'Tutor not found'
                 ]);
-            }if($cekTutor->role!="tutor"){
+            }if($cekTutor->role != Role::ROLE["TUTOR"]){
                 return response()->json([
                     'status'    =>  'failed',
                     'message'   =>  'Invalid tutor'
@@ -114,7 +115,7 @@ class RoomController extends Controller
             if($request->get('search')){
                 $query = $request->get('search');
 
-                if('student' == $user->role){
+                if(Role::ROLE["STUDENT"] == $user->role){
                     $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
