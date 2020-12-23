@@ -403,7 +403,7 @@ class UserController extends Controller
             $payload = JWTAuth::parseToken()->getPayload();
             $expires_at = date('d M Y h:i', $payload->get('exp'));
 
-            if($user->role == User::ROLE["TUTOR"]){
+            if($user->role == Role::ROLE["TUTOR"]){
                 $userId = $user->id;
                 $tutor = User::where('id', $userId)
                         ->with(array(
