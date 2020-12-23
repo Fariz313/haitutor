@@ -79,8 +79,10 @@ class EbookRedeemController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'id_customer'   => 'required',
-                'net_price'     => 'required'
+                'request_invoice'   => 'required',
+                'id_customer'       => 'required',
+                'id_marketing'      => 'required',
+                'net_price'         => 'required'
             ]);
 
             if($validator->fails()){
@@ -91,9 +93,15 @@ class EbookRedeemController extends Controller
             }
 
             $data                   = new EbookRedeem();
-            $data->invoice          = "";
+            $data->redeem_invoice   = "";
+            $data->request_invoice  = $request->input('request_invoice');
             $data->id_customer      = $request->input('id_customer');
+            $data->id_marketing     = $request->input('id_marketing');
             $data->net_price        = $request->input('net_price');
+
+            if($request->input('id_publisher')){
+                $data->id_publisher     = $request->input('id_publisher');
+            }
 
             if($request->input('gross_price')){
                 $data->gross_price  = $request->input('gross_price');
@@ -113,7 +121,7 @@ class EbookRedeemController extends Controller
             }
 
             $data->save();
-            $data->invoice          = "INVHT" . str_pad($data->id, 8, '0', STR_PAD_LEFT);
+            $data->redeem_invoice       = "INVHT" . str_pad($data->id, 8, '0', STR_PAD_LEFT);
 
             if($request->input('validity_month')){
                 $data->validity_month   = $request->input('validity_month');
@@ -205,8 +213,21 @@ class EbookRedeemController extends Controller
     {
         try {
             $data                   = EbookRedeem::findOrFail($id);
+
+            if($request->input('request_invoice')){
+                $data->request_invoice  = $request->input('request_invoice');
+            }
+
             if($request->input('id_customer')){
                 $data->id_customer      = $request->input('id_customer');
+            }
+
+            if($request->input('id_marketing')){
+                $data->id_marketing     = $request->input('id_marketing');
+            }
+
+            if($request->input('id_publisher')){
+                $data->id_publisher     = $request->input('id_publisher');
             }
 
             if($request->input('net_price')){
