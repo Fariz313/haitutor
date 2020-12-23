@@ -29,7 +29,7 @@ class EbookRedeemController extends Controller
                 $data   = EbookRedeem::select("ebook_redeem.*")
                             ->join("users", "ebook_redeem.id_customer", "=", "users.id")
                             ->where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
-                            ->with(array('customer', 'detail' => function($query){
+                            ->with(array('customer', 'marketing', 'publisher', 'detail' => function($query){
                                 $query->get();
                             }))
                             ->where('users.name','LIKE','%'.$query.'%')
@@ -37,7 +37,7 @@ class EbookRedeemController extends Controller
                             ->paginate(10);
             } else {
                 $data = EbookRedeem::where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
-                            ->with(array('customer', 'detail' => function($query){
+                            ->with(array('customer', 'marketing', 'publisher', 'detail' => function($query){
                                 $query->with(array('ebook'))->get();
                             }))
                             ->where('ebook_redeem.is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
@@ -163,7 +163,7 @@ class EbookRedeemController extends Controller
     {
         try {
             $data = EbookRedeem::where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
-                        ->with(array('customer', 'detail' => function($query){
+                        ->with(array('customer', 'marketing', 'publisher', 'detail' => function($query){
                             $query->with(array('ebook'))->get();
                         }))
                         ->where('id', $id)

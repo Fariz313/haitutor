@@ -24,6 +24,16 @@ class EbookRedeem extends Model
         return $this->hasOne('App\User','id','id_customer');
     }
 
+    public function marketing()
+    {
+        return $this->hasOne('App\User','id','id_marketing');
+    }
+
+    public function publisher()
+    {
+        return $this->hasOne('App\User','id','id_publisher');
+    }
+
     public function detail()
     {
         return $this->hasMany('App\EbookRedeemDetail','id_redeem','id');
