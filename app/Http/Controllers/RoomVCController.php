@@ -543,7 +543,7 @@ class RoomVCController extends Controller
             $responseNotif = FCM::pushNotification($dataNotif);
 
             return response()->json([
-                "status" => "success",
+                "status" => "Success",
                 "message"   => "Success send notification user is in antoher video call",
                 "data"   => null
             ],200);
