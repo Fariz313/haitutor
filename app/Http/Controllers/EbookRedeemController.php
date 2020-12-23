@@ -471,4 +471,23 @@ class EbookRedeemController extends Controller
             ], 500);
         }
     }
+
+    public function getListCustomer()
+    {
+        try {
+            $roleList   = array(Role::ROLE["SCHOOL"], Role::ROLE["COMPANY"]);
+            $data       = User::whereIn('role', $roleList)->get();
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
 }
