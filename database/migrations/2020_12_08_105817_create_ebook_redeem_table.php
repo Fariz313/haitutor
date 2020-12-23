@@ -15,7 +15,8 @@ class CreateEbookRedeemTable extends Migration
     {
         Schema::create('ebook_redeem', function (Blueprint $table) {
             $table->id();
-            $table->string('invoice');
+            $table->string('redeem_invoice');
+            $table->string('request_invoice');
             $table->integer('id_customer');
             $table->integer('id_marketing')->nullable();
             $table->integer('id_publisher')->nullable();
