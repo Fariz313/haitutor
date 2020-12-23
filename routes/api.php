@@ -269,7 +269,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/purchase')->group(function () {
             Route::get('/list/all', 'EbookPurchaseController@index');
-            Route::get('/list/user/{user_id}', 'EbookPurchaseController@index');
+            Route::get('/list/user/{user_id}', 'EbookPurchaseController@getEbookPurchaseByIdUser');
             Route::get('/{id}', 'EbookPurchaseController@show');
 
             Route::post('/request/{ebook_id}', 'EbookPurchaseController@store');
@@ -280,6 +280,21 @@ Route::middleware(['cors'])->group(function(){
             Route::delete('/{id}', 'EbookPurchaseController@destroy');
         });
 
+    });
+
+    Route::prefix('/menu')->group(function(){
+        Route::get('/role/{id_role}', 'MenuController@getPrimaryMenu');
+        Route::post('/', 'MenuController@store');
+        Route::put('/{id}', 'MenuController@update');
+        Route::delete('/{id}', 'MenuController@destroy');
+    });
+
+    Route::prefix('/role')->group(function(){
+        Route::get('/', 'RoleController@index');
+        Route::post('/', 'RoleController@store');
+        Route::put('/{id}', 'RoleController@update');
+        Route::put('/menu/list', 'RoleController@updateMenuRole');
+        Route::delete('/{id}', 'RoleController@destroy');
     });
 
     Route::middleware(['user.tutor'])->group(function(){
