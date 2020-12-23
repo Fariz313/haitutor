@@ -298,6 +298,11 @@ Route::middleware(['cors'])->group(function(){
         Route::delete('/{id}', 'RoleController@destroy');
     });
 
+    Route::prefix('/article')->group(function(){
+        Route::get('/','ArticleController@getAll');
+        Route::get('/{id}','ArticleController@getOne');
+    });
+
     Route::middleware(['user.tutor'])->group(function(){
         Route::post('tutordoc', 'TutorDocController@store');
         Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
