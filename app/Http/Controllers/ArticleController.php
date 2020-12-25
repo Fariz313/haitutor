@@ -30,7 +30,7 @@ class ArticleController extends Controller {
             }
 
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
@@ -38,7 +38,7 @@ class ArticleController extends Controller {
          }catch(\Throwable $e){
 
               return response()->json([
-               "status"=>"gagal",
+               "status"=>"Failed",
                "error"=>$e
                ],500);
          }

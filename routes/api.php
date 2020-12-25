@@ -221,7 +221,7 @@ Route::middleware(['cors'])->group(function(){
             Route::get('/{id}', 'EbookCategoryController@show');
 
             Route::post('/add', 'EbookCategoryController@store');
-            
+
             Route::put('/{id}', 'EbookCategoryController@update');
             Route::delete('/{id}', 'EbookCategoryController@destroy');
         });
@@ -240,7 +240,7 @@ Route::middleware(['cors'])->group(function(){
 
             Route::post('/request', 'EbookRedeemController@store');
             Route::post('/execute', 'EbookRedeemController@doRedeem');
-            
+
             Route::put('/{id}', 'EbookRedeemController@update');
             Route::put('/accept/{id}', 'EbookRedeemController@acceptClaimRedeem');
             Route::put('/reject/{id}', 'EbookRedeemController@rejectClaimRedeem');
@@ -250,7 +250,7 @@ Route::middleware(['cors'])->group(function(){
             Route::prefix('/history')->group(function () {
                 Route::get('/list/all', 'EbookRedeemController@getAllEbookRedeemHistory');
                 Route::get('/{id}', 'EbookRedeemController@getDetailEbookRedeemHistory');
-                
+
                 Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');
             });
         });
@@ -376,6 +376,7 @@ Route::middleware(['cors'])->group(function(){
             Route::post('request/{room_id}', 'RoomVCController@sendNotifRequestJoinRoom');
             Route::post('cancel/{room_id}', 'RoomVCController@cancelNotifRequestJoinRoom');
             Route::post('reject/{room_id}', 'RoomVCController@rejectNotifRequestJoinRoom');
+            Route::post("busy/{room_id}", "RoomVCController@sendNotifIsOnAnotherVideoCall");
         });
 
         Route::prefix('/token')->group(function()
@@ -483,7 +484,7 @@ Route::middleware(['cors'])->group(function(){
 
                 Route::get('/list', 'UserController@getUserByRole');
             });
-            
+
 
             // Dashboard
             Route::get('/statistics', 'AdminController@dashboard');
