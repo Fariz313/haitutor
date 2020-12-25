@@ -235,6 +235,7 @@ Route::middleware(['cors'])->group(function(){
 
         Route::prefix('/redeem')->group(function () {
             Route::get('/list/all', 'EbookRedeemController@index');
+            Route::get('/list/customer', 'EbookRedeemController@getListCustomer');
             Route::get('/{id}', 'EbookRedeemController@show');
 
             Route::post('/request', 'EbookRedeemController@store');
@@ -295,6 +296,11 @@ Route::middleware(['cors'])->group(function(){
         Route::put('/{id}', 'RoleController@update');
         Route::put('/menu/list', 'RoleController@updateMenuRole');
         Route::delete('/{id}', 'RoleController@destroy');
+    });
+
+    Route::prefix('/article')->group(function(){
+        Route::get('/','ArticleController@getAll');
+        Route::get('/{id}','ArticleController@getOne');
     });
 
     Route::middleware(['user.tutor'])->group(function(){
