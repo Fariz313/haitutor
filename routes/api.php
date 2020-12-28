@@ -208,6 +208,8 @@ Route::middleware(['cors'])->group(function(){
         Route::get('/', 'EbookController@index');
         Route::get('/list/free', 'EbookController@getAllFreeEbook');
         Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
+        Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
         Route::get('/list/publish', 'EbookController@getEbookPublished');
         Route::get('/{id}', 'EbookController@show');
 
@@ -249,6 +251,7 @@ Route::middleware(['cors'])->group(function(){
 
             Route::prefix('/history')->group(function () {
                 Route::get('/list/all', 'EbookRedeemController@getAllEbookRedeemHistory');
+                Route::get('/list/detail/{idRedeemDetail}', 'EbookRedeemController@getHistoryByRedeemDetail');
                 Route::get('/{id}', 'EbookRedeemController@getDetailEbookRedeemHistory');
 
                 Route::delete('/{id}', 'EbookRedeemController@deleteRedeemHistory');

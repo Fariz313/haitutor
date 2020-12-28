@@ -490,4 +490,39 @@ class EbookRedeemController extends Controller
             ], 500);
         }
     }
+
+    public function getHistoryByRedeemDetail(Request $request, $idRedeemDetail)
+    {
+        try {
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = EbookRedeemHistory::select("ebook_redeem_history.*")
+                            ->join("users", "ebook_redeem_history.id_user", "=", "users.id")
+                            ->with(array('redeem_detail', 'user' => function($query){
+                                $query->get();
+                            }))
+                            ->where('users.name','LIKE','%'.$query.'%')
+                            ->where('id_redeem_detail', $idRedeemDetail)
+                            ->paginate(10);
+            } else {
+                $data = EbookRedeemHistory::select("ebook_redeem_history.*")
+                            ->with(array('redeem_detail', 'user' => function($query){
+                                $query->get();
+                            }))
+                            ->where('id_redeem_detail', $idRedeemDetail)
+                            ->paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
 }

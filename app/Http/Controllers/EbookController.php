@@ -103,7 +103,6 @@ class EbookController extends Controller
                     $data->item_code    = Str::random(10);
                 }
 
-                $data->isbn             = $request->input('isbn');
                 $data->name             = $request->input('name');
                 $data->slug             = $request->input('slug');
                 $data->type             = $request->input('type');
@@ -442,6 +441,7 @@ class EbookController extends Controller
                         ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                             $query->select('id','name', 'email');
                         }))
+                        ->groupBy('id_ebook')
                         ->orderBy('ebook.type','DESC')
                         ->paginate(10);
             
@@ -544,6 +544,99 @@ class EbookController extends Controller
                         }))
                         ->orderBy('ebook.type','DESC')
                         ->paginate(10);
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllUnpaidEbook(Request $request)
+    {
+        try {
+            $idUser = JWTAuth::parseToken()->authenticate()->id;
+            $dataLibrary = Ebook::select("ebook.*")
+                        ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
+                        ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                        ->where('ebook_library.id_user', $idUser)
+                        ->groupBy('id_ebook')
+                        ->pluck('ebook.id')->toArray();
+
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = Ebook::where(function ($where) use ($query){
+                    $where->where('name','LIKE','%'.$query.'%')
+                    ->orWhere('slug','LIKE','%'.$query.'%');
+                })
+                ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('type', Ebook::EBOOK_TYPE["PAID"])
+                ->whereNotIn('id', $dataLibrary)
+                ->paginate(10);
+            } else {
+                $data = Ebook::with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('type', Ebook::EBOOK_TYPE["PAID"])
+                ->whereNotIn('id', $dataLibrary)
+                ->paginate(10);
+            }
+            
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getRecommendedEbook(Request $request){
+        try {
+            $idUser = JWTAuth::parseToken()->authenticate()->id;
+            $dataLibrary = Ebook::select("ebook.*")
+                        ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
+                        ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                        ->where('ebook_library.id_user', $idUser)
+                        ->groupBy('id_ebook')
+                        ->pluck('ebook.id')->toArray();
+
+            if($request->get('search')){
+                $query  = $request->get('search');
+                $data   = Ebook::where(function ($where) use ($query){
+                    $where->where('name','LIKE','%'.$query.'%')
+                    ->orWhere('slug','LIKE','%'.$query.'%');
+                })
+                ->with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('type', Ebook::EBOOK_TYPE["PAID"])
+                ->whereNotIn('id', $dataLibrary)
+                ->paginate(4);
+            } else {
+                $data = Ebook::with(array('ebookCategory', 'ebookPublisher' => function($query){
+                    $query->select('id','name', 'email');
+                }))
+                ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                ->where('type', Ebook::EBOOK_TYPE["PAID"])
+                ->whereNotIn('id', $dataLibrary)
+                ->paginate(4);
+            }
             
             return response()->json([
                 'status'    =>  'Success',
