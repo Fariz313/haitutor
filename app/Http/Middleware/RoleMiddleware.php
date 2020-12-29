@@ -23,6 +23,18 @@ class RoleMiddleware
         if($apiAllowed != null){
             if($userRole == Role::ROLE["ADMIN"] && $apiAllowed->admin_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
                 return $next($request);
+            } else if($userRole == Role::ROLE["TUTOR"] && $apiAllowed->tutor_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
+            } else if($userRole == Role::ROLE["STUDENT"] && $apiAllowed->student_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
+            } else if($userRole == Role::ROLE["PUBLISHER"] && $apiAllowed->publisher_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
+            } else if($userRole == Role::ROLE["SCHOOL"] && $apiAllowed->school_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
+            } else if($userRole == Role::ROLE["MARKETING"] && $apiAllowed->marketing_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
+            } else if($userRole == Role::ROLE["COMPANY"] && $apiAllowed->company_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
+                return $next($request);
             } else {
                 return response()->json([
                     'status'    => 'Failed',
