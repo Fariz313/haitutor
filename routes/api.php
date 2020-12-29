@@ -28,6 +28,9 @@ Route::middleware(['cors'])->group(function () {
     Route::put('verification/request/', 'UserController@requestVerification');
     Route::get('restricted-status', 'UserController@checkUserIsRestricted');
 
+    Route::post('callback', 'OrderController@callbackTransaction');
+    Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
+
     Route::middleware(['role'])->group(function () {
         Route::get('faq', 'AskController@getAllFAQ');
 
@@ -55,8 +58,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('order/{id}', 'OrderController@showById');
         Route::get('order-user', 'OrderController@show');
         Route::post('order/{id}', 'OrderController@store');
-        Route::post('callback', 'OrderController@callbackTransaction');
-        Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
         Route::post('request/order', 'OrderController@requestTransaction');
         Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
 
