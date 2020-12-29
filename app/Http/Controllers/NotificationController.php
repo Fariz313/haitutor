@@ -145,7 +145,7 @@ class NotificationController extends Controller
             $tempDate = \Carbon\Carbon::today()->subDays(7);
             $data = Notification::where('target_id',$targetId)
                                 ->where('created_at', '>=', $tempDate)
-                                ->orderBy('created_at','desc')->get();
+                                ->orderBy('created_at','desc')->paginate(10);
 
             $status = 'Success';
             $message = "Get Notification By Target Succeed";
