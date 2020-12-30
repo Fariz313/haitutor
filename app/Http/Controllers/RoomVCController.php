@@ -12,6 +12,7 @@ use App\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
+use Tymon\JWTAuth\JWTAuth as JWTAuthJWTAuth;
 
 class RoomVCController extends Controller
 {
@@ -507,6 +508,51 @@ class RoomVCController extends Controller
             return response([
                 "status"	=> "failed",
                 "message"   => "failed to send notif join video call room",
+                "data"      => $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function sendNotifIsOnAnotherVideoCall($room_id)
+    {
+        try {
+
+            $room = RoomVC::findOrFail($room_id);
+
+            $current_user = JWTAuth::parseToken()->authenticate();
+
+            if ($current_user->role == Role::ROLE["STUDENT"]) {
+                $user_opponent = User::findOrFail($room->tutor_id); // Tutor
+            } else if ($current_user->role == Role::ROLE["TUTOR"]){
+                $user_opponent = User::findOrFail($room->user_id); // Student
+            } else {
+                $user_opponent = User::findOrFail($room->tutor_id);
+            }
+
+            $dataNotif = [
+                "title" => "HaiTutor",
+                "message" => $current_user->name . " sedang berada di panggilan / video call lain ",
+                "sender_id" => $current_user->id,
+                "target_id" => $user_opponent->id,
+                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[14],
+                'token_recipient' => $user_opponent->firebase_token,
+                'save_data' => false,
+                "room_vc"   => $room
+            ];
+
+            $responseNotif = FCM::pushNotification($dataNotif);
+
+            return response()->json([
+                "status" => "Success",
+                "message"   => "Success send notification user is in antoher video call",
+                "data"   => null
+            ],200);
+
+
+        } catch (\Throwable $th) {
+            return response([
+                "status"	=> "Failed",
+                "message"   => "failed to send notification user is in another video call",
                 "data"      => $th->getMessage()
             ], 400);
         }
