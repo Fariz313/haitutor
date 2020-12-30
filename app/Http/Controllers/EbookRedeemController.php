@@ -390,7 +390,7 @@ class EbookRedeemController extends Controller
                 $newLibrary->id_ebook   = $dataRedeemDetail->id_ebook;
                 $newLibrary->save();
 
-                $dataRedeemDetail->redeem_amount    = $dataRedeemDetail->redeem_amount - 1;
+                $dataRedeemDetail->redeem_used      = $dataRedeemDetail->redeem_used + 1;
                 $dataRedeemDetail->save();
 
                 $data->save();
