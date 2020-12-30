@@ -27,6 +27,7 @@ Route::middleware(['cors'])->group(function () {
     Route::put('firebase_token', 'UserController@updateFirebaseToken');
     Route::put('verification/request/', 'UserController@requestVerification');
     Route::get('restricted-status', 'UserController@checkUserIsRestricted');
+    Route::get('list/allowed', 'AdminController@getApiAllowed');
 
     Route::post('callback', 'OrderController@callbackTransaction');
     Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
