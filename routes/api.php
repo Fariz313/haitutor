@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -391,8 +392,8 @@ Route::middleware(['cors'])->group(function () {
 
         Route::prefix('/admin')->group(function () {
 
-            Route::post('/login', 'AdminController@login');
-            Route::post('/register', 'AdminController@register');
+            Route::post('/login', 'AdminController@login')->withoutMiddleware([RoleMiddleware::class]);
+            Route::post('/register', 'AdminController@register')->withoutMiddleware([RoleMiddleware::class]);
 
             Route::middleware(['admin.general'])->group(function () {
                 Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
