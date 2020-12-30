@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\AdminDetail;
+use App\ApiAllowed;
 use App\RoomChat;
 use App\RoomVC;
 use App\Order;
@@ -457,6 +458,15 @@ class AdminController extends Controller
                 "message"   => "failed to delete admin",
                 "data"      => $th->getMessage()
             ], 400);
+        }
+    }
+
+    public function getApiAllowed(Request $request){
+        try {
+            $data = ApiAllowed::where('action_url', $request->get('action_url'))->where('action_method', $request->get('action_method'))->first();
+            return $data;
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }
