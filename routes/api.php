@@ -92,7 +92,7 @@ Route::middleware(['cors'])->group(function () {
         Route::get('show-otp', 'OtpController@showOtp');
         Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
-        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials");
+        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials")->withoutMiddleware([RoleMiddleware::class]);
 
         Route::prefix('/company')->group(function () {
             Route::get('/', 'CompanyController@index');
