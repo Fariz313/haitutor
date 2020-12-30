@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\ApiAllowed;
+use App\Helpers\ApiDataHelper;
 use App\Role;
 use Closure;
 use JWTAuth;
@@ -18,8 +19,15 @@ class RoleMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $apiAllowed = ApiAllowed::where('action_url', $request->route()->uri)->where('action_method', $request->route()->methods[0])->first();
+        if(ApiDataHelper::getEnvironment() == ApiDataHelper::Environment["DEVELOPMENT"]){
+            // Access view_api_allowed in Production Database for Development Environment
+            $apiAllowed = ApiDataHelper::getApi($request->route()->uri, $request->route()->methods[0]);
+        } else {
+            // Access view_api_allowed for Production Environment
+            $apiAllowed = ApiAllowed::where('action_url', $request->route()->uri)->where('action_method', $request->route()->methods[0])->first();
+        }
         $userRole   = JWTAuth::parseToken()->authenticate()->role;
+
         if($apiAllowed != null){
             if($userRole == Role::ROLE["ADMIN"] && $apiAllowed->admin_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
                 return $next($request);
