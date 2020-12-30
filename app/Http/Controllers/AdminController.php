@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\User;
 use App\AdminDetail;
 use App\ApiAllowed;
+use App\Chat;
+use App\Helpers\GoogleCloudStorageHelper;
+use App\Notification;
 use App\RoomChat;
 use App\RoomVC;
 use App\Order;
@@ -14,11 +17,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Mail;
 use Illuminate\Support\Str;
-use App\TutorDetail;
 use DB;
+use FCM;
 
 class AdminController extends Controller
 {
@@ -467,6 +468,175 @@ class AdminController extends Controller
             return $data;
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    public function chatAdminToUser(Request $request, $userId){
+        try{
+            $database = app('firebase.database');
+
+            $currentAdmin   = JWTAuth::parseToken()->authenticate();
+            $user           = User::findOrFail($userId);
+
+            if($user->role == Role::ROLE["STUDENT"]){
+                // If User is a student
+                $checkRoom      = RoomChat::where("user_id", $userId)->where("tutor_id", $currentAdmin->id)->first();
+            } else {
+                // If User is a tutor
+                $checkRoom      = RoomChat::where("user_id", $currentAdmin->id)->where("tutor_id", $userId)->first();
+            }
+
+            if (!$checkRoom) {
+                // If Room Not Exists Yet
+                try {
+                    $dataRoom               = new RoomChat();
+                    $dataRoom->room_key     = Str::random(6);
+                    if($user->role == Role::ROLE["STUDENT"]){
+                        $dataRoom->tutor_id = $currentAdmin->id;
+                        $dataRoom->user_id  = $userId;
+                    } else {
+                        $dataRoom->tutor_id = $userId;
+                        $dataRoom->user_id  = $currentAdmin->id;
+                    }
+                    $dataRoom->status           = RoomChat::ROOM_STATUS["OPEN"];
+                    $dataRoom->last_message_at  = date("Y-m-d H:i:s");
+                    $dataRoom->save();
+
+                    $checkRoom = $dataRoom;
+
+                    $roomData = [
+                        'lastMessageAt' => '29/12/2020 15:40:16',
+                        'chat'          => [],
+                        'id'            => $checkRoom->id,
+                        'room_key'      => $checkRoom->room_key,
+                        'status'        => RoomChat::ROOM_STATUS["OPEN"],
+                        'tutor_id'      => $currentAdmin->id,
+                        'user_id'       => (int)$userId
+                    ];
+                    $database->getReference('room_chat/'. $checkRoom->room_key)->set($roomData);
+
+                } catch (\Throwable $th) {
+                    return response()->json([
+                        'status'            =>  'Failed',
+                        'message'           =>  'Room Cant be Created',
+                        'data'              =>  $th->getMessage()
+                    ]);
+                }
+            }
+            
+            // return 'Success';
+
+            try {
+                DB::beginTransaction();
+
+                // SEND CHAT
+                $data                   = new Chat();
+                $message                = "";
+
+                if ($request->input('text')) {
+                    $data->text         = $request->input('text');
+                    $message            = $request->input('text');
+                }
+
+                $data->user_id          = $user->id;
+                $data->room_key         = $checkRoom->room_key;
+                if($request->hasFile('file')){
+                    try {
+                        $message        = "Photo";
+                        $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
+
+                        $data->file     = $file;
+                        $data->save();
+
+                    } catch (\Throwable $th) {
+                        return response()->json([
+                            'status'	=> 'failed',
+                            'message'	=> 'failed adding ask with image',
+                            "data"      => $th->getMessage()
+                        ], 501);
+                    }
+                }
+
+                $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
+                $checkRoom->last_message    = $message;
+                $checkRoom->save();
+                
+                $chatData = [
+                    'created_at' => '29/12/2020 15:40:16',
+                    'file' => '',
+                    'id' => 0,
+                    'message_readed' => false,
+                    'readed_at' => '',
+                    'room_key' => $checkRoom->room_key,
+                    'text' => $data->text,
+                    'user_id' => (int)$userId
+                ];
+                $newChatKey = $database->getReference('room_chat/'. $checkRoom->room_key .'/chat')->push()->getKey();
+                $database->getReference('room_chat/'. $checkRoom->room_key .'/chat/' . $newChatKey)->set($chatData);
+
+                if($data->save()){
+                    $room = RoomChat::findOrFail($checkRoom->id);
+
+                    $target = $room->user;
+                    $sender = $room->tutor;
+                    if($user->id == $room->user_id){
+                        $target = $room->tutor;
+                        $sender = $room->user;
+                    }
+
+                    $room->last_message_at = $data->created_at;
+                    $room->last_message = $message;
+                    $room->last_sender = $sender->id;
+                    $room->last_message_readed = "false";
+                    $room->last_message_readed_at = null;
+                    $room->save();
+
+                    $dataNotif = [
+                        "title" => $sender->name,
+                        "message" => $message,
+                        "sender_id" => $sender->id,
+                        "target_id" => $target->id,
+                        'token_recipient' => $target->firebase_token,
+                        "channel_name" => Notification::CHANNEL_NOTIF_NAMES[0],
+                        'save_data' => false
+                    ];
+                    $responseNotif = FCM::pushNotification($dataNotif);
+
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Success adding chat',
+                        'data'     => array(
+                            "notif" => $responseNotif,
+                            "url_image" => $data->file
+                        )
+                    ], 201);
+                }
+
+                DB::commit();
+                return response()->json([
+                    'status'        =>  'Success',
+                    'message'       =>  'Chat is sent',
+                    'room_key'      =>  $checkRoom->room_key,
+                    'data'          =>  $checkRoom
+                ]);
+
+            } catch (\Throwable $th) {
+                DB::rollback();
+                return response()->json([
+                    'status'        =>  'failed',
+                    'message'       =>  'Chat is not sent',
+                    'data'          =>  $th->getMessage()
+                ]);
+            }
+
+            return 'Success';
+
+        } catch(\Throwable $e){
+            return response()->json([
+                'status'    =>  'failed2',
+                'message'   =>  'Unable to create token transaction',
+                'data'      =>  $e->getMessage()
+            ]);
         }
     }
 }

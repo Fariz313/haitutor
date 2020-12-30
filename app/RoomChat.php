@@ -8,6 +8,11 @@ class RoomChat extends Model
 {
     protected $table    =   'room_chat';
 
+    const ROOM_STATUS = array(
+        "OPEN"      => 'open',
+        "CLOSED"    => 'closed'
+    );
+
     public function chat()
     {
         return $this->hasMany('App\Chat','room_key','room_key');
