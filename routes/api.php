@@ -43,6 +43,10 @@ Route::middleware(['cors'])->group(function () {
         Route::get('get_tutor', 'TutorController@getTutor');
         Route::get('get_tutor/all', 'TutorController@getAllTutor');
         Route::get('get_tutor/{id}', 'TutorController@showTutor');
+        Route::prefix("/tutor")->group(function()
+        {
+            Route::get("list/recommended", "TutorController@getRecommendedTutorList");
+        });
 
         Route::get('rating', 'RatingController@index');
         Route::get('rating/{id}', 'RatingController@show');
