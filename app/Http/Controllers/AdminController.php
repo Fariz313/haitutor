@@ -515,7 +515,7 @@ class AdminController extends Controller
                     $checkRoom = $dataRoom;
 
                     $roomData = [
-                        'lastMessageAt' => '29/12/2020 15:40:16',
+                        'lastMessageAt' => date("d/m/Y H:i:s"),
                         'chat'          => [],
                         'id'            => $checkRoom->id,
                         'room_key'      => $checkRoom->room_key,
@@ -572,14 +572,14 @@ class AdminController extends Controller
                 $checkRoom->save();
                 
                 $chatData = [
-                    'created_at' => '29/12/2020 15:40:16',
+                    'created_at' => date("d/m/Y H:i:s"),
                     'file' => '',
                     'id' => 0,
                     'message_readed' => false,
                     'readed_at' => '',
                     'room_key' => $checkRoom->room_key,
                     'text' => $data->text,
-                    'user_id' => (int)$userId
+                    'user_id' => (int)$currentAdmin->id
                 ];
                 $newChatKey = $database->getReference('room_chat/'. $checkRoom->room_key .'/chat')->push()->getKey();
                 $database->getReference('room_chat/'. $checkRoom->room_key .'/chat/' . $newChatKey)->set($chatData);
