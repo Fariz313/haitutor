@@ -92,7 +92,7 @@ Route::middleware(['cors'])->group(function () {
         Route::get('show-otp', 'OtpController@showOtp');
         Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
-        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials");
+        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials")->withoutMiddleware([RoleMiddleware::class]);
 
         Route::prefix('/company')->group(function () {
             Route::get('/', 'CompanyController@index');
@@ -298,6 +298,11 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/{id}', 'ArticleController@getOne');
         });
 
+        Route::prefix('/user')->group(function () {
+            Route::get('/{id}', 'UserController@getDetailUser');
+            Route::post('/update/{id}', 'UserController@updateUser');
+        });
+
         Route::middleware(['user.tutor'])->group(function () {
             Route::post('tutordoc', 'TutorDocController@store');
             Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
@@ -467,6 +472,10 @@ Route::middleware(['cors'])->group(function () {
                         Route::get('/{id}', 'AdminController@showAdmin');
                         Route::put('/{id}', 'AdminController@updateAdmin');
                         Route::delete('/{id}', 'AdminController@destroyAdmin');
+                    });
+
+                    Route::prefix('/chat')->group(function () {
+                        Route::post('/{userId}', 'AdminController@chatAdminToUser');
                     });
 
                     Route::get('/list', 'UserController@getUserByRole');

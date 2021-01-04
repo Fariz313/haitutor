@@ -13,12 +13,9 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
 use App\TutorDetail;
-use App\Helpers\CloudKilatHelper;
 use App\Helpers\GoogleCloudStorageHelper;
 use App\Otp;
-use Kreait\Firebase\Auth;
 use View;
-use Google\Auth\ApplicationDefaultCredentials;
 use Google_Client;
 use App\Helpers\LogApps;
 use App\Role;
@@ -669,16 +666,17 @@ class UserController extends Controller
 
             // CloudKilatHelper::delete($user->photo);
             GoogleCloudStorageHelper::delete($user->photo);
-            $delete = $user->delete();
+            $user->is_deleted   = User::DELETED_STATUS["DELETED"];
+            $user->save();
 
-            if($delete){
+            if($user){
                 return response([
-                    "status"	=> "success",
+                    "status"	=> "Success",
                     "message"   => "Success delete user"
                 ]);
             } else {
                 return response([
-                    "status"    => "failed",
+                    "status"    => "Failed",
                     "message"   => "Failed to delete data"
                 ]);
             }
@@ -865,9 +863,11 @@ class UserController extends Controller
                 $query  = $request->get('search');
                 $data   = User::where('role', $request->get('role'))
                             ->where('name','LIKE','%'.$query.'%')
+                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             } else {
                 $data = User::where('role', $request->get('role'))
+                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             }
             
@@ -881,6 +881,67 @@ class UserController extends Controller
                 "status"   => "Failed",
                 "message"  => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function getDetailUser($id){
+        try {
+            $data = User::findOrFail($id);
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Detail User Succeeded'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'data'      =>  'No Data Picked',
+                'message'   =>  'Get Detail User Failed'
+            ]);
+        }
+    }
+
+    public function updateUser(Request $request, $id){
+        try {
+            $user               = User::findOrFail($id);
+
+            if($request->get('name')){
+                $user->name    = $request->get('name');
+            }
+
+            if($request->get('email')){
+                $user->email    = $request->get('email');
+            }
+
+            if($request->get('password')){
+                $user->password    = $request->get('password');
+            }
+
+            if($request->get('contact')){
+                $user->contact    = $request->get('contact');
+            }
+
+            if($request->get('address')){
+                $user->address    = $request->get('address');
+            }
+
+            if($request->file('photo')){
+                GoogleCloudStorageHelper::delete('/photos/user'.$user->photo);
+                $user->photo    = GoogleCloudStorageHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
+            }
+
+            $user->save();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Update User Succeeded',
+                'error'     => $user], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Update User Failed',
+                'error'     => $e->getMessage()], 500);
         }
     }
 }

@@ -31,6 +31,11 @@ class User extends Authenticatable implements JWTSubject
         "UNVERIFIED"    => "unverified"
     );
 
+    const DELETED_STATUS = array(
+        "DELETED"   => 1,
+        "ACTIVE"    => 0
+    );
+
     /**
      * The attributes that are mass assignable.
      *
