@@ -92,7 +92,7 @@ Route::middleware(['cors'])->group(function () {
         Route::get('show-otp', 'OtpController@showOtp');
         Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
-        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials");
+        ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials")->withoutMiddleware([RoleMiddleware::class]);
 
         Route::prefix('/company')->group(function () {
             Route::get('/', 'CompanyController@index');
@@ -296,6 +296,11 @@ Route::middleware(['cors'])->group(function () {
         Route::prefix('/article')->group(function () {
             Route::get('/', 'ArticleController@getAll');
             Route::get('/{id}', 'ArticleController@getOne');
+        });
+
+        Route::prefix('/user')->group(function () {
+            Route::get('/{id}', 'UserController@getDetailUser');
+            Route::post('/update/{id}', 'UserController@updateUser');
         });
 
         Route::middleware(['user.tutor'])->group(function () {

@@ -150,7 +150,17 @@ class AdminController extends Controller
                 ]);
 
                 $role               = Role::findOrFail($user->role);
-                $user->email        = strtolower($role->name) . $user->id . "@haitutor.id";
+
+                if($request->get('email')){
+                    $user->email    = $request->get('email');
+                } else {
+                    $user->email    = strtolower($role->name) . $user->id . "@haitutor.id";
+                }
+
+                if($request->file('photo')){
+                    $user->photo    = GoogleCloudStorageHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
+                }
+                
                 $user->status       = User::STATUS["VERIFIED"];
                 $user->save();
 
