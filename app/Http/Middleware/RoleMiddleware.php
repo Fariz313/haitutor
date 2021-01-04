@@ -51,7 +51,7 @@ class RoleMiddleware
         } else {
             return response()->json([
                 'status'    => 'Failed',
-                'message'   => 'API Not Found'], 404);
+                'message'   => 'API is not registered'], 404);
         }
     }
 }

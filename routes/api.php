@@ -474,6 +474,10 @@ Route::middleware(['cors'])->group(function () {
                         Route::delete('/{id}', 'AdminController@destroyAdmin');
                     });
 
+                    Route::prefix('/chat')->group(function () {
+                        Route::post('/{userId}', 'AdminController@chatAdminToUser');
+                    });
+
                     Route::get('/list', 'UserController@getUserByRole');
                 });
 
