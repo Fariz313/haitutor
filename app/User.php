@@ -31,6 +31,11 @@ class User extends Authenticatable implements JWTSubject
         "UNVERIFIED"    => "unverified"
     );
 
+    const RESPONSE_STATUS = array(
+        "SUCCESS"   => "Success",
+        "FAILED"    => "Failed"
+    );
+
     const DELETED_STATUS = array(
         "DELETED"   => 1,
         "ACTIVE"    => 0

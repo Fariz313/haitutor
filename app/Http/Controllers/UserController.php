@@ -41,18 +41,21 @@ class UserController extends Controller
                 'message'   => 'Cant create authentication, please try again'], 500);
         }
 
+        $user = User::where('email', $request->get('email'))->first();
         $dataLog = [
-            "USER" => User::where('email', $request->get('email'))->first(),
+            "USER" => $user,
             "USER_IP" => $request->ip()
         ];
         
         LogApps::login($dataLog);
 
         return response()->json([
-            'status'    => 'success',
+            'status'    => 'Success',
             'token'     => $token,
-            'message'   => 'Loggin is successfuly',
-            'logged'    => 'true' ], 200);
+            'message'   => 'Logged in successfully',
+            'logged'    => 'true',
+            'role'      => (int)$user->role 
+        ], 200);
     }
 
     public function register(Request $request)
