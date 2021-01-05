@@ -190,6 +190,7 @@ class MenuController extends Controller
             if(ApiDataHelper::getEnvironment() == ApiDataHelper::Environment["DEVELOPMENT"]){
                 // Access view_primary_menu in Production Database for Development Environment
                 $data = ApiDataHelper::getPrimaryMenu($id_role);
+                return response()->json($data, 200);
             } else {
                 // Access view_primary_menu for Production Environment
                 $data = PrimaryMenu::select('view_primary_menu.*')
@@ -199,13 +200,14 @@ class MenuController extends Controller
                     ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
                     ->where('menu_role.id_role', $id_role)
                     ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Get Data Success'
+                ], 200);
             }
             
-            return response()->json([
-                'status'    =>  'Success',
-                'data'      =>  $data,
-                'message'   =>  'Get Data Success'
-            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
