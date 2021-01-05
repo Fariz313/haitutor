@@ -287,7 +287,7 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/menu')->group(function () {
-            Route::get('/role/{id_role}', 'MenuController@getPrimaryMenu');
+            Route::get('/role/{id_role}', 'MenuController@getPrimaryMenu')->withoutMiddleware([RoleMiddleware::class]);
             Route::post('/', 'MenuController@store');
             Route::put('/{id}', 'MenuController@update');
             Route::delete('/{id}', 'MenuController@destroy');

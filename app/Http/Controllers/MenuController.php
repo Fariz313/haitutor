@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiDataHelper;
 use App\Menu;
 use App\PrimaryMenu;
 use App\SubMenu;
@@ -186,13 +187,19 @@ class MenuController extends Controller
 
     public function getPrimaryMenu($id_role = 1){
         try {
-            $data = PrimaryMenu::select('view_primary_menu.*')
-            ->with(array('subMenu' => function($query){
-                $query->select('menu.*','sub_menu.*')->join("menu", "sub_menu.id_child_menu", "=", "menu.id");
-            }))
-            ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
-            ->where('menu_role.id_role', $id_role)
-            ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
+            if(ApiDataHelper::getEnvironment() == ApiDataHelper::Environment["DEVELOPMENT"]){
+                // Access view_primary_menu in Production Database for Development Environment
+                $data = ApiDataHelper::getPrimaryMenu($id_role);
+            } else {
+                // Access view_primary_menu for Production Environment
+                $data = PrimaryMenu::select('view_primary_menu.*')
+                    ->with(array('subMenu' => function($query){
+                        $query->select('menu.*','sub_menu.*')->join("menu", "sub_menu.id_child_menu", "=", "menu.id");
+                    }))
+                    ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
+                    ->where('menu_role.id_role', $id_role)
+                    ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
+            }
             
             return response()->json([
                 'status'    =>  'Success',
