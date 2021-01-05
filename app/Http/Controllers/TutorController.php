@@ -135,15 +135,16 @@ class TutorController extends Controller
         }
 
         $data   =   User::where('role', Role::ROLE["TUTOR"])
-                            ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
-                            ->with(array("tutorSubject" => function ($query) {
-                                $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
-                            }))
                             ->whereHas("detail", function ($query) {
                                 $query->where("status", "verified");
                             })
-                            ->with(array("detail"))
+                            ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
+                            ->with(array("detail", "tutorSubject" => function ($query) {
+                                $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
+                            }))
                             ->orderBy("total_rating", "DESC")
+                            ->withCount(array("report"))
+                            ->orderBy("report_count", "ASC")
                             ->paginate($paginate);
         return $data;
     }
