@@ -482,6 +482,41 @@ class AdminController extends Controller
     }
 
     public function chatAdminToUser(Request $request, $userId){
+        return $this->sendChat($request, $userId);
+    }
+
+    public function broadcastChatAdmin(Request $request){
+        try {
+            $successUser    = array();
+            $failedUser     = array();
+
+            foreach(json_decode($request->input('users')) as $userId){
+                $result = $this->sendChat($request, $userId)->getData();
+                if($result->status == User::RESPONSE_STATUS["SUCCESS"]){
+                    array_push($successUser, $userId);
+                } else {
+                    array_push($failedUser, $userId);
+                }
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Broadcast Chat Succeeded',
+                'data'      => array(
+                    "successUser"   => $successUser,
+                    "failedUser"    => $failedUser,
+                )
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Broadcast Chat Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    private function sendChat(Request $request, $userId){
         try{
             $database = app('firebase.database');
 
@@ -620,7 +655,7 @@ class AdminController extends Controller
                         'status'	=> 'Success',
                         'message'	=> 'Success adding chat',
                         'data'      => array(
-                            "notif" => json_decode($responseNotif),
+                            "notif"     => json_decode($responseNotif),
                             "url_image" => $data->file
                         )
                     ], 201);
