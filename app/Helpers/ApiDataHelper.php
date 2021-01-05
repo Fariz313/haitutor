@@ -21,6 +21,11 @@ class ApiDataHelper {
         return json_decode($response);
     }
 
+    public static function getPrimaryMenu($role) {
+        $response = Http::get('http://haitutor.id/backend-educhat/api/menu/role/' . $role);
+        return json_decode($response);
+    }
+
     public static function getEnvironment()
     {
         if (App::environment("local")) {
