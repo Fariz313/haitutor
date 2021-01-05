@@ -54,7 +54,7 @@ class UserController extends Controller
             'token'     => $token,
             'message'   => 'Logged in successfully',
             'logged'    => 'true',
-            'role'      => $user->role 
+            'role'      => (int)$user->role 
         ], 200);
     }
 

@@ -477,6 +477,7 @@ Route::middleware(['cors'])->group(function () {
                     Route::prefix('/chat')->group(function () {
                         Route::post('/{userId}', 'AdminController@chatAdminToUser');
                     });
+                    Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
 
                     Route::get('/list', 'UserController@getUserByRole');
                 });
