@@ -132,7 +132,7 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
                 } else {
                     $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
                                 ->where(function($query) use ($user) {
@@ -150,7 +150,7 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
                 }
                 return $data;
             } else {
@@ -165,7 +165,7 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
                 return $data;
             }
         } catch (\Throwable $th) {
