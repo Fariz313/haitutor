@@ -125,6 +125,30 @@ class TutorController extends Controller
                           ->paginate($paginate);
         return $data;
     }
+
+    public function getRecommendedTutorList(Request $request){
+
+        $paginate = 10;
+
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
+        $data   =   User::where('role', Role::ROLE["TUTOR"])
+                            ->whereHas("detail", function ($query) {
+                                $query->where("status", "verified");
+                            })
+                            ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
+                            ->with(array("detail", "tutorSubject" => function ($query) {
+                                $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
+                            }))
+                            ->orderBy("total_rating", "DESC")
+                            ->withCount(array("report"))
+                            ->orderBy("report_count", "ASC")
+                            ->paginate($paginate);
+        return $data;
+    }
+
     public function getUnverifiedTutor(Request $request){
         $paginate = 10;
         if($request->get('paginate')){
