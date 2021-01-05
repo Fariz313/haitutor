@@ -137,6 +137,7 @@ class TutorController extends Controller
         $data   =   User::where('role', Role::ROLE["TUTOR"])
                             ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
                             ->with(array("tutorSubject" => function ($query) {
+                                $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
                             }))
                             ->whereHas("detail", function ($query) {
                                 $query->where("status", "verified");
