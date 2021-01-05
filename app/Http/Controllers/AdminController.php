@@ -482,6 +482,41 @@ class AdminController extends Controller
     }
 
     public function chatAdminToUser(Request $request, $userId){
+        return $this->sendChat($request, $userId);
+    }
+
+    public function broadcastChatAdmin(Request $request){
+        try {
+            $successUser    = array();
+            $failedUser     = array();
+
+            foreach(json_decode($request->input('users')) as $userId){
+                $result = $this->sendChat($request, $userId)->getData();
+                if($result->status == User::RESPONSE_STATUS["SUCCESS"]){
+                    array_push($successUser, $userId);
+                } else {
+                    array_push($failedUser, $userId);
+                }
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Broadcast Chat Succeeded',
+                'data'      => array(
+                    "successUser"   => $successUser,
+                    "failedUser"    => $failedUser,
+                )
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Broadcast Chat Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    private function sendChat(Request $request, $userId){
         try{
             $database = app('firebase.database');
 
@@ -542,6 +577,7 @@ class AdminController extends Controller
                 // SEND CHAT
                 $data                   = new Chat();
                 $message                = "";
+                $file                   = "";
 
                 if ($request->input('text')) {
                     $data->text         = $request->input('text');
@@ -573,7 +609,7 @@ class AdminController extends Controller
                 
                 $chatData = [
                     'created_at' => date("d/m/Y H:i:s"),
-                    'file' => '',
+                    'file' => $file,
                     'id' => 0,
                     'message_readed' => false,
                     'readed_at' => '',
@@ -587,11 +623,14 @@ class AdminController extends Controller
                 if($data->save()){
                     $room = RoomChat::findOrFail($checkRoom->id);
 
-                    $target = $room->user;
-                    $sender = $room->tutor;
+                    // If Target is a tutor
+                    $target = $room->tutor;
+                    $sender = $room->user;
+                    
                     if($user->id == $room->user_id){
-                        $target = $room->tutor;
-                        $sender = $room->user;
+                        // If Target is a student
+                        $target = $room->user;
+                        $sender = $room->tutor;
                     }
 
                     $room->last_message_at = $data->created_at;
@@ -615,8 +654,8 @@ class AdminController extends Controller
                     return response()->json([
                         'status'	=> 'Success',
                         'message'	=> 'Success adding chat',
-                        'data'     => array(
-                            "notif" => $responseNotif,
+                        'data'      => array(
+                            "notif"     => json_decode($responseNotif),
                             "url_image" => $data->file
                         )
                     ], 201);
