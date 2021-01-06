@@ -118,7 +118,7 @@ class EbookController extends Controller
                     $data->item_code    = $request->input('item_code');
                 }
 
-                if($request->file('is_published') != null){
+                if($request->input('is_published') != null){
                     $data->is_published = $request->input('is_published');
                 }
 
