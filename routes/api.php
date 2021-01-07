@@ -307,6 +307,21 @@ Route::middleware(['cors'])->group(function () {
             Route::post('/update/{id}', 'UserController@updateUser');
         });
 
+        Route::prefix('/question')->group(function () {
+            Route::post('/add', 'AskController@createNewQuestion');
+            Route::post('/answer', 'AskController@answerQuestion');
+            Route::post('/edit/{id_question}', 'AskController@editQuestion');
+            Route::post('/answer/edit/{id_question}', 'AskController@editAnswer');
+
+            Route::put('/accept/{id_room}', 'AskController@acceptAnswer');
+            Route::put('/abort/{id_question}', 'AskController@abortQuestion');
+            Route::put('/extend/{id_question}', 'AskController@extendToRegularChat');
+
+            Route::get('/list', 'AskController@getQuestionList');
+            Route::get('/user/{id_user}', 'AskController@getAnswerList');
+            Route::get('/answer/{id_question}', 'AskController@getDetailAnswer');
+        });
+
         Route::middleware(['user.tutor'])->group(function () {
             Route::post('tutordoc', 'TutorDocController@store');
             Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
