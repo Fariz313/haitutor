@@ -308,18 +308,19 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/question')->group(function () {
-            Route::post('/add', 'AskController@createNewQuestion');
-            Route::post('/answer', 'AskController@answerQuestion');
-            Route::post('/edit/{id_question}', 'AskController@editQuestion');
-            Route::post('/answer/edit/{id_question}', 'AskController@editAnswer');
+            Route::post('/add', 'QuickAskController@store');
+            Route::post('/answer', 'QuickAskController@answerQuestion');
+            Route::post('/edit/{id_question}', 'QuickAskController@update');
+            Route::post('/answer/edit/{id_question}', 'QuickAskController@editAnswer');
 
-            Route::put('/accept/{id_room}', 'AskController@acceptAnswer');
-            Route::put('/abort/{id_question}', 'AskController@abortQuestion');
-            Route::put('/extend/{id_question}', 'AskController@extendToRegularChat');
+            Route::put('/accept/{id_room}', 'QuickAskController@acceptAnswer');
+            Route::put('/abort/{id_question}', 'QuickAskController@abortQuestion');
+            Route::put('/extend/{id_question}', 'QuickAskController@extendToRegularChat');
 
-            Route::get('/list', 'AskController@getQuestionList');
-            Route::get('/user/{id_user}', 'AskController@getAnswerList');
-            Route::get('/answer/{id_question}', 'AskController@getDetailAnswer');
+            Route::get('/list', 'QuickAskController@index');
+            Route::get('/list/{id_question}', 'QuickAskController@show');
+            Route::get('/user/{id_user}', 'QuickAskController@getAnswerList');
+            Route::get('/answer/{id_question}', 'QuickAskController@getDetailAnswer');
         });
 
         Route::middleware(['user.tutor'])->group(function () {

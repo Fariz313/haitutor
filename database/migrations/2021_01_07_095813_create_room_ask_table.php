@@ -18,6 +18,7 @@ class CreateRoomAskTable extends Migration
             $table->integer('id_question');
             $table->integer('id_answerer');
             $table->integer('status')->default(0);
+            $table->integer('is_deleted')->default(0);
             $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });

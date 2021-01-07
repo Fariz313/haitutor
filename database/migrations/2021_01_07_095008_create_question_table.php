@@ -18,6 +18,7 @@ class CreateQuestionTable extends Migration
             $table->integer('id_user');
             $table->text('message');
             $table->integer('status')->default(0);
+            $table->integer('is_deleted')->default(0);
             $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
