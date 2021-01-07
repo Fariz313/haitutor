@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\GoogleCloudStorageHelper;
+use App\Answer;
+use App\AnswerDoc;
 use App\Question;
 use App\QuestionDoc;
+use App\RoomAsk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -217,5 +220,59 @@ class QuickAskController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function answerQuestion(Request $request){
+        try {
+
+            $user   = JWTAuth::parseToken()->authenticate();
+            $room   = RoomAsk::where('id_question', $request->input('id_question'))->where('id_answerer', $user->id)->first();
+
+            if($room == null){
+                $room               = new RoomAsk();
+                $room->id_question  = $request->input('id_question');
+                $room->id_answerer  = $user->id;
+                $room->save();
+            }
+
+            $data               = new Answer();
+            $data->id_room      = $room->id;
+            $data->message      = $request->input('message');
+            $room->id_user      = JWTAuth::parseToken()->authenticate()->id;
+            $data->save();
+
+            if($request->file('document_1')){
+                $dataDoc                = new AnswerDoc();
+                $dataDoc->id_answer     = $data->id;
+                $dataDoc->content       = GoogleCloudStorageHelper::put($request->file('document_1'), '/photos/answer', 'image', Str::random(3));
+                $dataDoc->save();
+            }
+            if($request->file('document_2')){
+                $dataDoc                = new AnswerDoc();
+                $dataDoc->id_answer     = $data->id;
+                $dataDoc->content       = GoogleCloudStorageHelper::put($request->file('document_2'), '/photos/answer', 'image', Str::random(3));
+                $dataDoc->save();
+            }
+            if($request->file('document_3')){
+                $dataDoc                = new AnswerDoc();
+                $dataDoc->id_answer     = $data->id;
+                $dataDoc->content       = GoogleCloudStorageHelper::put($request->file('document_3'), '/photos/answer', 'image', Str::random(3));
+                $dataDoc->save();
+            }
+
+            $data = Answer::where('id', $data->id)->with('documents')->first();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Insert Answer Succeeded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+
     }
 }
