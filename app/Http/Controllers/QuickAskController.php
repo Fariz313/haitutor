@@ -280,6 +280,33 @@ class QuickAskController extends Controller
                 "message"  => $e->getMessage()
             ], 500);
         }
+    }
 
+    public function acceptAnswer($roomId){
+        try {
+            $room                   = RoomAsk::findOrFail($roomId);
+
+            $roomByQuestion         = RoomAsk::where('id_question', $room->id_question)->get();
+            foreach($roomByQuestion as $iterRoom){
+                $iterRoom->status   = RoomAsk::ROOM_ASK_STATUS["REJECTED"];
+                $iterRoom->save();
+            }
+
+            $room->status           = RoomAsk::ROOM_ASK_STATUS["ACCEPTED"];
+            $room->save();
+
+            $data = Question::where('id', $room->id_question)->with('documents')->first();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Accept Answer Succeeded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
     }
 }
