@@ -225,18 +225,25 @@ class QuickAskController extends Controller
     public function answerQuestion(Request $request){
         try {
 
-            $user   = JWTAuth::parseToken()->authenticate();
-            $room   = RoomAsk::where('id_question', $request->input('id_question'))->where('id_answerer', $user->id)->first();
+            $user       = JWTAuth::parseToken()->authenticate();
+            if($request->input('id_room')){
+                // For Response Answer (Student)
+                $room       = RoomAsk::findOrFail($request->input('id_room'));
+            } else {
+                // For Answer the Question (Tutor)
+                $room       = RoomAsk::where('id_question', $request->input('id_question'))->where('id_answerer', $user->id)->first();
 
-            if($room == null){
-                $room               = new RoomAsk();
-                $room->id_question  = $request->input('id_question');
-                $room->id_answerer  = $user->id;
-                $room->save();
+                if($room == null){
+                    $room               = new RoomAsk();
+                    $room->id_question  = $request->input('id_question');
+                    $room->id_answerer  = $user->id;
+                    $room->save();
+                }
             }
 
             $data               = new Answer();
             $data->id_room      = $room->id;
+            $data->id_user      = $user->id;
             $data->message      = $request->input('message');
             $room->id_user      = JWTAuth::parseToken()->authenticate()->id;
             $data->save();
