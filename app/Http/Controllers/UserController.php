@@ -46,7 +46,7 @@ class UserController extends Controller
             "USER" => $user,
             "USER_IP" => $request->ip()
         ];
-        
+
         LogApps::login($dataLog);
 
         return response()->json([
@@ -54,7 +54,7 @@ class UserController extends Controller
             'token'     => $token,
             'message'   => 'Logged in successfully',
             'logged'    => 'true',
-            'role'      => (int)$user->role 
+            'role'      => (int)$user->role
         ], 200);
     }
 
@@ -873,7 +873,7 @@ class UserController extends Controller
                             ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -945,6 +945,30 @@ class UserController extends Controller
                 'status'    => 'Failed',
                 'message'   => 'Update User Failed',
                 'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getSignedUrl(Request $request)
+    {
+        try {
+            $file_path = $request->input("file_path");
+
+            $signedUrl = GoogleCloudStorageHelper::getSignedUrl($file_path);
+
+            return response()->json([
+                    'status'    =>  'success',
+                    'message'   =>  'Fetch storage token credentials',
+                    'data'      =>  array(
+                        "signed_url" => $signedUrl
+                    )
+                ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'failed',
+                'message'   =>  'failed to fetch storage token credentials',
+                'data'      =>  $th->getMessage()
+            ], 400);
         }
     }
 }
