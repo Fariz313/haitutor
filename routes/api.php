@@ -308,6 +308,22 @@ Route::middleware(['cors'])->group(function () {
             Route::post('/update/{id}', 'UserController@updateUser');
         });
 
+        Route::prefix('/question')->group(function () {
+            Route::post('/add', 'QuickAskController@store');
+            Route::post('/answer', 'QuickAskController@answerQuestion');
+            Route::post('/edit/{id_question}', 'QuickAskController@update');
+            Route::post('/answer/edit/{id_question}', 'QuickAskController@editAnswer');
+
+            Route::put('/accept/{id_room}', 'QuickAskController@acceptAnswer');
+            Route::put('/abort/{id_question}', 'QuickAskController@abortQuestion');
+            Route::put('/extend/{id_room}', 'QuickAskController@extendToRegularChat');
+
+            Route::get('/list', 'QuickAskController@index');
+            Route::get('/list/{id_question}', 'QuickAskController@show');
+            Route::get('/user/{id_user}', 'QuickAskController@getAnswerList');
+            Route::get('/answer/{id_question}', 'QuickAskController@getDetailAnswer');
+        });
+
         Route::middleware(['user.tutor'])->group(function () {
             Route::post('tutordoc', 'TutorDocController@store');
             Route::delete('tutordoc/{id}', 'TutorDocController@destroy');

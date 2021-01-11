@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Answer extends Model
 {
-    protected $table = "answer";
-    
-    public function fileAsk()
+    protected $table = 'answer';
+
+    const ANSWER_DELETED_STATUS = array(
+        "ACTIVE"    => 0,
+        "DELETED"   => 1
+    );
+
+    public function documents()
     {
-        return $this->hasMany('App\FileAsk','parent_id');
+        return $this->hasMany('App\AnswerDoc','id_answer','id');
     }
 }
