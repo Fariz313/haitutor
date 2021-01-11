@@ -79,5 +79,22 @@ class GoogleCloudStorageHelper
             return null;
         }
     }
+
+    public static function getSignedUrl($file_path, $duration = 3600)
+    {
+        try {
+            if ($file_path != null || $file_path == '') {
+                return Storage::disk("gcs")
+                                ->getAdapter()
+                                ->getBucket()
+                                ->object($file_path)
+                                ->signedUrl(new \DateTime("+".$duration." seconds"));
+            } else {
+                return "Empty Url";
+            }
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+    }
 }
 
