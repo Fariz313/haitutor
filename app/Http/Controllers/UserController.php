@@ -956,7 +956,7 @@ class UserController extends Controller
             $signedUrl = GoogleCloudStorageHelper::getSignedUrl($file_path);
 
             return response()->json([
-                    'status'    =>  'success',
+                    'status'    =>  'Success',
                     'message'   =>  'Fetch storage token credentials',
                     'data'      =>  array(
                         "signed_url" => $signedUrl
