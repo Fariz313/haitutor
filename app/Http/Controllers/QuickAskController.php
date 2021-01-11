@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Helpers\GoogleCloudStorageHelper;
 use App\Answer;
 use App\AnswerDoc;
+use App\Chat;
 use App\Question;
 use App\QuestionDoc;
 use App\RoomAsk;
+use App\RoomChat;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use JWTAuth;
@@ -301,6 +304,150 @@ class QuickAskController extends Controller
                 'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Accept Answer Succeeded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function abortQuestion($questionId){
+        try {
+            $roomByQuestion         = RoomAsk::where('id_question', $questionId)->get();
+            foreach($roomByQuestion as $iterRoom){
+                $iterRoom->status   = RoomAsk::ROOM_ASK_STATUS["REJECTED"];
+                $iterRoom->save();
+            }
+
+            $data = Question::where('id', $questionId)->with('documents')->first();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Abort Answer Succeeded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function extendToRegularChat($roomId){
+        try {
+            $database       = app('firebase.database');
+            $roomAsk        = RoomAsk::findOrFail($roomId);
+            $question       = Question::findOrFail($roomAsk->id_question);
+            $questionDocs   = QuestionDoc::where('id_question', $question->id)->get();
+            $listAnswer     = Answer::where('id_room', $roomAsk->id)->get();
+
+            // Temp Variable for Chat List
+            $listChat   = array();
+
+            // Add Question to Temp Variable
+            $tempChat   = array(
+                                "user_id"       => $question->id_user,
+                                "message"       => $question->message,
+                                "file"          => "",
+                                "created_at"    => $question->created_at
+                            );
+            array_push($listChat, $tempChat);
+
+            // Add Question Docs to Temp Variable
+            foreach($questionDocs as $doc){
+                $tempChat   = array(
+                    "user_id"       => $question->id_user,
+                    "message"       => "Photo",
+                    "file"          => $doc->content,
+                    "created_at"    => $doc->created_at
+                );
+                array_push($listChat, $tempChat);
+            }
+
+            // Add Answer and Answer Docs to Temp Variable
+            foreach($listAnswer as $answer){
+                $tempChat   = array(
+                    "user_id"       => $answer->id_user,
+                    "message"       => $answer->message,
+                    "file"          => "",
+                    "created_at"    => $answer->created_at
+                );
+                array_push($listChat, $tempChat);
+
+                $answerDocs   = AnswerDoc::where('id_answer', $answer->id)->get();
+
+                foreach($answerDocs as $doc){
+                    $tempChat   = array(
+                        "user_id"       => $answer->id_user,
+                        "message"       => "Photo",
+                        "file"          => $doc->content,
+                        "created_at"    => $doc->created_at
+                    );
+                    array_push($listChat, $tempChat);
+                }
+            }
+
+            $dataRoom                   = new RoomChat();
+            $dataRoom->room_key         = Str::random(6);
+            $dataRoom->tutor_id         = $roomAsk->id_answerer;
+            $dataRoom->user_id          = $question->id_user;
+            $dataRoom->status           = RoomChat::ROOM_STATUS["OPEN"];
+            $dataRoom->last_message_at  = date("Y-m-d H:i:s");
+            $dataRoom->save();
+
+            $roomData = [
+                'lastMessageAt' => date("d/m/Y H:i:s"),
+                'chat'          => [],
+                'id'            => $dataRoom->id,
+                'room_key'      => $dataRoom->room_key,
+                'status'        => RoomChat::ROOM_STATUS["OPEN"],
+                'tutor_id'      => $dataRoom->tutor_id,
+                'user_id'       => $dataRoom->user_id
+            ];
+            $database->getReference('room_chat/'. $dataRoom->room_key)->set($roomData);
+
+            DB::beginTransaction();
+
+            foreach($listChat as $chat){
+                // SEND CHAT
+                $data                   = new Chat();
+                $message                = "";
+
+                $textMessage            = $chat["message"];
+                $userId                 = $chat["user_id"];
+
+                $data->text             = $textMessage;
+                $message                = $textMessage;
+
+                $data->user_id          = $userId;
+                $data->room_key         = $dataRoom->room_key;
+
+                $dataRoom->last_message    = $message;
+                $dataRoom->save();
+
+                $chatData = [
+                    'created_at' => date("d/m/Y H:i:s"),
+                    'file' => $chat["file"],
+                    'id' => 0,
+                    'message_readed' => false,
+                    'readed_at' => '',
+                    'room_key' => $dataRoom->room_key,
+                    'text' => $data->text,
+                    'user_id' => $data->user_id
+                ];
+                $newChatKey = $database->getReference('room_chat/'. $dataRoom->room_key .'/chat')->push()->getKey();
+                $database->getReference('room_chat/'. $dataRoom->room_key .'/chat/' . $newChatKey)->set($chatData);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Extend to Regular Chat Succeeded'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

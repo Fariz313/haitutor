@@ -315,7 +315,7 @@ Route::middleware(['cors'])->group(function () {
 
             Route::put('/accept/{id_room}', 'QuickAskController@acceptAnswer');
             Route::put('/abort/{id_question}', 'QuickAskController@abortQuestion');
-            Route::put('/extend/{id_question}', 'QuickAskController@extendToRegularChat');
+            Route::put('/extend/{id_room}', 'QuickAskController@extendToRegularChat');
 
             Route::get('/list', 'QuickAskController@index');
             Route::get('/list/{id_question}', 'QuickAskController@show');
