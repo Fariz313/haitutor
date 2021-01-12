@@ -107,22 +107,27 @@ class TutorController extends Controller
             $paginate = $request->get('paginate');
         }
         if($request->get('search')){
-            $querySearch    =$request->get('search');
-            $data           =User::where('role', Role::ROLE["TUTOR"])
-                            ->with(array('detail','tutorSubject'=>function($query)
-                            {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                            'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
-                                ->groupBy('target_id');},))
-                            ->where(function ($where) use ($querySearch){
-                                $where->where('name','LIKE','%'.$querySearch.'%');
-                            })->paginate($paginate);
+            $querySearch    = $request->get('search');
+            $data           = User::where('role', Role::ROLE["TUTOR"])
+                                ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                ->with(array('detail','tutorSubject'=>function($query){
+                                    $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                },'rating'=>function($query){
+                                    $query->selectRaw('target_id,AVG(rate) average')->groupBy('target_id');
+                                }))
+                                ->where(function ($where) use ($querySearch){
+                                    $where->where('name','LIKE','%'.$querySearch.'%');
+                                })->paginate($paginate);
             return $data;
         }
         $data   =   User::where('role', Role::ROLE["TUTOR"])
-                          ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
-                            ->groupBy('target_id');},))
-                          ->paginate($paginate);
+                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                            ->with(array('detail','tutorSubject'=>function($query){
+                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }, 'rating'=>function($query){
+                                $query->selectRaw('target_id,AVG(rate) average')->groupBy('target_id');
+                            }))
+                            ->paginate($paginate);
         return $data;
     }
 
