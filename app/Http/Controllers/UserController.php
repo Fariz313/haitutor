@@ -588,19 +588,23 @@ class UserController extends Controller
 
     public function getAllStudent(Request $request){
         $paginate = 10;
-        if($request->get('paginate')){
+        if($request->get('paginate')) {
             $paginate = $request->get('paginate');
         }
+
         if($request->get('search')){
-            $querySearch = $request->get('search');
-            $data   =   User::where('role', Role::ROLE["STUDENT"])
-                    ->where(function ($where) use ($querySearch){
-                        $where->where('name','LIKE','%'.$querySearch.'%');
-                    })->paginate($paginate);
+            $querySearch    = $request->get('search');
+            $data           = User::where('role', Role::ROLE["STUDENT"])
+                                ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                ->where(function ($where) use ($querySearch){
+                                    $where->where('name','LIKE','%'.$querySearch.'%');
+                                })->paginate($paginate);
             return $data;
         }
-        $data   =   User::where('role', Role::ROLE["STUDENT"])
-                          ->paginate($paginate);
+
+        $data   = User::where('role', Role::ROLE["STUDENT"])
+                        ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                        ->paginate($paginate);
         return $data;
     }
     public function getStudent($id){
