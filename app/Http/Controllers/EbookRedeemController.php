@@ -28,11 +28,15 @@ class EbookRedeemController extends Controller
             if($request->get('search')){
                 $query  = $request->get('search');
                 $data   = EbookRedeem::select("ebook_redeem.*")
+                            ->where(function ($where) use ($query){
+                                $where->where('ebook_redeem.redeem_invoice','LIKE','%'.$query.'%')
+                                ->orWhere('ebook_redeem.request_invoice','LIKE','%'.$query.'%')
+                                ->orWhere('users.name','LIKE','%'.$query.'%');
+                            })
                             ->join("users", "ebook_redeem.id_customer", "=", "users.id")
                             ->with(array('customer', 'marketing', 'publisher', 'detail' => function($query){
                                 $query->get();
                             }))
-                            ->where('users.name','LIKE','%'.$query.'%')
                             ->where('ebook_redeem.is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             } else {
