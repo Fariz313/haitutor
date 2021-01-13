@@ -15,12 +15,12 @@ use Illuminate\Support\Str;
 
 
 class PaymentMethodController extends Controller {
-    
+
     public function getAll(Request $request){
         try{
             // Get All Provider for each Payment Method
-            $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id_payment_method', 
-                                                    'payment_provider.id as active_provider_id', 
+            $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id_payment_method',
+                                                    'payment_provider.id as active_provider_id',
                                                     'payment_provider.name as active_provider_name')
                                                 ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
                                                 ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
@@ -28,10 +28,10 @@ class PaymentMethodController extends Controller {
 
             if($request->get('search')){
                 $query = $request->get('search');
-                
-                $data = PaymentMethod::select('payment_method.*', 
-                        'payment_method_category.name as category_name', 
-                        'payment_method_category.order as category_order', 
+
+                $data = PaymentMethod::select('payment_method.*',
+                        'payment_method_category.name as category_name',
+                        'payment_method_category.order as category_order',
                         'active_method.*')
                     ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                     ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
@@ -47,11 +47,36 @@ class PaymentMethodController extends Controller {
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
                     })->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
 
+                $allData = PaymentMethod::select('payment_method.*',
+                    'payment_method_category.name as category_name',
+                    'payment_method_category.order as category_order')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw("0");
+                    }, 'id_payment_method')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw('0');
+                    }, 'active_provider_id')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw("''");
+                    }, 'active_provider_name')
+                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                    ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
+                    ->where(function ($where) use ($query){
+                        $where->where('payment_method.name','LIKE','%'.$query.'%')
+                            ->orWhere('payment_method.code','LIKE','%'.$query.'%');
+                    })
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->union($data)
+                    ->orderBy('status','DESC')
+                    ->orderBy('category_order','ASC')
+                    ->orderBy('order','ASC')
+                    ->paginate(10);
+
             } else {
-                
-                $data = PaymentMethod::select('payment_method.*', 
-                        'payment_method_category.name as category_name', 
-                        'payment_method_category.order as category_order', 
+
+                $data = PaymentMethod::select('payment_method.*',
+                        'payment_method_category.name as category_name',
+                        'payment_method_category.order as category_order',
                         'active_method.*')
                     ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                     ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
@@ -63,41 +88,41 @@ class PaymentMethodController extends Controller {
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
                     ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
+
+                $allData = PaymentMethod::select('payment_method.*',
+                    'payment_method_category.name as category_name',
+                    'payment_method_category.order as category_order')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw("0");
+                    }, 'id_payment_method')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw('0');
+                    }, 'active_provider_id')
+                    ->selectSub(function ($query) {
+                        $query->selectRaw("''");
+                    }, 'active_provider_name')
+                    ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
+                    ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
+                    ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->union($data)
+                    ->orderBy('status','DESC')
+                    ->orderBy('category_order','ASC')
+                    ->orderBy('order','ASC')
+                    ->paginate(10);
             }
 
-            $allData = PaymentMethod::select('payment_method.*',
-                            'payment_method_category.name as category_name', 
-                            'payment_method_category.order as category_order')
-                            ->selectSub(function ($query) {
-                                $query->selectRaw("0");
-                            }, 'id_payment_method')
-                            ->selectSub(function ($query) {
-                                $query->selectRaw('0');
-                            }, 'active_provider_id')
-                            ->selectSub(function ($query) {
-                                $query->selectRaw("''");
-                            }, 'active_provider_name')
-                            ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
-                            ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
-                            ->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
-                            ->union($data)
-                            ->orderBy('status','DESC')
-                            ->orderBy('category_order','ASC')
-                            ->orderBy('order','ASC')
-                            ->paginate(10);
-            
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $allData,
                 'message'   =>  'Get Data Success'
             ], 200);
-        
+
         } catch(\Exception $e){
             return response()->json([
                 "status"    => "Failed",
                 "error"     => $e->getMessage()
             ], 500);
-        }       
+        }
     }
 
     public function getAllEnabledPaymentMethod(){
@@ -109,7 +134,7 @@ class PaymentMethodController extends Controller {
             // Get All Provider for each Payment Method
             $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id',
                                                     'payment_method_provider.id_payment_method',
-                                                    'payment_provider.id as active_provider_id', 
+                                                    'payment_provider.id as active_provider_id',
                                                     'payment_provider.name as active_provider_name')
                                                 ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
                                                 ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
@@ -120,8 +145,8 @@ class PaymentMethodController extends Controller {
                             ->where('isDeleted', PaymentMethodCategory::PAYMENT_CATEGORY_DELETED_STATUS['ACTIVE']);
                     })
                     ->with(array('enabledPaymentMethod'=> function($query) use ($activePaymentMethodProvider, $validCategory){
-                        $query->select('payment_method.*', 
-                            'active_method.active_provider_name', 
+                        $query->select('payment_method.*',
+                            'active_method.active_provider_name',
                             'active_method.active_provider_id',
                             'active_method.id as id_payment_method_provider')
                         ->joinSub($activePaymentMethodProvider, 'active_method', function ($join) {
@@ -134,19 +159,19 @@ class PaymentMethodController extends Controller {
                     ->whereIn('id', $validCategory)
                     ->orderBy('order','ASC')
                     ->get();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ], 200);
-        
+
         } catch(\Exception $e){
             return response()->json([
                 "status"    => "Failed",
                 "error"     => $e->getMessage()
             ], 500);
-        }       
+        }
     }
 
     public function getOne($id)
@@ -156,7 +181,7 @@ class PaymentMethodController extends Controller {
             $activePaymentMethodProvider = PaymentMethodProvider::select('payment_method_provider.id',
                                                     'payment_method_provider.id_payment_method',
                                                     'payment_method_provider.status',
-                                                    'payment_provider.id as active_provider_id', 
+                                                    'payment_provider.id as active_provider_id',
                                                     'payment_provider.name as active_provider_name')
                                                 ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
                                                 ->where('isActive', PaymentMethodProvider::PAYMENT_METHOD_PROVIDER_ACTIVE_STATUS["ACTIVE"])
@@ -164,10 +189,10 @@ class PaymentMethodController extends Controller {
 
             if(count($activePaymentMethodProvider->where('id_payment_method', $id)->get()) > 0){
                 // Show Detail for Payment Method with Existing Active Payment Method Provider
-                $data   =   PaymentMethod::select('payment_method.*', 
-                            'payment_method_category.name as category_name', 
-                            'payment_method_category.order as category_order', 
-                            'active_method.active_provider_name', 
+                $data   =   PaymentMethod::select('payment_method.*',
+                            'payment_method_category.name as category_name',
+                            'payment_method_category.order as category_order',
+                            'active_method.active_provider_name',
                             'active_method.active_provider_id',
                             'active_method.id as id_payment_method_provider',
                             'active_method.status as status_payment_method_provider')
@@ -184,8 +209,8 @@ class PaymentMethodController extends Controller {
                         ->where('payment_method.id', $id)->first();
             } else {
                 // Show Detail for Payment Method with No Existing Active Payment Method Provider
-                $data   =   PaymentMethod::select('payment_method.*', 
-                            'payment_method_category.name as category_name', 
+                $data   =   PaymentMethod::select('payment_method.*',
+                            'payment_method_category.name as category_name',
                             'payment_method_category.order as category_order')
                         ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                         ->with(array('availablePaymentProvider' => function($query){
@@ -195,8 +220,8 @@ class PaymentMethodController extends Controller {
                         }))
                         ->with('paymentMethodProviderVariable')
                         ->where('payment_method.id', $id)->first();
-            }                                   
-            
+            }
+
             return response()->json([
                 'status'    =>  'Success',
                 'message'   =>  'Get Data Success',
@@ -207,7 +232,7 @@ class PaymentMethodController extends Controller {
                 "status"    => "Failed",
                 "error"     => $e->getMessage()
             ], 500);
-        }   
+        }
     }
 
     public function store(Request $request)
@@ -297,7 +322,7 @@ class PaymentMethodController extends Controller {
     		}
 
             $data                   = PaymentMethod::findOrFail($id);
-            
+
             if ($request->input('id_payment_category')) {
                 $data->id_payment_category = $request->input('id_payment_category');
             }
@@ -359,7 +384,7 @@ class PaymentMethodController extends Controller {
                     'status'	=> 'Failed',
                     'message'	=> 'Payment Method was already enabled'
                 ], 201);
-                
+
             } else {
                 // Get Category with Existing Active Payment Method
                 $activePaymentMethodProvider = DB::table('view_active_payment_method')
@@ -369,7 +394,7 @@ class PaymentMethodController extends Controller {
                     $data->save();
 
                     $this->tidyOrder();
-                    
+
                     return response()->json([
                         'status'	=> 'Success',
                         'message'	=> 'Payment Method Enabled',
@@ -381,7 +406,7 @@ class PaymentMethodController extends Controller {
                         'status'	=> 'Failed',
                         'message'	=> "Payment Method doesn't have active provider"
                     ], 201);
-                    
+
                 }
             }
 
@@ -404,13 +429,13 @@ class PaymentMethodController extends Controller {
                     'status'	=> 'Failed',
                     'message'	=> 'Payment Method was already disabled'
                 ], 201);
-                
+
             } else {
                 $data->status = PaymentMethod::PAYMENT_METHOD_STATUS["DISABLED"];
                 $data->save();
 
                 $this->tidyOrder();
-                
+
                 return response()->json([
                     'status'	=> 'Success',
                     'message'	=> 'Payment Method Disabled',
@@ -425,7 +450,7 @@ class PaymentMethodController extends Controller {
             ]);
         }
     }
-    
+
     public function destroy($id)
     {
         try{
@@ -468,7 +493,7 @@ class PaymentMethodController extends Controller {
                     'data'      => $data
                 ], 200);
             }
-            
+
         } catch(\Exception $e){
             return response([
             	"status"	=> "Failed",
@@ -480,7 +505,7 @@ class PaymentMethodController extends Controller {
     public function getPaymentMethodByMethodProviderId($idPaymentMethodProvider)
     {
         try {
-            $data   =   PaymentMethod::select('payment_method.*', 
+            $data   =   PaymentMethod::select('payment_method.*',
                             'payment_method_provider.id as id_payment_method_provider',
                             'payment_provider.name as provider_name',
                             'payment_method_category.name as category_name')
@@ -492,7 +517,7 @@ class PaymentMethodController extends Controller {
                             $query->where('payment_method_provider.id', $idPaymentMethodProvider);
                         }))
                         ->where('payment_method_provider.id', $idPaymentMethodProvider)->first();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'message'   =>  'Get Data Success',
@@ -503,7 +528,7 @@ class PaymentMethodController extends Controller {
                 "status"    => "Failed",
                 "error"     => $e->getMessage()
             ], 500);
-        }   
+        }
     }
 
     public function getAvailablePaymentMethodProvider($idPaymentMethod)
@@ -512,7 +537,7 @@ class PaymentMethodController extends Controller {
             $data   =   PaymentProvider::select("payment_provider.*", 'payment_method_provider.id as id_payment_method_provider')
                         ->join("payment_method_provider", "payment_provider.id", "=", "payment_method_provider.id_payment_provider")
                         ->where('payment_method_provider.id_payment_method', $idPaymentMethod)->get();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'message'   =>  'Get Data Success',
@@ -523,7 +548,7 @@ class PaymentMethodController extends Controller {
                 "status"    => "Failed",
                 "error"     => $e->getMessage()
             ], 500);
-        }   
+        }
     }
 
     private function tidyOrder(){
@@ -560,7 +585,7 @@ class PaymentMethodController extends Controller {
                 $this->tidyOrder();
 
                 return $this->getAll(new Request());
-                
+
             } else {
                 $this->tidyOrder();
 
@@ -574,5 +599,5 @@ class PaymentMethodController extends Controller {
             ], 500);
         }
     }
-    
+
 }
