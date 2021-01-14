@@ -27,29 +27,37 @@ class ChatController extends Controller
 
     		if($validator->fails()){
     			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
+                    'status'    => 'failed validate',
+                    'error'     => $validator->errors()
                 ],400);
-    		}
-            $requestCount           =   0;
+            }
+
+            $requestCount           = 0;
             $data                   = new Chat();
             $message                = "";
 
             if ($request->input('text')) {
                 $data->text         = $request->input('text');
                 $message            = $request->input('text');
-                $requestCount       +=   1;
+                $requestCount       += 1;
             }
+
             $data->user_id          = $user->id;
             $data->room_key         = $roomkey;
             if($request->hasFile('file')){
                 try {
-                    $requestCount   +=   1;
+                    $requestCount   += 1;
                     $file           = $request->file('file');
-                    $message        = "Photo";
-                    // $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
-                    $file = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
-                    $data->file = $file;
+
+                    if ($request->input('text')) {
+                        $message    = "[Photo] Photo";
+                    } else {
+                        $message    = "[Photo] " . $request->input('text');
+                    }
+
+                    $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
+                    $data->file     = $message;
+                    $data->text     = $file;
                     $data->save();
                 } catch (\Throwable $th) {
                     return response()->json([
@@ -91,8 +99,9 @@ class ChatController extends Controller
                 return response()->json([
                     'status'	=> 'Success',
                     'message'	=> 'Success adding chat',
-                    'data'     => array(
-                        "notif" => $responseNotif,
+                    'data'      => array(
+                        "chat_data" => $data,
+                        "notif"     => json_decode($responseNotif),
                         "url_image" => $data->file
                     )
                 ], 201);
