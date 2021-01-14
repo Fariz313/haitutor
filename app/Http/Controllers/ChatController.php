@@ -32,34 +32,30 @@ class ChatController extends Controller
                 ],400);
             }
 
-            $requestCount           = 0;
             $data                   = new Chat();
             $message                = "";
 
             if ($request->input('text')) {
                 $data->text         = $request->input('text');
                 $message            = $request->input('text');
-                $requestCount       += 1;
             }
 
             $data->user_id          = $user->id;
             $data->room_key         = $roomkey;
             if($request->hasFile('file')){
                 try {
-                    $requestCount   += 1;
                     $file           = $request->file('file');
 
-                    // if ($request->input('text')) {
-                    //     $message    = "[Photo] Photo";
-                    // } else {
-                    //     $message    = "[Photo] " . $request->input('text');
-                    // }
-                    $message        = "[Photo] Photo";
+                    if ($request->input('text')) {
+                        $message    = "[Photo] Photo";
+                    } else {
+                        $message    = "[Photo] " . $request->input('text');
+                    }
 
                     $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
                     $data->file     = $file;
                     $data->text     = $message;
-                    $data->save();
+
                 } catch (\Throwable $th) {
                     return response()->json([
                         'status'	=> 'failed',
