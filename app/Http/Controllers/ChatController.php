@@ -49,11 +49,12 @@ class ChatController extends Controller
                     $requestCount   += 1;
                     $file           = $request->file('file');
 
-                    if ($request->input('text')) {
-                        $message    = "[Photo] Photo";
-                    } else {
-                        $message    = "[Photo] " . $request->input('text');
-                    }
+                    // if ($request->input('text')) {
+                    //     $message    = "[Photo] Photo";
+                    // } else {
+                    //     $message    = "[Photo] " . $request->input('text');
+                    // }
+                    $message        = "[Photo] Photo";
 
                     $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
                     $data->file     = $file;
