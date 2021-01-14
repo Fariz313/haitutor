@@ -11,41 +11,41 @@ use Illuminate\Support\Str;
 
 
 class FaqController extends Controller {
-    
+
     public function getAll(Request $request){
-    
+
          try{
-           
+
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = Faq::where(function ($where) use ($query){
                     $where->where('pertanyaan','LIKE','%'.$query.'%')
                         ->orWhere('jawaban','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Faq::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
-        
+
          }catch(\Throwable $e){
-             
+
               return response()->json([
                "status"=>"gagal",
                "error"=>$e
                ],500);
-         }       
+         }
     }
 
     public function getOne($id)
     {
         try {
-            $data   =   Faq::findOrFail($id);  
-            
+            $data   =   Faq::findOrFail($id);
+
             return response()->json([
                 'status'    =>  'success',
                 'message'   =>  'Get Data Success',
@@ -99,7 +99,7 @@ class FaqController extends Controller {
         try{
     		$validator = Validator::make($request->all(), [
     			'pertanyaan'   => 'string',
-				'jawabn'	   => 'string',
+				'jawaban'	   => 'string',
     		]);
 
     		if($validator->fails()){
@@ -110,7 +110,7 @@ class FaqController extends Controller {
     		}
 
             $data                   = Faq::findOrFail($id);
-            if ($request->input('pertanyaa')) {
+            if ($request->input('pertanyaan')) {
                 $data->pertanyaan   = $request->input('pertanyaan');
             }
             if ($request->input('jawaban')) {
@@ -131,7 +131,7 @@ class FaqController extends Controller {
             ]);
         }
     }
-    
+
     public function destroy($id)
     {
         try{
@@ -156,6 +156,6 @@ class FaqController extends Controller {
             ]);
         }
     }
-    
-    
+
+
 }
