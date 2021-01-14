@@ -56,8 +56,8 @@ class ChatController extends Controller
                     }
 
                     $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
-                    $data->file     = $message;
-                    $data->text     = $file;
+                    $data->file     = $file;
+                    $data->text     = $message;
                     $data->save();
                 } catch (\Throwable $th) {
                     return response()->json([
