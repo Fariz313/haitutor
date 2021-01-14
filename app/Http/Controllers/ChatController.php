@@ -47,8 +47,7 @@ class ChatController extends Controller
                     $file           = $request->file('file');
 
                     if ($request->input('text')) {
-                        // $message    = "[Photo] " . $request->input('text');
-                        $message    = "[Photo] There is Photo";
+                        $message    = "[Photo] " . $request->input('text');
                     } else {
                         $message    = "[Photo] There is no Photo";
                     }
