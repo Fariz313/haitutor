@@ -8,6 +8,12 @@ class Rating extends Model
 {
     protected $table = 'rating';
 
+    const SERVICEABLE_TYPE = array(
+        "CHAT"      => 'chat',
+        "VIDEOCALL" => 'videocall',
+        "EBOOK"     => 'ebook'
+    );
+
     public function sender()
     {
         return $this->hasOne('App\User', 'id', 'sender_id');

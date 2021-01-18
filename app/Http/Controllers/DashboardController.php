@@ -7,6 +7,7 @@ use App\EbookLibrary;
 use App\EbookOrder;
 use App\EbookRedeem;
 use App\Order;
+use App\Rating;
 use App\Report;
 use App\Role;
 use App\RoomChat;
@@ -221,5 +222,97 @@ class DashboardController extends Controller
                 'message'   => 'Get Pending Ebook Manual Order Request Data Failed',
                 'error'     => $e->getMessage()], 500);
         }
+    }
+
+    public function getRatingData(){
+        try {
+            $MIN_THRESHOLD = 0.05;
+
+            // GET RATING CHAT DATA
+            $rating_chat = Rating::selectRaw('rate, count(rate) as count')
+                            ->where('serviceable_type', Rating::SERVICEABLE_TYPE["CHAT"])
+                            ->groupBy('rate')
+                            ->orderBy('count','ASC');
+
+            $label = $rating_chat->pluck('rate')->toArray();
+            $count = $rating_chat->pluck('count')->toArray();
+
+            $proper_list_chat = $this->getProperList($label, $count, $MIN_THRESHOLD);
+
+            // GET RATING VIDCALL DATA
+            $rating_chat = Rating::selectRaw('rate, count(rate) as count')
+                            ->where('serviceable_type', Rating::SERVICEABLE_TYPE["VIDEOCALL"])
+                            ->groupBy('rate')
+                            ->orderBy('count','ASC');
+
+            $label = $rating_chat->pluck('rate')->toArray();
+            $count = $rating_chat->pluck('count')->toArray();
+
+            $proper_list_vidcall = $this->getProperList($label, $count, $MIN_THRESHOLD);
+
+            // GET RATING EBOOK DATA
+            $rating_chat = Rating::selectRaw('rate, count(rate) as count')
+                            ->where('serviceable_type', Rating::SERVICEABLE_TYPE["EBOOK"])
+                            ->groupBy('rate')
+                            ->orderBy('count','ASC');
+
+            $label = $rating_chat->pluck('rate')->toArray();
+            $count = $rating_chat->pluck('count')->toArray();
+
+            $proper_list_ebook = $this->getProperList($label, $count, $MIN_THRESHOLD);
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Rating Statistics Succeeded',
+                'data'      => [
+                    'rating_chat'       => $proper_list_chat,
+                    'rating_vidcall'    => $proper_list_vidcall,
+                    'rating_ebook'      => $proper_list_ebook
+                ]], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Rating Statistics Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    private function getProperList($label, $data, $threshold){
+        $stringLabel = array_map('strval', $label);
+
+        $proper_label   = array();
+        $proper_data    = array();
+
+        $tempSum = 0;
+        $tempJoinLabel = array();
+        foreach($data as $idx => $iterCount){
+            $tempSum += $iterCount;
+            if(($tempSum / array_sum($data)) > $threshold){
+                // If Proportion is proper
+                if(empty($tempJoinLabel)){
+                    // Not Cumulative Component
+                    array_push($proper_label, $stringLabel[$idx]);
+                    array_push($proper_data, $iterCount);
+                } else {
+                    // Cumulative Component
+                    array_push($tempJoinLabel, $label[$idx]);
+
+                    $tempString = "Lainnya " . json_encode($tempJoinLabel);
+
+                    array_push($proper_label, $tempString);
+                    array_push($proper_data, $tempSum);
+
+                    $tempJoinLabel = array();
+                }
+
+                $tempSum = 0;
+            } else {
+                // If Proportion is not proper (less than minimum proportion)
+                array_push($tempJoinLabel, $label[$idx]);
+            }
+        }
+
+        return array($proper_label, $proper_data);
     }
 }
