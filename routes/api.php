@@ -333,7 +333,7 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/ebook/bestseller', 'DashboardController@getBestSellerEbook');
             Route::get('/tutor/pending', 'DashboardController@getPendingTutor');
             Route::get('/ebook/redeem/pending', 'DashboardController@getPendingEbookRedeem');
-            Route::get('/ebook/order/pending', 'DashboardController@getPendingEbookTutor');
+            Route::get('/ebook/order/pending', 'DashboardController@getPendingEbookManualOrder');
             Route::get('/rating', 'DashboardController@getRatingData');
         });
 

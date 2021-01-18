@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Ebook;
 use App\EbookLibrary;
+use App\EbookOrder;
+use App\EbookRedeem;
 use App\Order;
 use App\Report;
 use App\Role;
 use App\RoomChat;
 use App\RoomVC;
+use App\TutorDetail;
 use App\User;
 
 class DashboardController extends Controller
@@ -145,6 +148,77 @@ class DashboardController extends Controller
             return response()->json([
                 'status'    => 'Failed',
                 'message'   => 'Get Best Seller Ebook Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPendingTutor(){
+        try {
+            $NUMBER_USER    = 5;
+
+            $data           = TutorDetail::where('tutor_detail.status', TutorDetail::TutorStatus["PENDING"])
+                                    ->join("users", "tutor_detail.user_id", "=", "users.id")
+                                    ->where('users.is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                    ->orderBy('tutor_detail.updated_at','DESC')
+                                    ->take($NUMBER_USER)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Recent Pending Tutor Data Succeeded',
+                'data'      => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Recent Pending Tutor Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPendingEbookRedeem(){
+        try {
+            $NUMBER_EBOOK   = 5;
+
+            $data           = EbookRedeem::select("ebook_redeem.*", "users.name as customer_name")
+                                    ->join("users", "ebook_redeem.id_customer", "=", "users.id")
+                                    ->where("ebook_redeem.is_deleted", EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
+                                    ->where("ebook_redeem.status", EbookRedeem::EBOOK_REDEEM_STATUS["PENDING"])
+                                    ->orderBy('ebook_redeem.created_at','DESC')
+                                    ->take($NUMBER_EBOOK)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Pending Ebook Redeem Request Data Succeeded',
+                'data'      => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Pending Ebook Redeem Request Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPendingEbookManualOrder(){
+        try {
+            $NUMBER_EBOOK   = 5;
+
+            $data           = EbookOrder::select("ebook_order.*", "users.name as customer_name")
+                                    ->join("users", "ebook_order.id_customer", "=", "users.id")
+                                    ->where("ebook_order.is_deleted", EbookOrder::EBOOK_ORDER_DELETED_STATUS["ACTIVE"])
+                                    ->where("ebook_order.status", EbookOrder::EBOOK_ORDER_STATUS["PENDING"])
+                                    ->orderBy('ebook_order.created_at','DESC')
+                                    ->take($NUMBER_EBOOK)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Pending Ebook Manual Order Request Data Succeeded',
+                'data'      => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Pending Ebook Manual Order Request Data Failed',
                 'error'     => $e->getMessage()], 500);
         }
     }
