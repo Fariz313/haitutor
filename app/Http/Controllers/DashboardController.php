@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ebook;
+use App\EbookLibrary;
 use App\Order;
 use App\Report;
 use App\Role;
@@ -72,6 +73,78 @@ class DashboardController extends Controller
             return response()->json([
                 'status'    => 'Failed',
                 'message'   => 'Get General Statistics Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getNewUser(){
+        try {
+            $USER_ROLE      = array(Role::ROLE["STUDENT"], Role::ROLE["TUTOR"]);
+            $NUMBER_USER    = 5;
+
+            $new_user       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                    ->whereIn('role', $USER_ROLE)
+                                    ->orderBy('created_at','DESC')
+                                    ->take($NUMBER_USER)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get New User Data Succeeded',
+                'data'      => $new_user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get New User Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getMostReportedUser(){
+        try {
+            $NUMBER_USER    = 5;
+
+            $user_id        = Report::groupBy('target_id')
+                                    ->selectRaw('target_id as id, users.name, users.role, count(report.id) as report_count')
+                                    ->join("users", "report.target_id", "=", "users.id")
+                                    ->orderBy('report_count','DESC')
+                                    ->take($NUMBER_USER)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Most Reported User Data Succeeded',
+                'data'      => $user_id
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Most Reported User Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getBestSellerEbook(){
+        try {
+            $NUMBER_EBOOK   = 5;
+
+            $data           = EbookLibrary::groupBy('id_ebook')
+                                    ->selectRaw('ebook_library.id_ebook as id, ebook.name, count(ebook_library.id_ebook) as ebook_count')
+                                    ->join("ebook", "ebook_library.id_ebook", "=", "ebook.id")
+                                    ->where("ebook.type", Ebook::EBOOK_TYPE["PAID"])
+                                    ->where("ebook.is_deleted", Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                                    ->where("ebook.is_published", Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                                    ->orderBy('ebook_count','DESC')
+                                    ->take($NUMBER_EBOOK)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Best Seller Ebook Data Succeeded',
+                'data'      => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Best Seller Ebook Data Failed',
                 'error'     => $e->getMessage()], 500);
         }
     }
