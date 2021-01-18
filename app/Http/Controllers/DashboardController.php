@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Ebook;
 use App\EbookLibrary;
 use App\EbookOrder;
+use App\EbookPurchase;
 use App\EbookRedeem;
 use App\Order;
 use App\Rating;
@@ -265,10 +266,20 @@ class DashboardController extends Controller
                 'status'    => 'Success',
                 'message'   => 'Get Rating Statistics Succeeded',
                 'data'      => [
-                    'rating_chat'       => $proper_list_chat,
-                    'rating_vidcall'    => $proper_list_vidcall,
-                    'rating_ebook'      => $proper_list_ebook
-                ]], 200);
+                    'rating_chat'       => array(
+                        'label' => $proper_list_chat[0],
+                        'data'  => $proper_list_chat[1]
+                    ),
+                    'rating_vidcall'    => array(
+                        'label' => $proper_list_vidcall[0],
+                        'data'  => $proper_list_vidcall[1]
+                    ),
+                    'rating_ebook'      => array(
+                        'label' => $proper_list_ebook[0],
+                        'data'  => $proper_list_ebook[1]
+                    ),
+                ]
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -314,5 +325,126 @@ class DashboardController extends Controller
         }
 
         return array($proper_label, $proper_data);
+    }
+
+    public function getGraphicOrderData(){
+        try {
+            $MONTH_DISPLAY  = 12;
+            $today = date('Y-m-d');
+
+            // GRAPHIC
+
+            $listTimestamp = array();
+            $dataEbook = array();
+            $dataToken = array();
+            $label = array();
+
+            foreach (range(0, $MONTH_DISPLAY - 1) as $iterMonth) {
+                $tempTimestamp = strtotime($today . '-' . $iterMonth . ' months');
+                array_push($listTimestamp, $tempTimestamp);
+                array_push($dataEbook, 0);
+                array_push($dataToken, 0);
+            }
+
+            // Ebook Redeem
+            foreach ($listTimestamp as $idx => $timestamp) {
+                // Ebook Redeem
+                $redeemTransactionPerMonth      = EbookRedeem::where('status', EbookRedeem::EBOOK_REDEEM_STATUS["ACTIVE"])
+                                                ->where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
+                                                ->whereYear('created_at', '=', date('Y', $timestamp))
+                                                ->whereMonth('created_at', '=', date('m', $timestamp))->pluck('net_price')->toArray();
+
+                $dataEbook[$idx] += array_sum($redeemTransactionPerMonth);
+
+                // Ebook Manual Order
+                $orderTransactionPerMonth       = EbookOrder::where('status', EbookOrder::EBOOK_ORDER_STATUS["ACTIVE"])
+                                                ->where('is_deleted', EbookOrder::EBOOK_ORDER_DELETED_STATUS["ACTIVE"])
+                                                ->whereYear('created_at', '=', date('Y', $timestamp))
+                                                ->whereMonth('created_at', '=', date('m', $timestamp))->pluck('net_price')->toArray();
+
+                $dataEbook[$idx] += array_sum($orderTransactionPerMonth);
+
+                // Ebook Purchase
+                $purchaseTransactionPerMonth    = EbookPurchase::where('status', EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"])
+                                                ->where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                                                ->whereYear('created_at', '=', date('Y', $timestamp))
+                                                ->whereMonth('created_at', '=', date('m', $timestamp))->pluck('amount')->toArray();
+
+                $dataEbook[$idx] += array_sum($purchaseTransactionPerMonth);
+
+                // Token Transaction
+                $tokenTransactionPerMonth       = Order::where('status', Order::ORDER_STATUS["COMPLETED"])
+                                                ->where('is_deleted', Order::ORDER_DELETED_STATUS["ACTIVE"])
+                                                ->where('pos', Order::POS_STATUS["DEBET"])
+                                                ->whereYear('created_at', '=', date('Y', $timestamp))
+                                                ->whereMonth('created_at', '=', date('m', $timestamp))->pluck('amount')->toArray();
+
+                $dataToken[$idx] += array_sum($tokenTransactionPerMonth);
+
+                // Label
+                array_push($label, date('M', $timestamp) . " " . date('Y', $timestamp));
+            }
+
+            // STATISTICS
+            // Ebook Redeem
+            $grandTotalTransactionNumber    = 0;
+            $grandTotalTransactionAmount    = 0;
+
+            $redeemTransactionCurrentYear   = EbookRedeem::where('status', EbookRedeem::EBOOK_REDEEM_STATUS["ACTIVE"])
+                        ->where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
+                        ->whereYear('created_at', '=', date('Y', $timestamp))->pluck('net_price')->toArray();
+
+            $grandTotalTransactionAmount    += array_sum($redeemTransactionCurrentYear);
+            $grandTotalTransactionNumber    += count($redeemTransactionCurrentYear);
+
+            // Ebook Manual Order
+            $orderTransactionCurrentYear    = EbookOrder::where('status', EbookOrder::EBOOK_ORDER_STATUS["ACTIVE"])
+                        ->where('is_deleted', EbookOrder::EBOOK_ORDER_DELETED_STATUS["ACTIVE"])
+                        ->whereYear('created_at', '=', date('Y', $timestamp))->pluck('net_price')->toArray();
+
+            $grandTotalTransactionAmount    += array_sum($orderTransactionCurrentYear);
+            $grandTotalTransactionNumber    += count($orderTransactionCurrentYear);
+
+            // Ebook Purchase
+            $purchaseTransactionCurrentYear = EbookPurchase::where('status', EbookPurchase::EBOOK_PURCHASE_STATUS["SUCCESS"])
+                        ->where('is_deleted', EbookPurchase::EBOOK_PURCHASE_DELETED_STATUS["ACTIVE"])
+                        ->whereYear('created_at', '=', date('Y', $timestamp))->pluck('amount')->toArray();
+
+            $grandTotalTransactionAmount    += array_sum($purchaseTransactionCurrentYear);
+            $grandTotalTransactionNumber    += count($purchaseTransactionCurrentYear);
+
+            // Token Transaction
+            $tokenTransactionCurrentYear    = Order::where('status', Order::ORDER_STATUS["COMPLETED"])
+                        ->where('is_deleted', Order::ORDER_DELETED_STATUS["ACTIVE"])
+                        ->where('pos', Order::POS_STATUS["DEBET"])
+                        ->whereYear('created_at', '=', date('Y', $timestamp))->pluck('amount')->toArray();
+
+            $grandTotalTransactionAmount    += array_sum($tokenTransactionCurrentYear);
+            $grandTotalTransactionNumber    += count($tokenTransactionCurrentYear);
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Transaction Statistics Succeeded',
+                'data'      => [
+                    'graphic'   => array(
+                        'label'         => $label,
+                        'data_token'    => $dataToken,
+                        'data_ebook'    => $dataEbook
+                    ),
+                    'grand_total_transaction_amount'            => $grandTotalTransactionAmount,
+                    'grand_total_transaction_number'            => $grandTotalTransactionNumber,
+                    'total_ebook_redeem_transaction_amount'     => array_sum($redeemTransactionCurrentYear),
+                    'total_ebook_order_transaction_amount'      => array_sum($orderTransactionCurrentYear),
+                    'total_ebook_purchase_transaction_amount'   => array_sum($purchaseTransactionCurrentYear),
+                    'total_token_transaction_amount'            => array_sum($tokenTransactionCurrentYear)
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Transaction Statistics Failed',
+                'error'     => $e->getMessage()], 500);
+        }
     }
 }
