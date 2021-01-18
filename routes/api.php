@@ -324,6 +324,19 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/answer/{id_question}', 'QuickAskController@getDetailAnswer');
         });
 
+        Route::prefix('/statistics')->group(function () {
+            Route::get('/general', 'DashboardController@getGeneralStatistics');
+            Route::get('/graphic/order', 'DashboardController@getGraphicOrderData');
+            Route::get('/graphic/activity', 'DashboardController@getGraphicActivityData');
+            Route::get('/user/new', 'DashboardController@getNewUser');
+            Route::get('/user/reported', 'DashboardController@getMostReportedUser');
+            Route::get('/ebook/bestseller', 'DashboardController@getBestSellerEbook');
+            Route::get('/tutor/pending', 'DashboardController@getPendingTutor');
+            Route::get('/ebook/redeem/pending', 'DashboardController@getPendingEbookRedeem');
+            Route::get('/ebook/order/pending', 'DashboardController@getPendingEbookTutor');
+            Route::get('/rating', 'DashboardController@getRatingData');
+        });
+
         Route::middleware(['user.tutor'])->group(function () {
             Route::post('tutordoc', 'TutorDocController@store');
             Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
