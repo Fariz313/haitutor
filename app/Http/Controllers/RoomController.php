@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use FCM;
+use DB;
 
 class RoomController extends Controller
 {
@@ -245,6 +246,10 @@ class RoomController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        DB::beginTransaction();
+
+        $database = app('firebase.database');
+
         $message = "Update Status Room";
         $status = "Success";
         try {
@@ -261,12 +266,43 @@ class RoomController extends Controller
                 $target = $room->user;
             }
 
-            $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
-            $channelName  = Notification::CHANNEL_NOTIF_NAMES[11];
-            if("open" == $room->status){
-                $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
-                $channelName  = Notification::CHANNEL_NOTIF_NAMES[12];
+            if(RoomChat::ROOM_STATUS["OPEN"] == $room->status){
+                $messageNotif           = "Sesi percakapan dengan " . $sender->name . " dimulai";
+                $channelName            = Notification::CHANNEL_NOTIF_NAMES[12];
+
+                $room->session_active   = "#" . date("dmyHi");
+                $room->save();
+                $messageChatInformation = "[SENDER] memulai sesi " . $room->session_active;
+
+            } else {
+                $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
+                $channelName  = Notification::CHANNEL_NOTIF_NAMES[11];
+
+                if(is_null($room->session_active)){
+                    $messageChatInformation = "[SENDER] mengakhiri sesi percakapan";
+                } else {
+                    $messageChatInformation = "[SENDER] mengakhiri sesi " . $room->session_active;
+                }
+                $room->session_active   = null;
+                $room->save();
             }
+
+            // SEND INFORMATION CHAT
+            $chatData = [
+                'created_at'        => date("d/m/Y H:i:s"),
+                'file'              => "",
+                'id'                => 0,
+                'message_readed'    => false,
+                'readed_at'         => '',
+                'room_key'          => $room->room_key,
+                'text'              => $messageChatInformation,
+                'user_id'           => (int) $senderId,
+                'information_chat'  => true
+            ];
+            $newChatKey = $database->getReference('room_chat/'. $room->room_key .'/chat')->push()->getKey();
+            $database->getReference('room_chat/'. $room->room_key .'/chat/' . $newChatKey)->set($chatData);
+
+            DB::commit();
 
             $dataNotif = [
                 "title" => "HaiTutor",
