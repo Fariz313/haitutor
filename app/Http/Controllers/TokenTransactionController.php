@@ -53,6 +53,7 @@ class TokenTransactionController extends Controller
     public function chat($tutor_id)
     {
         try{
+            $database               = app('firebase.database');
 
             $current_user           = JWTAuth::parseToken()->authenticate();
 
@@ -60,7 +61,7 @@ class TokenTransactionController extends Controller
                                                 ->where("tutor_id", $tutor_id)->first();
 
             if ($checkRoom) {
-                if ($checkRoom->status == "closed") {
+                if ($checkRoom->status == RoomChat::ROOM_STATUS["CLOSED"]) {
                     $student                = User::findOrFail($current_user->id);
 
                     if ($current_user->balance == 0) {
@@ -80,34 +81,50 @@ class TokenTransactionController extends Controller
                             $tutor->balance     = $tutor->balance + 1;
                             $tutor->save();
 
-                            $checkRoom->status  = "open";
+                            $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
+                            $checkRoom->session_active  = "#" . date("dmyHi");
                             $checkRoom->save();
 
-                            $order         = new Order();
-                            $order->user_id       = $current_user->id;
-                            $order->detail        = "Memulai chat dengan ".$tutor->name."";
-                            $order->amount        = 1;
-                            $order->pos           = ORDER::POS_STATUS["KREDIT"];
-                            $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                            $order->status        = "completed";
+                            $order              = new Order();
+                            $order->user_id     = $current_user->id;
+                            $order->detail      = "Memulai chat dengan ".$tutor->name."";
+                            $order->amount      = 1;
+                            $order->pos         = ORDER::POS_STATUS["KREDIT"];
+                            $order->type_code   = ORDER::TYPE_CODE["INTERNAL"];
+                            $order->status      = Order::ORDER_STATUS["COMPLETED"];
                             $order->save();
 
-                            $order_tutor         = new Order();
+                            $order_tutor                = new Order();
                             $order_tutor->user_id       = $tutor->id;
                             $order_tutor->detail        = $current_user->name." Memulai chat dengan ".$tutor->name."";
                             $order_tutor->amount        = 1;
                             $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
                             $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                            $order_tutor->status        = "completed";
+                            $order_tutor->status        = Order::ORDER_STATUS["COMPLETED"];
                             $order_tutor->save();
 
+                            // SEND INFORMATION CHAT
+                            $chatData = [
+                                'created_at'        => date("d/m/Y H:i:s"),
+                                'file'              => "",
+                                'id'                => 0,
+                                'message_readed'    => false,
+                                'readed_at'         => '',
+                                'room_key'          => $checkRoom->room_key,
+                                'text'              => "[SENDER] memulai sesi " . $checkRoom->session_active,
+                                'user_id'           => (int) $current_user->id,
+                                'information_chat'  => true
+                            ];
+                            $newChatKey = $database->getReference('room_chat/'. $checkRoom->room_key .'/chat')->push()->getKey();
+                            $database->getReference('room_chat/'. $checkRoom->room_key .'/chat/' . $newChatKey)->set($chatData);
+
                             $dataNotif = [
-                                "title" => "HaiTutor",
-                                "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
-                                "sender_id" => $current_user->id,
-                                "target_id" => $tutor->id,
-                                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
-                                'token_recipient' => $tutor->firebase_token,
+                                "title"             => "HaiTutor",
+                                "message"           => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
+                                "sender_id"         => $current_user->id,
+                                "target_id"         => $tutor->id,
+                                "channel_name"      => Notification::CHANNEL_NOTIF_NAMES[2],
+                                'token_recipient'   => $tutor->firebase_token,
                                 'save_data' => true
                             ];
                             $responseNotif = FCM::pushNotification($dataNotif);
@@ -148,37 +165,38 @@ class TokenTransactionController extends Controller
                     $tutor->balance         = $tutor->balance + 1;
                     $tutor->save();
 
-                    $data                   =   new RoomChat();
-                    $data->room_key         =   Str::random(6);
-                    $data->tutor_id         =   $tutor_id;
-                    $data->user_id          =   $current_user->id;
-                    $data->status           =   "open";
-                    $data->last_message_at  =   date("Y-m-d H:i:s");
+                    $data                   = new RoomChat();
+                    $data->room_key         = Str::random(6);
+                    $data->tutor_id         = $tutor_id;
+                    $data->user_id          = $current_user->id;
+                    $data->status           = RoomChat::ROOM_STATUS["OPEN"];
+                    $data->last_message_at  = date("Y-m-d H:i:s");
+                    $data->session_active   = "#" . date("dmyHi");
                     $data->save();
 
-                    $order         = new Order();
-                    $order->user_id       = $current_user->id;
-                    $order->detail        = "Memulai chat dengan ".$tutor->name."";
-                    $order->amount        = 1;
-                    $order->pos           = ORDER::POS_STATUS["KREDIT"];
-                    $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                    $order->status        = "completed";
+                    $order                  = new Order();
+                    $order->user_id         = $current_user->id;
+                    $order->detail          = "Memulai chat dengan ".$tutor->name."";
+                    $order->amount          = 1;
+                    $order->pos             = ORDER::POS_STATUS["KREDIT"];
+                    $order->type_code       = ORDER::TYPE_CODE["INTERNAL"];
+                    $order->status          = Order::ORDER_STATUS["COMPLETED"];
                     $order->save();
 
-                    $order_tutor         = new Order();
-                    $order_tutor->user_id       = $tutor->id;
-                    $order_tutor->detail        = $current_user->name." Memulai chat dengan ".$tutor->name."";
-                    $order_tutor->amount        = 1;
-                    $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
-                    $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                    $order_tutor->status        = "completed";
+                    $order_tutor            = new Order();
+                    $order_tutor->user_id   = $tutor->id;
+                    $order_tutor->detail    = $current_user->name." Memulai chat dengan ".$tutor->name."";
+                    $order_tutor->amount    = 1;
+                    $order_tutor->pos       = ORDER::POS_STATUS["DEBET"];
+                    $order_tutor->type_code = ORDER::TYPE_CODE["INTERNAL"];
+                    $order_tutor->status    = Order::ORDER_STATUS["COMPLETED"];
                     $order_tutor->save();
 
                     DB::commit();
 
                     $dataNotif = [
                         "title" => "HaiTutor",
-                        "message" => $current_user->name . " membuka kembali sesi percakapan dengan Anda",
+                        "message" => $current_user->name . " ingin memulai percakapan dengan Anda",
                         "sender_id" => $current_user->id,
                         "target_id" => $tutor->id,
                         "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[2],
