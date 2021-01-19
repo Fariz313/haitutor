@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Disbursement;
 use App\Ebook;
 use App\EbookLibrary;
 use App\EbookOrder;
 use App\EbookPurchase;
 use App\EbookRedeem;
+use App\Helpers\LogApps;
+use App\Logs;
 use App\Order;
 use App\Rating;
 use App\Report;
@@ -15,6 +18,7 @@ use App\RoomChat;
 use App\RoomVC;
 use App\TutorDetail;
 use App\User;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -55,7 +59,12 @@ class DashboardController extends Controller
             $student            = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                                     ->where('role', Role::ROLE["STUDENT"])->get();
 
-            $published_ebook    = Ebook::where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+            $published_paid_ebook   = Ebook::where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                                    ->where('type', Ebook::EBOOK_TYPE["PAID"])
+                                    ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])->get();
+
+            $published_free_ebook   = Ebook::where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
+                                    ->where('type', Ebook::EBOOK_TYPE["FREE"])
                                     ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])->get();
 
             return response()->json([
@@ -72,7 +81,8 @@ class DashboardController extends Controller
                     'count_active_user_in_report_today'     => count($active_report_today),
                     'count_student'                         => count($student),
                     'count_tutor'                           => count($tutor),
-                    'count_published_ebook'                 => count($published_ebook)
+                    'count_published_free_ebook'            => count($published_free_ebook),
+                    'count_published_paid_ebook'            => count($published_paid_ebook)
                 ]], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -82,13 +92,34 @@ class DashboardController extends Controller
         }
     }
 
-    public function getNewUser(){
+    public function getNewStudent(){
         try {
-            $USER_ROLE      = array(Role::ROLE["STUDENT"], Role::ROLE["TUTOR"]);
             $NUMBER_USER    = 5;
 
             $new_user       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
-                                    ->whereIn('role', $USER_ROLE)
+                                    ->where('role', Role::ROLE["STUDENT"])
+                                    ->orderBy('created_at','DESC')
+                                    ->take($NUMBER_USER)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get New User Data Succeeded',
+                'data'      => $new_user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get New User Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getNewTutor(){
+        try {
+            $NUMBER_USER    = 5;
+
+            $new_user       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                    ->where('role', Role::ROLE["TUTOR"])
                                     ->orderBy('created_at','DESC')
                                     ->take($NUMBER_USER)->get();
 
@@ -427,9 +458,9 @@ class DashboardController extends Controller
                 'message'   => 'Get Transaction Statistics Succeeded',
                 'data'      => [
                     'graphic'   => array(
-                        'label'         => $label,
-                        'data_token'    => $dataToken,
-                        'data_ebook'    => $dataEbook
+                        'label'         => array_reverse($label),
+                        'data_token'    => array_reverse($dataToken),
+                        'data_ebook'    => array_reverse($dataEbook)
                     ),
                     'grand_total_transaction_amount'            => $grandTotalTransactionAmount,
                     'grand_total_transaction_number'            => $grandTotalTransactionNumber,
@@ -437,6 +468,81 @@ class DashboardController extends Controller
                     'total_ebook_order_transaction_amount'      => array_sum($orderTransactionCurrentYear),
                     'total_ebook_purchase_transaction_amount'   => array_sum($purchaseTransactionCurrentYear),
                     'total_token_transaction_amount'            => array_sum($tokenTransactionCurrentYear)
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Transaction Statistics Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getPendingDisbursement(){
+        try {
+            $NUMBER_EBOOK   = 5;
+
+            $data           = Disbursement::select("disbursement.*", "users.name as username")
+                                    ->join("users", "disbursement.user_id", "=", "users.id")
+                                    ->where("disbursement.status", Disbursement::DisbursementStatus["PENDING"])
+                                    ->orderBy('disbursement.created_at','DESC')
+                                    ->take($NUMBER_EBOOK)->get();
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Pending Disbursement Request Data Succeeded',
+                'data'      => $data
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Pending Disbursement Request Data Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+    }
+
+    public function getGraphicActivityData(Request $request){
+        try {
+            $MODE   = 'W';
+            if(!is_null($request->get('mode'))){
+                $MODE   = $request->get('mode');
+            }
+
+            $listTimestamp = array();
+            $data = array();
+            $label = array();
+
+            $today = date('Y-m-d');
+
+            if($MODE == Logs::DISPLAY_LOG["WEEK"]){
+                $DAYS_DISPLAY   = 7;
+            } else if($MODE == Logs::DISPLAY_LOG["MONTH"]){
+                $DAYS_DISPLAY   = 30;
+            } else {
+                $DAYS_DISPLAY   = 365;
+            }
+
+            foreach (range(0, $DAYS_DISPLAY - 1) as $iterDay) {
+                $tempTimestamp = strtotime($today . '-' . $iterDay . ' days');
+
+                $loginData  = Logs::where('log_type', LogApps::LOG_TYPE["LOGIN"])
+                                        ->whereDay('created_at', '=', date('d', $tempTimestamp))
+                                        ->whereYear('created_at', '=', date('Y', $tempTimestamp))
+                                        ->whereMonth('created_at', '=', date('m', $tempTimestamp))->pluck('id')->toArray();
+
+                array_unshift($data, count($loginData));
+
+                // Label
+                array_unshift($label, date('d/m/y', $tempTimestamp));
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Transaction Statistics Succeeded',
+                'data'      => [
+                    'label' => $label,
+                    'data'  => $data
                 ]
             ], 200);
 

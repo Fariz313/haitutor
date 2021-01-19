@@ -328,13 +328,15 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/general', 'DashboardController@getGeneralStatistics');
             Route::get('/graphic/order', 'DashboardController@getGraphicOrderData');
             Route::get('/graphic/activity', 'DashboardController@getGraphicActivityData');
-            Route::get('/user/new', 'DashboardController@getNewUser');
+            Route::get('/student/new', 'DashboardController@getNewStudent');
+            Route::get('/tutor/new', 'DashboardController@getNewTutor');
             Route::get('/user/reported', 'DashboardController@getMostReportedUser');
             Route::get('/ebook/bestseller', 'DashboardController@getBestSellerEbook');
             Route::get('/tutor/pending', 'DashboardController@getPendingTutor');
             Route::get('/ebook/redeem/pending', 'DashboardController@getPendingEbookRedeem');
             Route::get('/ebook/order/pending', 'DashboardController@getPendingEbookManualOrder');
             Route::get('/rating', 'DashboardController@getRatingData');
+            Route::get('/disbursement/pending', 'DashboardController@getPendingDisbursement');
         });
 
         Route::middleware(['user.tutor'])->group(function () {
