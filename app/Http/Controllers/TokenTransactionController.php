@@ -82,7 +82,7 @@ class TokenTransactionController extends Controller
                             $tutor->save();
 
                             $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
-                            $checkRoom->session_active  = "#" . date("dmyHi");
+                            $checkRoom->session_active  = date("dmyHi");
                             $checkRoom->save();
 
                             $order              = new Order();
@@ -111,7 +111,7 @@ class TokenTransactionController extends Controller
                                 'message_readed'    => false,
                                 'readed_at'         => '',
                                 'room_key'          => $checkRoom->room_key,
-                                'text'              => "[SENDER] memulai sesi " . $checkRoom->session_active,
+                                'text'              => "[SENDER] memulai sesi #" . $checkRoom->session_active,
                                 'user_id'           => (int) $current_user->id,
                                 'information_chat'  => true
                             ];
@@ -171,7 +171,7 @@ class TokenTransactionController extends Controller
                     $data->user_id          = $current_user->id;
                     $data->status           = RoomChat::ROOM_STATUS["OPEN"];
                     $data->last_message_at  = date("Y-m-d H:i:s");
-                    $data->session_active   = "#" . date("dmyHi");
+                    $data->session_active   = date("dmyHi");
                     $data->save();
 
                     $order                  = new Order();
