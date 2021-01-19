@@ -270,9 +270,9 @@ class RoomController extends Controller
                 $messageNotif           = "Sesi percakapan dengan " . $sender->name . " dimulai";
                 $channelName            = Notification::CHANNEL_NOTIF_NAMES[12];
 
-                $room->session_active   = "#" . date("dmyHi");
+                $room->session_active   = date("dmyHi");
                 $room->save();
-                $messageChatInformation = "[SENDER] memulai sesi " . $room->session_active;
+                $messageChatInformation = "[SENDER] memulai sesi #" . $room->session_active;
 
             } else {
                 $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
@@ -281,7 +281,7 @@ class RoomController extends Controller
                 if(is_null($room->session_active)){
                     $messageChatInformation = "[SENDER] mengakhiri sesi percakapan";
                 } else {
-                    $messageChatInformation = "[SENDER] mengakhiri sesi " . $room->session_active;
+                    $messageChatInformation = "[SENDER] mengakhiri sesi #" . $room->session_active;
                 }
                 $room->session_active   = null;
                 $room->save();
