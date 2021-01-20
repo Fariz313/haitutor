@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Information;
 use Illuminate\Http\Request;
 use App\Package;
 use Illuminate\Support\Facades\Validator;
@@ -19,18 +20,20 @@ class PackageController extends Controller
     {
         try {
             if($request->get('search')){
-                $query = $request->get('search');
-                $data = Package::where(function ($where) use ($query){
-                    $where->where('name','LIKE','%'.$query.'%')
-                        ->orWhere('price','LIKE','%'.$query.'%')
-                        ->orWhere('balance','LIKE','%'.$query.'%');
-                } )
-                ->with(['user'])
-                ->paginate(10);    
+                $query  = $request->get('search');
+                $data   = Package::where(function ($where) use ($query){
+                            $where->where('name','LIKE','%'.$query.'%')
+                                ->orWhere('price','LIKE','%'.$query.'%')
+                                ->orWhere('balance','LIKE','%'.$query.'%');
+                            })
+                            ->where('is_deleted', Package::PACKAGE_DELETED_STATUS["ACTIVE"])
+                            ->paginate(10);
             }else{
-                $data = Package::with(['user'])->paginate(10);
+                $data   = Package::with(['user'])
+                        ->where('is_deleted', Package::PACKAGE_DELETED_STATUS["ACTIVE"])
+                        ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -52,7 +55,7 @@ class PackageController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -75,20 +78,29 @@ class PackageController extends Controller
                     'status'    =>'failed validate',
                     'error'     =>$validator->errors()
                 ],400);
-    		}
+            }
 
-            $data               = new Package();
-            $data->name         = $request->input('name');
-            $data->price        = $request->input('price');
-            $data->balance      = $request->input('balance');
-            $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
-	        $data->save();
+            $minimumPrice       = Information::where('variable', Information::ATRRIBUTE_NAME["MINIMUM_PACKAGE_PRICE"])->first();
 
-    		return response()->json([
-    			'status'	=> 'success',
-                'message'	=> 'Package added successfully',
-                'data'      => $data
-    		], 201);
+            if($request->input('price') >= (int)$minimumPrice->value){
+                $data               = new Package();
+                $data->name         = $request->input('name');
+                $data->price        = $request->input('price');
+                $data->balance      = $request->input('balance');
+                $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
+                $data->save();
+
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Package added successfully',
+                    'data'      => $data
+                ], 201);
+            } else {
+                return response()->json([
+                    'status'	=> 'Failed',
+                    'message'	=> 'Price less than minimum price allowed'
+                ], 201);
+            }
 
         } catch(\Exception $e){
             return response()->json([
@@ -107,8 +119,8 @@ class PackageController extends Controller
     public function show($id)
     {
         try {
-            $data   =   Package::where('id', $id)->with(['user'])->first();  
-            
+            $data   =   Package::where('id', $id)->with(['user'])->first();
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
@@ -131,7 +143,7 @@ class PackageController extends Controller
      */
     public function edit($id)
     {
-        
+
     }
 
     /**
@@ -144,36 +156,37 @@ class PackageController extends Controller
     public function update(Request $request, $id)
     {
         try{
-    		$validator = Validator::make($request->all(), [
-    			'name'          => 'required|string|max:255|unique:company',
-				'price'	        => 'required|integer',
-				'balance'		=> 'required|integer',
-    		]);
-
-    		if($validator->fails()){
-    			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
-                ],400);
-    		}
-
             $data                   = Package::findOrFail($id);
             if ($request->input('name')) {
                 $data->name         = $request->input('name');
             }
-            if ($request->input('price')) {
-                $data->price        = $request->input('price');
-            }
             if ($request->input('balance')) {
                 $data->balance      = $request->input('balance');
             }
-            $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
-	        $data->save();
+            if ($request->input('price')) {
+                $minimumPrice       = Information::where('variable', Information::ATRRIBUTE_NAME["MINIMUM_PACKAGE_PRICE"])->first();
+                if($request->input('price') >= (int)$minimumPrice->value){
+                    $data->price        = $request->input('price');
+                    $data->save();
+                    return response()->json([
+                        'status'	=> 'Success',
+                        'message'	=> 'Package updated successfully'
+                    ], 201);
 
-    		return response()->json([
-    			'status'	=> 'success',
-    			'message'	=> 'Package added successfully'
-    		], 201);
+                } else {
+                    return response()->json([
+                        'status'	=> 'Failed',
+                        'message'	=> 'Price less than minimum price allowed'
+                    ], 201);
+                }
+
+            } else {
+                $data->save();
+                return response()->json([
+                    'status'	=> 'Success',
+                    'message'	=> 'Package updated successfully'
+                ], 201);
+            }
 
         } catch(\Exception $e){
             return response()->json([
@@ -192,23 +205,27 @@ class PackageController extends Controller
     public function destroy($id)
     {
         try{
+            $package = Package::findOrFail($id);
 
-            $delete = Package::where("id", $id)->delete();
-
-            if($delete){
-              return response([
-              	"status"	=> "success",
-                  "message"   => "Company deleted successfully"
-              ]);
+            if($package->is_deleted == Package::PACKAGE_DELETED_STATUS["DELETED"]){
+                return response([
+                    "status"	=> "Failed",
+                    "message"   => "Package Already Deleted"
+                ]);
             } else {
-              return response([
-                "status"  => "failed",
-                  "message"   => "Failed delete data"
-              ]);
+
+                $package->is_deleted    = Package::PACKAGE_DELETED_STATUS["DELETED"];
+                $package->save();
+
+                return response([
+                    "status"	=> "Success",
+                    "message"   => "Package is Deleted"
+                ]);
             }
+
         } catch(\Exception $e){
             return response([
-            	"status"	=> "failed",
+            	"status"	=> "Failed",
                 "message"   => $e->getMessage()
             ]);
         }

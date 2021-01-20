@@ -58,8 +58,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('get_student', 'UserController@getAllStudent');
         Route::get('get_student/{id}', 'UserController@getStudent');
 
-        Route::get('/package', 'PackageController@index');
-
         Route::get('order', 'OrderController@index');
         Route::get('order/{id}', 'OrderController@showById');
         Route::get('order-user', 'OrderController@show');
@@ -84,8 +82,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('tutor_by_subject/{subject_id}', 'TutorController@getTutorBySubject');
         Route::get('subject_tutor/{tutor_id}', 'TutorSubjectController@getSubjectTutor');
 
-        Route::get('/package', 'PackageController@index');
-
         Route::get('/otpView', 'OtpController@showOtp');
 
         Route::get('info', 'UserController@getInformation');
@@ -98,6 +94,14 @@ Route::middleware(['cors'])->group(function () {
 
         ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials")->withoutMiddleware([RoleMiddleware::class]);
         ROute::post('signed-url', "UserController@getSignedUrl")->withoutMiddleware([RoleMiddleware::class]);
+
+        Route::prefix('/package')->group(function () {
+            Route::get('/', 'PackageController@index');
+            Route::post('/', 'PackageController@store');
+            Route::get('/{id}', 'PackageController@show');
+            Route::put('/{id}', 'PackageController@update');
+            Route::delete('/{id}', 'PackageController@destroy');
+        });
 
         Route::prefix('/company')->group(function () {
             Route::get('/', 'CompanyController@index');
