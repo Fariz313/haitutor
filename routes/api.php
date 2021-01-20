@@ -349,6 +349,9 @@ Route::middleware(['cors'])->group(function () {
             Route::post('tutordoc/{id}', 'TutorDocController@update');
         });
 
+        Route::post('chat/forward', 'ChatController@forwardMessage');
+        Route::get('room/forward/available', 'RoomController@getAvailableForwardRoom');
+
         //--------------------------------------------------LOGGED IN USER MIDDLEWARE
         Route::middleware(['jwt.verify'])->group(function () {
 

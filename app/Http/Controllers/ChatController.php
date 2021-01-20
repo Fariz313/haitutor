@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use FCM;
 use App\Helpers\CloudKilatHelper;
 use App\Helpers\GoogleCloudStorageHelper;
+use App\User;
 
 class ChatController extends Controller
 {
@@ -162,5 +163,75 @@ class ChatController extends Controller
                 'data'      => $th->getMessage(),
                 'message'   =>  'Failed to read message'],500);
         }
+    }
+
+    public function forwardMessage(Request $request){
+        try{
+            $database = app('firebase.database');
+
+            $arrayChat  = $request->get('array_chat');
+
+            foreach($request->get('array_room_id') as $roomId){
+                $room   = RoomChat::findOrFail($roomId);
+
+                foreach($request->get('array_chat') as $chat){
+                    $text           = "";
+                    $file           = "";
+                    $lastMessage    = "";
+
+                    if(array_key_exists('text', $chat)){
+                        $text           = $arrayChat[0]['text'];
+                        $lastMessage    = $arrayChat[0]['text'];
+                    }
+
+                    if(array_key_exists('file', $chat)){
+                        $file   = $arrayChat[0]['file'];
+                        if(array_key_exists('text', $chat)){
+                            $lastMessage    = "[Photo] " . $arrayChat[0]['text'];
+                        } else {
+                            $lastMessage    = "[Photo] Photo";
+                        }
+                    }
+
+                    // SEND INFORMATION CHAT
+                    $chatData = [
+                        'created_at'        => date("d/m/Y H:i:s"),
+                        'file'              => $file,
+                        'id'                => 0,
+                        'message_readed'    => false,
+                        'readed_at'         => '',
+                        'room_key'          => $room->room_key,
+                        'text'              => $text,
+                        'user_id'           => JWTAuth::parseToken()->authenticate()->id,
+                        'information_chat'  => false,
+                        'forwarded_chat'    => true
+                    ];
+
+                    $newChatKey = $database->getReference('room_chat/'. $room->room_key .'/chat')->push()->getKey();
+                    $database->getReference('room_chat/'. $room->room_key .'/chat/' . $newChatKey)->set($chatData);
+
+                    $room->last_message_at          = date("Y-m-d H:i:s");
+                    $room->last_message             = $lastMessage;
+                    $room->last_sender              = JWTAuth::parseToken()->authenticate()->id;
+                    $room->last_message_readed      = "false";
+                    $room->last_message_readed_at   = null;
+                    $room->save();
+                }
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Forwarding messages Succeeded',
+                'data'      => $arrayChat
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Forwarding messages Failed',
+                'data'      => $e->getMessage()
+            ]);
+        }
+
     }
 }
