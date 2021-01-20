@@ -380,4 +380,30 @@ class RoomController extends Controller
             ], 400);
         }
     }
+
+    public function getAvailableForwardRoom(){
+        try{
+            $userId   = JWTAuth::parseToken()->authenticate()->id;
+            $data = RoomChat::where(function ($where) use ($userId){
+                        $where->where('user_id', $userId)
+                            ->orWhere('tutor_id', $userId);
+                        })
+                        ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                        ->where('status', RoomChat::ROOM_STATUS["OPEN"])
+                        ->orderBy('last_message_at', 'DESC')->paginate(10);
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Available Forward Room Succeeded',
+                'data'      => $data
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Available Forward Room Failed',
+                'data'      => $e->getMessage()
+            ]);
+        }
+    }
 }
