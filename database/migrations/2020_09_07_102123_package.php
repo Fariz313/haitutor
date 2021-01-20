@@ -19,6 +19,7 @@ class Package extends Migration
             $table->integer('balance');
             $table->string('name');
             $table->integer('user_id');
+            $table->integer('is_deleted');
             $table->timestamps();
         });
     }

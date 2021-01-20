@@ -189,9 +189,11 @@ class DashboardController extends Controller
         try {
             $NUMBER_USER    = 5;
 
-            $data           = TutorDetail::where('tutor_detail.status', TutorDetail::TutorStatus["PENDING"])
-                                    ->join("users", "tutor_detail.user_id", "=", "users.id")
+            $data           = User::join("tutor_detail", "users.id", "=", "tutor_detail.user_id")
+                                    ->where('tutor_detail.status', TutorDetail::TutorStatus["PENDING"])
                                     ->where('users.is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                    ->select('users.*')
+                                    ->with(['detail'])
                                     ->orderBy('tutor_detail.updated_at','DESC')
                                     ->take($NUMBER_USER)->get();
 
