@@ -169,29 +169,41 @@ class DisbursementController extends Controller
     public function acceptDisbursement(Request $request, $id){
         try {
             $data               = Disbursement::where('id',$id)->first();
-            $data->status       = Disbursement::DisbursementStatus["ACCEPTED"];
-            $data->information  = $request->input('information');
-            $data->accepted_at  = date("Y-m-d H:i:s");
-            $data->save();
+            if($data->status == Disbursement::DisbursementStatus["ACCEPTED"]){
+                return response()->json([
+                    'status'    =>  'Failed',
+                    'data'      =>  $data,
+                    'message'   =>  'Disbursement Already Accepted'
+                ], 201);
 
-            $userTutor          = User::findOrFail($data->user_id);
+            } else {
+                $data->status       = Disbursement::DisbursementStatus["ACCEPTED"];
+                $data->information  = $request->input('information');
+                $data->accepted_at  = date("Y-m-d H:i:s");
+                $data->save();
 
-            $dataNotif = [
-                "title" => "HaiTutor",
-                "message" => "Pengajuan Pencairan Token Anda disetujui",
-                "sender_id" => JWTAuth::parseToken()->authenticate()->id,
-                "target_id" => $userTutor->id,
-                "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
-                'token_recipient' => $userTutor->firebase_token,
-                'save_data' => true
-            ];
-            $responseNotif = FCM::pushNotification($dataNotif);
+                $userTutor          = User::findOrFail($data->user_id);
+                $userTutor->balance = $userTutor->balance - $data->token;
+                $userTutor->save();
 
-            return response()->json([
-                'status'    =>  'Success',
-                'data'      =>  $data,
-                'message'   =>  'Accept Disbursement Success'
-            ], 201);
+                $dataNotif = [
+                    "title" => "HaiTutor",
+                    "message" => "Pengajuan Pencairan Token Anda disetujui",
+                    "sender_id" => JWTAuth::parseToken()->authenticate()->id,
+                    "target_id" => $userTutor->id,
+                    "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[9],
+                    'token_recipient' => $userTutor->firebase_token,
+                    'save_data' => true
+                ];
+                $responseNotif = FCM::pushNotification($dataNotif);
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Accept Disbursement Success'
+                ], 201);
+            }
+
         } catch (\Throwable $th) {
             return response()->json([
                 'status'    =>  'Failed',
@@ -325,7 +337,7 @@ class DisbursementController extends Controller
                 $data           = 4;
                 $errorMsg       = "No Rekening Document is Empty / Not Verified";
             }
-            
+
             if($isApplicable){
                 return response()->json([
                     'status'    =>  'Success',
@@ -339,7 +351,7 @@ class DisbursementController extends Controller
                     'message'   =>  $errorMsg
                 ], 200);
             }
-            
+
         } catch(\Exception $e){
             return response()->json([
                 'status'    =>  'Failed',
