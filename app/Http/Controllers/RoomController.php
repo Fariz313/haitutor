@@ -118,7 +118,7 @@ class RoomController extends Controller
 
                 if(Role::ROLE["STUDENT"] == $user->role){
                     $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
-                                ->where("is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
                                         ->orWhere('tutor_id',$user->id);
@@ -137,7 +137,7 @@ class RoomController extends Controller
                                 ->paginate(20);
                 } else {
                     $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
-                                ->where("is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
                                         ->orWhere('tutor_id',$user->id);
@@ -157,9 +157,14 @@ class RoomController extends Controller
                 }
                 return $data;
             } else {
-                $data   =   RoomChat::where("is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
-                                ->where('user_id',$user->id)
-                                ->orWhere('tutor_id',$user->id)
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email','photo', 'status', 'role');
                                 },'tutor'=>function($query){
@@ -170,6 +175,25 @@ class RoomController extends Controller
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
                                 ->paginate(20);
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                }
                 return $data;
             }
         } catch (\Throwable $th) {
