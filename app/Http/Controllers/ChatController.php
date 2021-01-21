@@ -229,7 +229,9 @@ class ChatController extends Controller
             return response()->json([
                 'status'    => 'Failed',
                 'message'   => 'Forwarding messages Failed',
-                'data'      => $e->getMessage()
+                'data'      => $e->getMessage(),
+                'chat'      => $request->input('array_chat'),
+                'roomId'    => $request->input('array_room_id')
             ]);
         }
 
