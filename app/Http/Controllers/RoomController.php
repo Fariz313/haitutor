@@ -407,16 +407,50 @@ class RoomController extends Controller
         }
     }
 
-    public function getAvailableForwardRoom(){
+    public function getAvailableForwardRoom(Request $request){
         try{
-            $userId   = JWTAuth::parseToken()->authenticate()->id;
-            $data = RoomChat::where(function ($where) use ($userId){
-                        $where->where('user_id', $userId)
-                            ->orWhere('tutor_id', $userId);
-                        })
-                        ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
-                        ->where('status', RoomChat::ROOM_STATUS["OPEN"])
-                        ->orderBy('last_message_at', 'DESC')->paginate(10);
+            $user       = JWTAuth::parseToken()->authenticate();
+
+            if($request->get('search')){
+                $query  = $request->get('search');
+
+                $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('user_table.name','LIKE','%'.$query.'%')
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+            } else {
+                $data   =   RoomChat::where(function ($where) use ($user){
+                                        $where->where('user_id', $user->id)
+                                            ->orWhere('tutor_id', $user->id);
+                                        })
+                                        ->with(array('user'=>function($query){
+                                            $query->select('id','name','email','photo', 'status', 'role');
+                                        },'tutor'=>function($query){
+                                            $query->select('id','name','email','photo', 'status', 'role')
+                                            ->with(array('detail', 'tutorSubject'=>function($query){
+                                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                            }));
+                                        }))
+                                        ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                        ->where('status', RoomChat::ROOM_STATUS["OPEN"])
+                                        ->orderBy('room_chat.last_message_at', 'DESC')
+                                        ->paginate(20);
+            }
 
             return response()->json([
                 'status'    => 'Success',
