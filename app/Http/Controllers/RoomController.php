@@ -409,7 +409,8 @@ class RoomController extends Controller
 
     public function getAvailableForwardRoom(Request $request){
         try{
-            $user       = JWTAuth::parseToken()->authenticate();
+            $user           = JWTAuth::parseToken()->authenticate();
+            $listAdminId    = User::where('role', Role::ROLE["ADMIN"])->pluck('id')->toArray();
 
             if($request->get('search')){
                 $query  = $request->get('search');
@@ -420,6 +421,8 @@ class RoomController extends Controller
                                         ->orWhere('tutor_id',$user->id);
                                 })
                                 ->where('user_table.name','LIKE','%'.$query.'%')
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
                                 ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email','photo', 'status', 'role');
@@ -438,6 +441,8 @@ class RoomController extends Controller
                                         $where->where('user_id', $user->id)
                                             ->orWhere('tutor_id', $user->id);
                                         })
+                                        ->whereNotIn('user_id', $listAdminId)
+                                        ->whereNotIn('tutor_id', $listAdminId)
                                         ->with(array('user'=>function($query){
                                             $query->select('id','name','email','photo', 'status', 'role');
                                         },'tutor'=>function($query){
