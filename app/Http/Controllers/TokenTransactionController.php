@@ -83,6 +83,7 @@ class TokenTransactionController extends Controller
 
                             $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
                             $checkRoom->session_active  = date("dmyHi");
+                            $checkRoom->is_deleted      = RoomChat::ROOM_DELETED_STATUS["ACTIVE"];
                             $checkRoom->save();
 
                             $order              = new Order();
