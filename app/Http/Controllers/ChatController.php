@@ -169,25 +169,25 @@ class ChatController extends Controller
         try{
             $database = app('firebase.database');
 
-            $arrayChat  = $request->get('array_chat');
+            $arrayChat  = $request->input('array_chat');
 
-            foreach($request->get('array_room_id') as $roomId){
+            foreach($request->input('array_room_id') as $roomId){
                 $room   = RoomChat::findOrFail($roomId);
 
-                foreach($request->get('array_chat') as $chat){
+                foreach($request->input('array_chat') as $chat){
                     $text           = "";
                     $file           = "";
                     $lastMessage    = "";
 
                     if(array_key_exists('text', $chat)){
-                        $text           = $arrayChat[0]['text'];
-                        $lastMessage    = $arrayChat[0]['text'];
+                        $text           = $chat['text'];
+                        $lastMessage    = $chat['text'];
                     }
 
                     if(array_key_exists('file', $chat)){
-                        $file   = $arrayChat[0]['file'];
+                        $file   = $chat['file'];
                         if(array_key_exists('text', $chat)){
-                            $lastMessage    = "[Photo] " . $arrayChat[0]['text'];
+                            $lastMessage    = "[Photo] " . $chat['text'];
                         } else {
                             $lastMessage    = "[Photo] Photo";
                         }
