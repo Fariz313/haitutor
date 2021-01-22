@@ -469,12 +469,7 @@ class DashboardController extends Controller
                 'status'    => 'Success',
                 'message'   => 'Get Transaction Statistics Succeeded',
                 'data'      => [
-                    'graphic'   => array(
-                        'label'         => array_reverse($label),
-                        'data_token'    => array_reverse($dataToken),
-                        'data_ebook'    => array_reverse($dataEbook)
-                    ),
-                    'graphic_data'                              => array_reverse($result_array),
+                    'graphic'                                   => array_reverse($result_array),
                     'grand_total_transaction_amount'            => $grandTotalTransactionAmount,
                     'grand_total_transaction_number'            => $grandTotalTransactionNumber,
                     'total_ebook_redeem_transaction_amount'     => array_sum($redeemTransactionCurrentYear),
@@ -522,7 +517,6 @@ class DashboardController extends Controller
                 $MODE   = $request->get('mode');
             }
 
-            $listTimestamp = array();
             $data = array();
             $label = array();
 
@@ -550,13 +544,19 @@ class DashboardController extends Controller
                 array_unshift($label, date('d/m/y', $tempTimestamp));
             }
 
+            $result_array   = array();
+            foreach ($label as $idx => $iterLabel) {
+                $tempArray  = array(
+                    'label' => $iterLabel,
+                    'data'  => $data[$idx]
+                );
+                array_push($result_array, $tempArray);
+            }
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Get Transaction Statistics Succeeded',
-                'data'      => [
-                    'label' => $label,
-                    'data'  => $data
-                ]
+                'data'      => $result_array
             ], 200);
 
         } catch (\Exception $e) {
