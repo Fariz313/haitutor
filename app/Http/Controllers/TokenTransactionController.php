@@ -193,6 +193,20 @@ class TokenTransactionController extends Controller
                     $order_tutor->status    = Order::ORDER_STATUS["COMPLETED"];
                     $order_tutor->save();
 
+                    //Create room chat at firebase realtime database
+                    $database = app('firebase.database');
+                    $roomChatData = [
+                        "id"            => $data->id,
+                        "lastMessageAt" => date("Y-m-d H:i:s"),
+                        "room_key"      => $data->room_key,
+                        "status"        => RoomChat::ROOM_STATUS["OPEN"],
+                        "tutorId"       => $data->tutor_id,
+                        "userId"        => $data->user_id
+                    ];
+
+                    $roomChatReference = $database->getReference("room_chat/" . $data->room_key);
+                    $roomChatReference->set($roomChatData);
+
                     DB::commit();
 
                     $dataNotif = [
