@@ -920,7 +920,14 @@ class UserController extends Controller
 
     public function getDetailUser($id){
         try {
-            $data = User::findOrFail($id);
+            $data   = User::findOrFail($id);
+            if($data->role == Role::ROLE["ADMIN"]){
+                $data   = User::where("id", $id)
+                            ->with(array("admin_detail" => function($query){
+                                $query->select("*");
+                            }))->first();
+            }
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
