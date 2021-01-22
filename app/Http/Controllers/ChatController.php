@@ -169,7 +169,7 @@ class ChatController extends Controller
         try{
             $database = app('firebase.database');
 
-            $arrayChat  = $request->input('array_chat');
+            $arrayChat  = json_decode($request->input('array_chat'));
 
             foreach($request->input('array_room_id') as $roomId){
                 $room   = RoomChat::findOrFail($roomId);
