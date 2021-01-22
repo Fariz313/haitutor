@@ -455,6 +455,16 @@ class DashboardController extends Controller
             $grandTotalTransactionAmount    += array_sum($tokenTransactionCurrentYear);
             $grandTotalTransactionNumber    += count($tokenTransactionCurrentYear);
 
+            $result_array   = array();
+            foreach ($label as $idx => $iterLabel) {
+                $tempArray  = array(
+                    'label'         => $iterLabel,
+                    'data_token'    => $dataToken[$idx],
+                    'data_ebook'    => $dataEbook[$idx]
+                );
+                array_push($result_array, $tempArray);
+            }
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Get Transaction Statistics Succeeded',
@@ -464,6 +474,7 @@ class DashboardController extends Controller
                         'data_token'    => array_reverse($dataToken),
                         'data_ebook'    => array_reverse($dataEbook)
                     ),
+                    'graphic_data'                              => array_reverse($result_array),
                     'grand_total_transaction_amount'            => $grandTotalTransactionAmount,
                     'grand_total_transaction_number'            => $grandTotalTransactionNumber,
                     'total_ebook_redeem_transaction_amount'     => array_sum($redeemTransactionCurrentYear),
