@@ -169,25 +169,25 @@ class ChatController extends Controller
         try{
             $database = app('firebase.database');
 
-            $arrayChat  = $request->input('array_chat');
+            $arrayChat  = json_decode($request->input('array_chat'));
 
             foreach($request->input('array_room_id') as $roomId){
                 $room   = RoomChat::findOrFail($roomId);
 
-                foreach($request->input('array_chat') as $chat){
+                foreach($arrayChat as $chat){
                     $text           = "";
                     $file           = "";
                     $lastMessage    = "";
 
-                    if(array_key_exists('text', $chat)){
-                        $text           = $chat['text'];
-                        $lastMessage    = $chat['text'];
+                    if(!is_null($chat->text) && $chat->text != ""){
+                        $text           = $chat->text;
+                        $lastMessage    = $chat->text;
                     }
 
-                    if(array_key_exists('file', $chat)){
-                        $file   = $chat['file'];
-                        if(array_key_exists('text', $chat)){
-                            $lastMessage    = "[Photo] " . $chat['text'];
+                    if(!is_null($chat->file) && $chat->file != ""){
+                        $file   = $chat->file;
+                        if(!is_null($chat->text) && $chat->file != ""){
+                            $lastMessage    = "[Photo] " . $chat->text;
                         } else {
                             $lastMessage    = "[Photo] Photo";
                         }
@@ -222,7 +222,9 @@ class ChatController extends Controller
             return response()->json([
                 'status'    => 'Success',
                 'message'   => 'Forwarding messages Succeeded',
-                'data'      => $arrayChat
+                'data'      => $arrayChat,
+                'chat'      => $request->input('array_chat'),
+                'roomId'    => $request->input('array_room_id')
             ]);
 
         } catch(\Exception $e){
