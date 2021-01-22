@@ -415,7 +415,31 @@ class RoomController extends Controller
             if($request->get('search')){
                 $query  = $request->get('search');
 
-                $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('tutor_table.name','LIKE','%'.$query.'%')
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
                                         ->orWhere('tutor_id',$user->id);
@@ -432,29 +456,54 @@ class RoomController extends Controller
                                         $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
                                     }));
                                 }))
-                                ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
-                                ->where('status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
                                 ->orderBy('room_chat.last_message_at', 'DESC')
                                 ->paginate(20);
+                }
             } else {
-                $data   =   RoomChat::where(function ($where) use ($user){
-                                        $where->where('user_id', $user->id)
-                                            ->orWhere('tutor_id', $user->id);
-                                        })
-                                        ->whereNotIn('user_id', $listAdminId)
-                                        ->whereNotIn('tutor_id', $listAdminId)
-                                        ->with(array('user'=>function($query){
-                                            $query->select('id','name','email','photo', 'status', 'role');
-                                        },'tutor'=>function($query){
-                                            $query->select('id','name','email','photo', 'status', 'role')
-                                            ->with(array('detail', 'tutorSubject'=>function($query){
-                                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
-                                            }));
-                                        }))
-                                        ->where('is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
-                                        ->where('status', RoomChat::ROOM_STATUS["OPEN"])
-                                        ->orderBy('room_chat.last_message_at', 'DESC')
-                                        ->paginate(20);
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                } else {
+                    $data   =   RoomChat::where(function ($where) use ($user){
+                                $where->where('user_id', $user->id)
+                                    ->orWhere('tutor_id', $user->id);
+                                })
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                }
             }
 
             return response()->json([
