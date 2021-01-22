@@ -308,9 +308,32 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/user')->group(function () {
-            Route::get('/{id}', 'UserController@getDetailUser');
+            Route::get('/detail/{id}', 'UserController@getDetailUser');
+            Route::get('/list', 'UserController@getUserByRole');
+
             Route::post('/update/{id}', 'UserController@updateUser');
+            Route::post('/chat/{userId}', 'AdminController@chatAdminToUser');
+            Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
+
+            Route::put('/{id}', 'UserController@updateById');
+            Route::put('/verify/{id}', 'TutorController@verifyTutor');
+            Route::put('/unverify/{id}', 'TutorController@unverifyTutor');
+            Route::put('/doc/verify/{id}', 'TutorDocController@verifyingDoc');
+            Route::put('/doc/unverify/{id}', 'TutorDocController@unverifyingDoc');
+            Route::put('/suspend/{id}', 'UserController@suspendUser');
+            Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+            Route::put('/doc/all/verify/{userId}', 'TutorDocController@verifyingAllDoc');
+            Route::put('/doc/all/unverify/{userId}', 'TutorDocController@unverifyingAllDoc');
+
+            Route::delete('/{id}', 'UserController@destroy');
+
+            Route::prefix('/admin')->group(function () {
+                Route::put('/{id}', 'AdminController@updateAdmin');
+                Route::delete('/{id}', 'AdminController@destroyAdmin');
+            });
         });
+
+        Route::get('/tutor/list/unverified', 'TutorController@getUnverifiedTutor');
 
         Route::prefix('/question')->group(function () {
             Route::post('/add', 'QuickAskController@store');
@@ -445,15 +468,15 @@ Route::middleware(['cors'])->group(function () {
             Route::post('/register', 'AdminController@register')->withoutMiddleware([RoleMiddleware::class]);
 
             Route::middleware(['admin.general'])->group(function () {
-                Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
-                Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
-                Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
-                Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
-                Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
-                Route::put('/suspend/{id}', 'UserController@suspendUser');
-                Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
-                Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
-                Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
+                // Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
+                // Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
+                // Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
+                // Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
+                // Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+                // Route::put('/suspend/{id}', 'UserController@suspendUser');
+                // Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+                // Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
+                // Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
 
                 Route::get('/package', 'PackageController@index');
                 Route::post('/package', 'PackageController@store');
@@ -471,8 +494,8 @@ Route::middleware(['cors'])->group(function () {
                 Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
                 Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
 
-                Route::put('/user/{id}', 'UserController@updateById');
-                Route::delete('/user/{id}', 'UserController@destroy');
+                // Route::put('/user/{id}', 'UserController@updateById');
+                // Route::delete('/user/{id}', 'UserController@destroy');
                 Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
                 Route::delete('/order/{id}', 'OrderController@destroy');
 
@@ -510,21 +533,21 @@ Route::middleware(['cors'])->group(function () {
                 Route::get('/faq/{id}', 'FaqController@getOne');
                 Route::delete('/faq/{id}', 'FaqController@destroy');
 
-                Route::prefix('/user')->group(function () {
-                    Route::prefix('/admin')->group(function () {
-                        Route::get('/', 'AdminController@index');
-                        Route::get('/{id}', 'AdminController@showAdmin');
-                        Route::put('/{id}', 'AdminController@updateAdmin');
-                        Route::delete('/{id}', 'AdminController@destroyAdmin');
-                    });
+                // Route::prefix('/user')->group(function () {
+                //     Route::prefix('/admin')->group(function () {
+                //         Route::get('/', 'AdminController@index');
+                //         Route::get('/{id}', 'AdminController@showAdmin');
+                //         Route::put('/{id}', 'AdminController@updateAdmin');
+                //         Route::delete('/{id}', 'AdminController@destroyAdmin');
+                //     });
 
-                    Route::prefix('/chat')->group(function () {
-                        Route::post('/{userId}', 'AdminController@chatAdminToUser');
-                    });
-                    Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
+                //     Route::prefix('/chat')->group(function () {
+                //         Route::post('/{userId}', 'AdminController@chatAdminToUser');
+                //     });
+                //     Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
 
-                    Route::get('/list', 'UserController@getUserByRole');
-                });
+                //     Route::get('/list', 'UserController@getUserByRole');
+                // });
 
 
                 // Dashboard

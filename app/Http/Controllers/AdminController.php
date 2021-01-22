@@ -131,7 +131,7 @@ class AdminController extends Controller
                     'contact'       => 'required|string|max:20',
                     'address'       => 'required|string'
                 ]);
-        
+
                 if($validator->fails()){
                     return response()->json([
                         'status'    => 'Failed',
@@ -160,7 +160,7 @@ class AdminController extends Controller
                 if($request->file('photo')){
                     $user->photo    = GoogleCloudStorageHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
                 }
-                
+
                 $user->status       = User::STATUS["VERIFIED"];
                 $user->save();
 
@@ -168,7 +168,7 @@ class AdminController extends Controller
                     'status'    => 'Success',
                     'message'   => 'Register User Succeeded',
                     'error'     => $user], 200);
-                
+
             } else {
 
                 $validator = Validator::make($request->all(), [
@@ -181,7 +181,7 @@ class AdminController extends Controller
                     'address'       => 'required|string',
                     'nip'           => 'required|string|unique:admin_detail',
                 ]);
-        
+
                 if($validator->fails()){
                     return response()->json([
                         'status'    =>'failed',
@@ -213,9 +213,9 @@ class AdminController extends Controller
                         $photo->move($tujuan_upload,$photo_name);
                         $user->photo = $photo_name;
                         $user->save();
-                            $message = "Upload Success";
+                        $message = "Upload Success";
                     }catch(\throwable $e){
-                            $message = "Upload Success no image";
+                        $message = "Upload Success no image";
                     }
                     $token = JWTAuth::fromUser($user);
 
@@ -248,25 +248,38 @@ class AdminController extends Controller
             JWTAuth::factory()->setTTL(14400);
             if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'status'    => 'failed',
+                    'status'    => 'Failed',
                     'error'     => 'invalid_credentials',
                     'message'   => 'Email or Password is Wrong'], 400);
             }
+
             $user = JWTAuth::user();
-            if($user->role == Role::ROLE["ADMIN"]){
+            $allowedRole    = array(
+                Role::ROLE["ADMIN"],
+                Role::ROLE["PUBLISHER"]
+            );
+
+            if(in_array($user->role, $allowedRole)){
                 return response()->json([
-                    'status'    => 'success',
+                    'status'    => 'Success',
                     'token'     => $token,
-                    'message'   => 'Loggin is successfuly' ], 200);
-                }
+                    'message'   => 'Logged in successfully',
+                    'logged'    => 'true',
+                    'role'      => (int)$user->role
+                ], 200);
+            } else {
                 return response()->json([
-                    'status'    => 'failed',
-                    'message'   => 'Not Admin' ], 400);
-        } catch (\Throwable $th) {
+                    'status'    => 'Failed',
+                    'message'   => 'Forbidden Access'
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
             return response()->json([
-                'status'    => 'failed',
-                'error'     => 'could_not_create_token',
-                'message'   => 'Cant create authentication, please try again'], 500);
+                'status'    => 'Failed',
+                'error'     => $e->getMessage(),
+                'message'   => 'Cant create authentication, please try again'
+            ], 500);
         }
     }
 
@@ -568,7 +581,7 @@ class AdminController extends Controller
                     ]);
                 }
             }
-            
+
             // return 'Success';
 
             try {
@@ -606,7 +619,7 @@ class AdminController extends Controller
                 $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
                 $checkRoom->last_message    = $message;
                 $checkRoom->save();
-                
+
                 $chatData = [
                     'created_at' => date("d/m/Y H:i:s"),
                     'file' => $file,
@@ -626,7 +639,7 @@ class AdminController extends Controller
                     // If Target is a tutor
                     $target = $room->tutor;
                     $sender = $room->user;
-                    
+
                     if($user->id == $room->user_id){
                         // If Target is a student
                         $target = $room->user;

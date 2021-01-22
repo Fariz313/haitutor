@@ -306,33 +306,37 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             if ($request->input('name')) {
                 $user->name = $request->input('name');
-            }if ($request->input('email')) {
+            }
+            if ($request->input('email')) {
                 $user->email    = $request->input('email');
-                $user->status   = 'unverified';
-            }if ($request->input('password')){
+            }
+            if ($request->input('password')){
                 $user->password = Hash::make($request->get('password'));
-            }if ($request->input('birth_date')) {
+            }
+            if ($request->input('birth_date')) {
                 $user->birth_date = $request->input('birth_date');
-            }if ($request->input('contact')){
+            }
+            if ($request->input('contact')){
                 $user->contact = $request->input('contact');
-            }if ($request->input('company_id')) {
-                $user->company_id = $request->input('company_id');
             }
             if ($request->input('address')) {
                 $user->address = $request->input('address');
+            }
+            if ($request->input('jenjang')) {
+                $user->jenjang = $request->input('jenjang');
             }
 
             $user->save();
 
             return response()->json([
-                'status'    => 'success',
+                'status'    => 'Success',
                 'message'   => "Success update user",
                 'user'      => $user
             ],200);
 
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    => 'failed',
+                'status'    => 'Failed',
                 'message'   => "Failed to update user",
                 'user'      => $user,
                 'data'      => $th->getMessage()
@@ -866,16 +870,39 @@ class UserController extends Controller
     public function getUserByRole(Request $request)
     {
         try {
-            if($request->get('search')){
-                $query  = $request->get('search');
-                $data   = User::where('role', $request->get('role'))
-                            ->where('name','LIKE','%'.$query.'%')
-                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
-                            ->paginate(10);
+            if($request->get('role') == Role::ROLE["ADMIN"]){
+                // If Requested Role is Admin
+                if($request->get('search')){
+                    $query  = $request->get('search');
+                    $data   = User::where(function ($where) use ($query){
+                                $where->where('name','LIKE','%'.$query.'%')
+                                ->orWhere('email','LIKE','%'.$query.'%')
+                                ->orWhere('address','LIKE','%'.$query.'%');
+                            })
+                            ->where('role', Role::ROLE["ADMIN"])
+                            ->with(array("admin_detail" => function($query){
+                                $query->select("*");
+                            }))->paginate(10);
+                }else{
+                    $data   = User::where('role',Role::ROLE["ADMIN"])
+                                ->with(array("admin_detail" => function($query){
+                                    $query->select("*");
+                                }))->paginate(10);
+                }
+
             } else {
-                $data = User::where('role', $request->get('role'))
-                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
-                            ->paginate(10);
+                // If Requested Role is not Admin
+                if($request->get('search')){
+                    $query  = $request->get('search');
+                    $data   = User::where('role', $request->get('role'))
+                                ->where('name','LIKE','%'.$query.'%')
+                                ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                ->paginate(10);
+                } else {
+                    $data = User::where('role', $request->get('role'))
+                                ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                ->paginate(10);
+                }
             }
 
             return response()->json([
@@ -893,7 +920,14 @@ class UserController extends Controller
 
     public function getDetailUser($id){
         try {
-            $data = User::findOrFail($id);
+            $data   = User::findOrFail($id);
+            if($data->role == Role::ROLE["ADMIN"]){
+                $data   = User::where("id", $id)
+                            ->with(array("admin_detail" => function($query){
+                                $query->select("*");
+                            }))->first();
+            }
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
