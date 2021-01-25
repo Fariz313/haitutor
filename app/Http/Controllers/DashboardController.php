@@ -345,7 +345,7 @@ class DashboardController extends Controller
                     $tempString = "Lainnya " . json_encode($tempJoinLabel);
 
                     array_push($proper_label, $tempString);
-                    array_push($proper_data, $tempSum);
+                    array_push($proper_data, (int)($tempSum));
 
                     $tempJoinLabel = array();
                 }
