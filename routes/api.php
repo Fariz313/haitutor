@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['cors'])->group(function () {
 
-    Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
     Route::post('login', 'UserController@login');
@@ -58,10 +57,10 @@ Route::middleware(['cors'])->group(function () {
         Route::get('get_student', 'UserController@getAllStudent');
         Route::get('get_student/{id}', 'UserController@getStudent');
 
-        Route::get('order', 'OrderController@index');
-        Route::get('order/{id}', 'OrderController@showById');
         Route::get('order-user', 'OrderController@show');
-        Route::post('order/{id}', 'OrderController@store');
+        Route::get('/order-token', 'OrderController@historyToken');
+        Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
+        Route::post('chat/forward', 'ChatController@forwardMessage');
         Route::post('request/order', 'OrderController@requestTransaction');
         Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
 
@@ -372,8 +371,29 @@ Route::middleware(['cors'])->group(function () {
             Route::post('tutordoc/{id}', 'TutorDocController@update');
         });
 
-        Route::post('chat/forward', 'ChatController@forwardMessage');
-        Route::get('room/forward/available', 'RoomController@getAvailableForwardRoom');
+        Route::prefix('/room')->group(function () {
+            Route::get('/forward/available', 'RoomController@getAvailableForwardRoom');
+            Route::get('/list/all', 'RoomController@index');
+            Route::get('/detail/{id}', 'RoomController@showById');
+            Route::put('/{id}', 'RoomController@updateStatusByAdmin');
+            Route::delete('/{id}', 'RoomController@destroy');
+        });
+
+        Route::prefix('/room_vc')->group(function () {
+            Route::get('/list/all', 'RoomVCController@index');
+            Route::get('/detail/{id}', 'RoomVCController@showById');
+            Route::put('/{id}', 'RoomVCController@updateStatusByAdmin');
+            Route::delete('/{id}', 'RoomVCController@destroy');
+        });
+
+        Route::prefix('/order')->group(function () {
+            Route::get('/', 'OrderController@index');
+            Route::get('/{id}', 'OrderController@showById');
+            Route::post('/{id}', 'OrderController@store');
+            Route::post('/verify/{id}', 'OrderController@verify');
+            Route::put('/{id}', 'OrderController@manualVerifyOrder');
+            Route::delete('/{id}', 'OrderController@destroy');
+        });
 
         //--------------------------------------------------LOGGED IN USER MIDDLEWARE
         Route::middleware(['jwt.verify'])->group(function () {
@@ -478,29 +498,29 @@ Route::middleware(['cors'])->group(function () {
                 // Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
                 // Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
 
-                Route::get('/package', 'PackageController@index');
-                Route::post('/package', 'PackageController@store');
-                Route::get('/package/{id}', 'PackageController@show');
-                Route::put('/package/{id}', 'PackageController@update');
-                Route::delete('/package/{id}', 'PackageController@destroy');
+                // Route::get('/package', 'PackageController@index');
+                // Route::post('/package', 'PackageController@store');
+                // Route::get('/package/{id}', 'PackageController@show');
+                // Route::put('/package/{id}', 'PackageController@update');
+                // Route::delete('/package/{id}', 'PackageController@destroy');
 
-                Route::get('/room', 'RoomController@index');
-                Route::get('/room/{id}', 'RoomController@showById');
-                Route::put('/room/{id}', 'RoomController@updateStatusByAdmin');
-                Route::delete('/room/{id}', 'RoomController@destroy');
+                // Route::get('/room', 'RoomController@index');
+                // Route::get('/room/{id}', 'RoomController@showById');
+                // Route::put('/room/{id}', 'RoomController@updateStatusByAdmin');
+                // Route::delete('/room/{id}', 'RoomController@destroy');
 
-                Route::get('/room_vc', 'RoomVCController@index');
-                Route::get('/room_vc/{id}', 'RoomVCController@showById');
-                Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
-                Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
+                // Route::get('/room_vc', 'RoomVCController@index');
+                // Route::get('/room_vc/{id}', 'RoomVCController@showById');
+                // Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
+                // Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
 
                 // Route::put('/user/{id}', 'UserController@updateById');
                 // Route::delete('/user/{id}', 'UserController@destroy');
-                Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
-                Route::delete('/order/{id}', 'OrderController@destroy');
+                // Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
+                // Route::delete('/order/{id}', 'OrderController@destroy');
 
-                Route::get('/order-token', 'OrderController@historyToken');
-                Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
+                // Route::get('/order-token', 'OrderController@historyToken');
+                // Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
 
                 Route::get('/article', 'ArticleController@getAll');
                 Route::post('/article', 'ArticleController@store');
@@ -551,7 +571,7 @@ Route::middleware(['cors'])->group(function () {
 
 
                 // Dashboard
-                Route::get('/statistics', 'AdminController@dashboard');
+                // Route::get('/statistics', 'AdminController@dashboard');
 
                 //Subject
                 Route::get('subject', 'SubjectController@index');
