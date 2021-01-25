@@ -301,15 +301,15 @@ class DashboardController extends Controller
                 'data'      => [
                     'rating_chat'       => array(
                         'label' => $proper_list_chat[0],
-                        'data'  => $proper_list_chat[1]
+                        'data'  => array_map('intval', $proper_list_chat[1])
                     ),
                     'rating_vidcall'    => array(
                         'label' => $proper_list_vidcall[0],
-                        'data'  => $proper_list_vidcall[1]
+                        'data'  => array_map('intval', $proper_list_vidcall[1])
                     ),
                     'rating_ebook'      => array(
                         'label' => $proper_list_ebook[0],
-                        'data'  => $proper_list_ebook[1]
+                        'data'  => array_map('intval', $proper_list_ebook[1])
                     ),
                 ]
             ], 200);
