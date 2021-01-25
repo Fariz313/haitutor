@@ -13,6 +13,11 @@ class RoomChat extends Model
         "CLOSED"    => 'closed'
     );
 
+    const ROOM_DELETED_STATUS = array(
+        "ACTIVE"    => 0,
+        "DELETED"   => 1
+    );
+
     public function chat()
     {
         return $this->hasMany('App\Chat','room_key','room_key');

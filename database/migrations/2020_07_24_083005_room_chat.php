@@ -20,6 +20,8 @@ class RoomChat extends Migration
             $table->integer('tutor_id');
             $table->enum('chat_type',['standart','langganan']);
             $table->enum('status',['open','closed']);
+            $table->integer('is_deleted')->default(0);
+            $table->integer('session_active')->nullable();
             $table->text('last_message')->nullable();
             $table->integer('last_sender')->nullable();
             $table->dateTime('last_message_at')->nullable();

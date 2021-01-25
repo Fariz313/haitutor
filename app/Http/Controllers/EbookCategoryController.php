@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Ebook;
 use App\EbookCategory;
 use Illuminate\Http\Request;
 
@@ -161,7 +162,13 @@ class EbookCategoryController extends Controller
             if($data->is_deleted == EbookCategory::EBOOK_CATEGORY_DELETED_STATUS["DELETED"]){
                 $message    = 'Ebook Category Already Deleted';
             } else {
-                $data->is_deleted    = EbookCategory::EBOOK_CATEGORY_DELETED_STATUS["DELETED"];
+                $dataEbook          = Ebook::where('id_category', $data->id)->get();
+                foreach($dataEbook as $ebook){
+                    $ebook->id_category = 0;
+                    $ebook->save();
+                }
+
+                $data->is_deleted   = EbookCategory::EBOOK_CATEGORY_DELETED_STATUS["DELETED"];
                 $data->save();
             }
 

@@ -35,11 +35,13 @@ class OrderController extends Controller
                 $dataRaw = Order::where(function ($where) use ($query){
                     $where->where('detail','LIKE','%'.$query.'%');
                 })->where('type_code', '1')
+                ->where('is_deleted', Order::ORDER_DELETED_STATUS["ACTIVE"])
                 ->with(array('user','package','payment_method' => function($query){
                     $query->with(array('paymentMethod', 'paymentProvider'))->get();
                 }));
             } else{
                 $dataRaw = Order::where('type_code', '1')
+                ->where('is_deleted', Order::ORDER_DELETED_STATUS["ACTIVE"])
                 ->with(array('user','package','payment_method' => function($query){
                     $query->with(array('paymentMethod', 'paymentProvider'))->get();
                 }));
@@ -101,9 +103,9 @@ class OrderController extends Controller
         try{
 
             $idPaymentMethodProvider    = $request->input('id_payment_method_provider');
-            $activePaymentMethod        = PaymentMethod::select('payment_method.*', 
-                                                'payment_method_provider.id as id_payment_method_provider', 
-                                                'payment_method_provider.id_payment_provider', 
+            $activePaymentMethod        = PaymentMethod::select('payment_method.*',
+                                                'payment_method_provider.id as id_payment_method_provider',
+                                                'payment_method_provider.id_payment_provider',
                                                 'payment_provider.name as provider_name')
                                             ->join("payment_method_provider", "payment_method.id", "=", "payment_method_provider.id_payment_method")
                                             ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id")
@@ -154,7 +156,7 @@ class OrderController extends Controller
                                     ->with(array("user" => function ($query) {
                                         $query->select("id", "name", "email", "role");
                                     }))->first();
-                
+
                 if($returnValue->statusCode == "00"){
                     return response()->json([
                         'status'	=> 'Success',
@@ -170,8 +172,8 @@ class OrderController extends Controller
                         'order'     => $result
                     ], 201);
                 }
-            
-                
+
+
             } else if ($activePaymentMethod->provider_name == Order::PAYMENT_PROVIDER["TRIPAY"]){
                 $returnValue    = $this->orderTripay($const);
 
@@ -186,7 +188,7 @@ class OrderController extends Controller
                                     ->with(array("user" => function ($query) {
                                         $query->select("id", "name", "email", "role");
                                     }))->first();
-                
+
                 if($returnValue->success){
                     return response()->json([
                         'status'	=> 'Success',
@@ -204,7 +206,7 @@ class OrderController extends Controller
                 }
 
                 return $returnValue;
-                
+
             } else {
                 return response()->json([
                     'status'	=> 'Failed',
@@ -233,7 +235,7 @@ class OrderController extends Controller
 
         $listProviderVariable   = $this->convertToList($const['providerVariable']);
         $listMethodVariable     = $this->convertToList($const['paymentMethodProviderVariable']);
-        
+
         // Request Transaction with Payment Gateway
         $body = [
             "merchantCode" => $listProviderVariable["MERCHANT_CODE"],
@@ -252,17 +254,17 @@ class OrderController extends Controller
 
         // Update Order object with response value
         $responseObject      = json_decode($responsePayment);
-        
+
         if(isset($responseObject->statusCode) && $responseObject->statusCode == "00"){
             if($listMethodVariable["IS_VA"] == Order::IS_VA["TRUE"]){
                 $const['dataOrder']->va_number  = $responseObject->vaNumber;
             } else {
                 $const['dataOrder']->va_number  = $responseObject->paymentUrl;
             }
-    
+
             $const['dataOrder']->invoice        = $responseObject->reference;
             $const['dataOrder']->save();
-    
+
             return $responseObject;
         } else {
             $const['dataOrder']->status         = Order::ORDER_STATUS["FAILED"];
@@ -313,15 +315,15 @@ class OrderController extends Controller
             } else {
                 $const['dataOrder']->va_number  = $responseObject->data->pay_code;
             }
-    
+
             $const['dataOrder']->invoice        = $responseObject->data->reference;
             $const['dataOrder']->save();
-    
+
             return $responseObject;
         } else {
             $const['dataOrder']->status         = Order::ORDER_STATUS["FAILED"];
             $const['dataOrder']->save();
-            
+
             return $responseObject;
         }
     }
@@ -573,7 +575,7 @@ class OrderController extends Controller
                 // If Callback for Ebook Transaction
 
                 $purchase_id    = str_replace("E", "", $request->input('merchantOrderId'));
-                
+
                 $data           = EbookPurchase::findOrFail($purchase_id);
                 $dataUser       = User::findOrFail($data->user_id);
 
@@ -671,7 +673,7 @@ class OrderController extends Controller
                 // Callback for Ebook Transaction
 
                 $purchase_id    = str_replace("E", "", $request->input('merchant_ref'));
-                
+
                 $data           = EbookPurchase::findOrFail($purchase_id);
                 $dataUser       = User::findOrFail($data->user_id);
 

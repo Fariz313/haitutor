@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use FCM;
 use App\Helpers\CloudKilatHelper;
 use App\Helpers\GoogleCloudStorageHelper;
+use App\User;
 
 class ChatController extends Controller
 {
@@ -27,30 +28,35 @@ class ChatController extends Controller
 
     		if($validator->fails()){
     			return response()->json([
-                    'status'    =>'failed validate',
-                    'error'     =>$validator->errors()
+                    'status'    => 'failed validate',
+                    'error'     => $validator->errors()
                 ],400);
-    		}
-            $requestCount           =   0;
+            }
+
             $data                   = new Chat();
             $message                = "";
 
             if ($request->input('text')) {
                 $data->text         = $request->input('text');
                 $message            = $request->input('text');
-                $requestCount       +=   1;
             }
+
             $data->user_id          = $user->id;
             $data->room_key         = $roomkey;
             if($request->hasFile('file')){
                 try {
-                    $requestCount   +=   1;
                     $file           = $request->file('file');
-                    $message        = "Photo";
-                    // $file = CloudKilatHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
-                    $file = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
-                    $data->file = $file;
-                    $data->save();
+
+                    if ($request->input('text')) {
+                        $message    = "[Photo] " . $request->input('text');
+                    } else {
+                        $message    = "[Photo] Photo";
+                    }
+
+                    $file           = GoogleCloudStorageHelper::put($request->file('file'), "/photos/chat/", 'image', $user->id);
+                    $data->file     = $file;
+                    $data->text     = $request->input('text');
+
                 } catch (\Throwable $th) {
                     return response()->json([
                         'status'	=> 'failed',
@@ -91,8 +97,9 @@ class ChatController extends Controller
                 return response()->json([
                     'status'	=> 'Success',
                     'message'	=> 'Success adding chat',
-                    'data'     => array(
-                        "notif" => $responseNotif,
+                    'data'      => array(
+                        "chat_data" => $data,
+                        "notif"     => json_decode($responseNotif),
                         "url_image" => $data->file
                     )
                 ], 201);
@@ -156,5 +163,79 @@ class ChatController extends Controller
                 'data'      => $th->getMessage(),
                 'message'   =>  'Failed to read message'],500);
         }
+    }
+
+    public function forwardMessage(Request $request){
+        try{
+            $database = app('firebase.database');
+
+            $arrayChat  = json_decode($request->input('array_chat'));
+
+            foreach($request->input('array_room_id') as $roomId){
+                $room   = RoomChat::findOrFail($roomId);
+
+                foreach($arrayChat as $chat){
+                    $text           = "";
+                    $file           = "";
+                    $lastMessage    = "";
+
+                    if(!is_null($chat->text) && $chat->text != ""){
+                        $text           = $chat->text;
+                        $lastMessage    = $chat->text;
+                    }
+
+                    if(!is_null($chat->file) && $chat->file != ""){
+                        $file   = $chat->file;
+                        if(!is_null($chat->text) && $chat->file != ""){
+                            $lastMessage    = "[Photo] " . $chat->text;
+                        } else {
+                            $lastMessage    = "[Photo] Photo";
+                        }
+                    }
+
+                    // SEND INFORMATION CHAT
+                    $chatData = [
+                        'created_at'        => date("d/m/Y H:i:s"),
+                        'file'              => $file,
+                        'id'                => 0,
+                        'message_readed'    => false,
+                        'readed_at'         => '',
+                        'room_key'          => $room->room_key,
+                        'text'              => $text,
+                        'user_id'           => JWTAuth::parseToken()->authenticate()->id,
+                        'information_chat'  => false,
+                        'forwarded_chat'    => true
+                    ];
+
+                    $newChatKey = $database->getReference('room_chat/'. $room->room_key .'/chat')->push()->getKey();
+                    $database->getReference('room_chat/'. $room->room_key .'/chat/' . $newChatKey)->set($chatData);
+
+                    $room->last_message_at          = date("Y-m-d H:i:s");
+                    $room->last_message             = $lastMessage;
+                    $room->last_sender              = JWTAuth::parseToken()->authenticate()->id;
+                    $room->last_message_readed      = "false";
+                    $room->last_message_readed_at   = null;
+                    $room->save();
+                }
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Forwarding messages Succeeded',
+                'data'      => $arrayChat,
+                'chat'      => $request->input('array_chat'),
+                'roomId'    => $request->input('array_room_id')
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Forwarding messages Failed',
+                'data'      => $e->getMessage(),
+                'chat'      => $request->input('array_chat'),
+                'roomId'    => $request->input('array_room_id')
+            ]);
+        }
+
     }
 }

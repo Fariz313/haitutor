@@ -43,6 +43,10 @@ Route::middleware(['cors'])->group(function () {
         Route::get('get_tutor', 'TutorController@getTutor');
         Route::get('get_tutor/all', 'TutorController@getAllTutor');
         Route::get('get_tutor/{id}', 'TutorController@showTutor');
+        Route::prefix("/tutor")->group(function()
+        {
+            Route::get("list/recommended", "TutorController@getRecommendedTutorList");
+        });
 
         Route::get('rating', 'RatingController@index');
         Route::get('rating/{id}', 'RatingController@show');
@@ -53,8 +57,6 @@ Route::middleware(['cors'])->group(function () {
 
         Route::get('get_student', 'UserController@getAllStudent');
         Route::get('get_student/{id}', 'UserController@getStudent');
-
-        Route::get('/package', 'PackageController@index');
 
         Route::get('order', 'OrderController@index');
         Route::get('order/{id}', 'OrderController@showById');
@@ -80,8 +82,6 @@ Route::middleware(['cors'])->group(function () {
         Route::get('tutor_by_subject/{subject_id}', 'TutorController@getTutorBySubject');
         Route::get('subject_tutor/{tutor_id}', 'TutorSubjectController@getSubjectTutor');
 
-        Route::get('/package', 'PackageController@index');
-
         Route::get('/otpView', 'OtpController@showOtp');
 
         Route::get('info', 'UserController@getInformation');
@@ -93,6 +93,15 @@ Route::middleware(['cors'])->group(function () {
         Route::get('show-pass-otp', 'OtpController@showPasswordOtp');
 
         ROute::post('storage-token-credentials', "UserController@getStorageTokenCredentials")->withoutMiddleware([RoleMiddleware::class]);
+        ROute::post('signed-url', "UserController@getSignedUrl")->withoutMiddleware([RoleMiddleware::class]);
+
+        Route::prefix('/package')->group(function () {
+            Route::get('/', 'PackageController@index');
+            Route::post('/', 'PackageController@store');
+            Route::get('/{id}', 'PackageController@show');
+            Route::put('/{id}', 'PackageController@update');
+            Route::delete('/{id}', 'PackageController@destroy');
+        });
 
         Route::prefix('/company')->group(function () {
             Route::get('/', 'CompanyController@index');
@@ -299,8 +308,62 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/user')->group(function () {
-            Route::get('/{id}', 'UserController@getDetailUser');
+            Route::get('/detail/{id}', 'UserController@getDetailUser');
+            Route::get('/list', 'UserController@getUserByRole');
+
             Route::post('/update/{id}', 'UserController@updateUser');
+            Route::post('/chat/{userId}', 'AdminController@chatAdminToUser');
+            Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
+
+            Route::put('/{id}', 'UserController@updateById');
+            Route::put('/verify/{id}', 'TutorController@verifyTutor');
+            Route::put('/unverify/{id}', 'TutorController@unverifyTutor');
+            Route::put('/doc/verify/{id}', 'TutorDocController@verifyingDoc');
+            Route::put('/doc/unverify/{id}', 'TutorDocController@unverifyingDoc');
+            Route::put('/suspend/{id}', 'UserController@suspendUser');
+            Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+            Route::put('/doc/all/verify/{userId}', 'TutorDocController@verifyingAllDoc');
+            Route::put('/doc/all/unverify/{userId}', 'TutorDocController@unverifyingAllDoc');
+
+            Route::delete('/{id}', 'UserController@destroy');
+
+            Route::prefix('/admin')->group(function () {
+                Route::put('/{id}', 'AdminController@updateAdmin');
+                Route::delete('/{id}', 'AdminController@destroyAdmin');
+            });
+        });
+
+        Route::get('/tutor/list/unverified', 'TutorController@getUnverifiedTutor');
+
+        Route::prefix('/question')->group(function () {
+            Route::post('/add', 'QuickAskController@store');
+            Route::post('/answer', 'QuickAskController@answerQuestion');
+            Route::post('/edit/{id_question}', 'QuickAskController@update');
+            Route::post('/answer/edit/{id_question}', 'QuickAskController@editAnswer');
+
+            Route::put('/accept/{id_room}', 'QuickAskController@acceptAnswer');
+            Route::put('/abort/{id_question}', 'QuickAskController@abortQuestion');
+            Route::put('/extend/{id_room}', 'QuickAskController@extendToRegularChat');
+
+            Route::get('/list', 'QuickAskController@index');
+            Route::get('/list/{id_question}', 'QuickAskController@show');
+            Route::get('/user/{id_user}', 'QuickAskController@getAnswerList');
+            Route::get('/answer/{id_question}', 'QuickAskController@getDetailAnswer');
+        });
+
+        Route::prefix('/statistics')->group(function () {
+            Route::get('/general', 'DashboardController@getGeneralStatistics');
+            Route::get('/graphic/order', 'DashboardController@getGraphicOrderData');
+            Route::get('/graphic/activity', 'DashboardController@getGraphicActivityData');
+            Route::get('/student/new', 'DashboardController@getNewStudent');
+            Route::get('/tutor/new', 'DashboardController@getNewTutor');
+            Route::get('/user/reported', 'DashboardController@getMostReportedUser');
+            Route::get('/ebook/bestseller', 'DashboardController@getBestSellerEbook');
+            Route::get('/tutor/pending', 'DashboardController@getPendingTutor');
+            Route::get('/ebook/redeem/pending', 'DashboardController@getPendingEbookRedeem');
+            Route::get('/ebook/order/pending', 'DashboardController@getPendingEbookManualOrder');
+            Route::get('/rating', 'DashboardController@getRatingData');
+            Route::get('/disbursement/pending', 'DashboardController@getPendingDisbursement');
         });
 
         Route::middleware(['user.tutor'])->group(function () {
@@ -308,6 +371,9 @@ Route::middleware(['cors'])->group(function () {
             Route::delete('tutordoc/{id}', 'TutorDocController@destroy');
             Route::post('tutordoc/{id}', 'TutorDocController@update');
         });
+
+        Route::post('chat/forward', 'ChatController@forwardMessage');
+        Route::get('room/forward/available', 'RoomController@getAvailableForwardRoom');
 
         //--------------------------------------------------LOGGED IN USER MIDDLEWARE
         Route::middleware(['jwt.verify'])->group(function () {
@@ -352,6 +418,7 @@ Route::middleware(['cors'])->group(function () {
 
 
             Route::prefix('/room')->group(function () {
+                Route::post("/delete", "RoomController@destroy");
                 Route::post('/{id}', 'RoomController@createRoom');
                 Route::get('/', 'RoomController@showRoom');
                 Route::get('/cek', 'RoomController@checkRoom');
@@ -401,15 +468,15 @@ Route::middleware(['cors'])->group(function () {
             Route::post('/register', 'AdminController@register')->withoutMiddleware([RoleMiddleware::class]);
 
             Route::middleware(['admin.general'])->group(function () {
-                Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
-                Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
-                Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
-                Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
-                Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
-                Route::put('/suspend/{id}', 'UserController@suspendUser');
-                Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
-                Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
-                Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
+                // Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
+                // Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
+                // Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
+                // Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
+                // Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
+                // Route::put('/suspend/{id}', 'UserController@suspendUser');
+                // Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
+                // Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
+                // Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
 
                 Route::get('/package', 'PackageController@index');
                 Route::post('/package', 'PackageController@store');
@@ -427,8 +494,8 @@ Route::middleware(['cors'])->group(function () {
                 Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
                 Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
 
-                Route::put('/user/{id}', 'UserController@updateById');
-                Route::delete('/user/{id}', 'UserController@destroy');
+                // Route::put('/user/{id}', 'UserController@updateById');
+                // Route::delete('/user/{id}', 'UserController@destroy');
                 Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
                 Route::delete('/order/{id}', 'OrderController@destroy');
 
@@ -466,21 +533,21 @@ Route::middleware(['cors'])->group(function () {
                 Route::get('/faq/{id}', 'FaqController@getOne');
                 Route::delete('/faq/{id}', 'FaqController@destroy');
 
-                Route::prefix('/user')->group(function () {
-                    Route::prefix('/admin')->group(function () {
-                        Route::get('/', 'AdminController@index');
-                        Route::get('/{id}', 'AdminController@showAdmin');
-                        Route::put('/{id}', 'AdminController@updateAdmin');
-                        Route::delete('/{id}', 'AdminController@destroyAdmin');
-                    });
+                // Route::prefix('/user')->group(function () {
+                //     Route::prefix('/admin')->group(function () {
+                //         Route::get('/', 'AdminController@index');
+                //         Route::get('/{id}', 'AdminController@showAdmin');
+                //         Route::put('/{id}', 'AdminController@updateAdmin');
+                //         Route::delete('/{id}', 'AdminController@destroyAdmin');
+                //     });
 
-                    Route::prefix('/chat')->group(function () {
-                        Route::post('/{userId}', 'AdminController@chatAdminToUser');
-                    });
-                    Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
+                //     Route::prefix('/chat')->group(function () {
+                //         Route::post('/{userId}', 'AdminController@chatAdminToUser');
+                //     });
+                //     Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
 
-                    Route::get('/list', 'UserController@getUserByRole');
-                });
+                //     Route::get('/list', 'UserController@getUserByRole');
+                // });
 
 
                 // Dashboard

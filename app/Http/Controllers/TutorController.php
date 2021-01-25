@@ -107,24 +107,53 @@ class TutorController extends Controller
             $paginate = $request->get('paginate');
         }
         if($request->get('search')){
-            $querySearch    =$request->get('search');
-            $data           =User::where('role', Role::ROLE["TUTOR"])
-                            ->with(array('detail','tutorSubject'=>function($query)
-                            {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},
-                            'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
-                                ->groupBy('target_id');},))
-                            ->where(function ($where) use ($querySearch){
-                                $where->where('name','LIKE','%'.$querySearch.'%');
-                            })->paginate($paginate);
+            $querySearch    = $request->get('search');
+            $data           = User::where('role', Role::ROLE["TUTOR"])
+                                ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                                ->with(array('detail','tutorSubject'=>function($query){
+                                    $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                },'rating'=>function($query){
+                                    $query->selectRaw('target_id,AVG(rate) average')->groupBy('target_id');
+                                }))
+                                ->where(function ($where) use ($querySearch){
+                                    $where->where('name','LIKE','%'.$querySearch.'%');
+                                })->paginate($paginate);
             return $data;
         }
         $data   =   User::where('role', Role::ROLE["TUTOR"])
-                          ->with(array('detail','tutorSubject'=>function($query)
-                          {$query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');},'rating'=>function($query){$query->selectRaw('target_id,AVG(rate) average')
-                            ->groupBy('target_id');},))
-                          ->paginate($paginate);
+                            ->where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+                            ->with(array('detail','tutorSubject'=>function($query){
+                                $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                            }, 'rating'=>function($query){
+                                $query->selectRaw('target_id,AVG(rate) average')->groupBy('target_id');
+                            }))
+                            ->paginate($paginate);
         return $data;
     }
+
+    public function getRecommendedTutorList(Request $request){
+
+        $paginate = 10;
+
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
+        $data   =   User::where('role', Role::ROLE["TUTOR"])
+                            ->whereHas("detail", function ($query) {
+                                $query->where("status", "verified");
+                            })
+                            ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
+                            ->with(array("detail", "tutorSubject" => function ($query) {
+                                $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
+                            }))
+                            ->orderBy("total_rating", "DESC")
+                            ->withCount(array("report"))
+                            ->orderBy("report_count", "ASC")
+                            ->paginate($paginate);
+        return $data;
+    }
+
     public function getUnverifiedTutor(Request $request){
         $paginate = 10;
         if($request->get('paginate')){

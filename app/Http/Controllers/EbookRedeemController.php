@@ -28,12 +28,15 @@ class EbookRedeemController extends Controller
             if($request->get('search')){
                 $query  = $request->get('search');
                 $data   = EbookRedeem::select("ebook_redeem.*")
+                            ->where(function ($where) use ($query){
+                                $where->where('ebook_redeem.redeem_invoice','LIKE','%'.$query.'%')
+                                ->orWhere('ebook_redeem.request_invoice','LIKE','%'.$query.'%')
+                                ->orWhere('users.name','LIKE','%'.$query.'%');
+                            })
                             ->join("users", "ebook_redeem.id_customer", "=", "users.id")
-                            ->where('is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
                             ->with(array('customer', 'marketing', 'publisher', 'detail' => function($query){
                                 $query->get();
                             }))
-                            ->where('users.name','LIKE','%'.$query.'%')
                             ->where('ebook_redeem.is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             } else {
@@ -44,7 +47,7 @@ class EbookRedeemController extends Controller
                             ->where('ebook_redeem.is_deleted', EbookRedeem::EBOOK_REDEEM_DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -140,7 +143,7 @@ class EbookRedeemController extends Controller
                 $dataDetail->save();
                 $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
                 $dataDetail->save();
-                
+
                 array_push($newData, $dataDetail);
             }
 
@@ -153,7 +156,7 @@ class EbookRedeemController extends Controller
                 'data'      =>  $data,
                 'message'   =>  $message
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -177,7 +180,7 @@ class EbookRedeemController extends Controller
                         }))
                         ->where('id', $id)
                         ->first();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -214,74 +217,82 @@ class EbookRedeemController extends Controller
         try {
             $data                   = EbookRedeem::findOrFail($id);
 
-            if($request->input('request_invoice')){
-                $data->request_invoice  = $request->input('request_invoice');
-            }
-
-            if($request->input('id_customer')){
-                $data->id_customer      = $request->input('id_customer');
-            }
-
-            if($request->input('id_marketing')){
-                $data->id_marketing     = $request->input('id_marketing');
-            }
-
-            if($request->input('id_publisher')){
-                $data->id_publisher     = $request->input('id_publisher');
-            }
-
-            if($request->input('net_price')){
-                $data->net_price        = $request->input('net_price');
-            }
-
-            if($request->input('validity_month')){
-                $data->validity_month   = $request->input('validity_month');
-                $data->expired_at       = date('Y-m-d H:i:s', strtotime($data->created_at . '+' . $data->validity_month . ' months'));
-            }
-
-            $data->save();
-
-            $newData = array();
-            $ebookId = json_decode(json_encode($request->input('ebook_id_array')), FALSE);
-            $ebookAmount = json_decode(json_encode($request->input('ebook_limit_array')), FALSE);
-            $existingEbook = EbookRedeemDetail::where('id_redeem', $id)->get();
-
-            // Delete Nonmatch Ebook
-            foreach($existingEbook as $exist){
-                if(!in_array($exist->id_ebook, $ebookId)){
-                    $exist->delete();
+            if($data->status != EbookRedeem::EBOOK_REDEEM_STATUS["ACTIVE"]){
+                if($request->input('request_invoice')){
+                    $data->request_invoice  = $request->input('request_invoice');
                 }
-            }
 
-            // Check Update of Existing Ebook and Create the new one
-            $existingEbookId = EbookRedeemDetail::where('id_redeem', $id)->pluck('id_ebook')->toArray();
-            foreach($ebookId as $idx => $inputEbookId){
-                if(in_array($inputEbookId, $existingEbookId)){
-                    $dataDetail                 = EbookRedeemDetail::where('id_ebook',$inputEbookId)->where('id_redeem', $id)->first();
-                    $dataDetail->redeem_amount  = $ebookAmount[$idx];
-                    $dataDetail->save();
-                } else {
-                    $dataDetail                 = new EbookRedeemDetail();
-                    $dataDetail->id_redeem      = $data->id;
-                    $dataDetail->id_ebook       = $inputEbookId;
-                    $dataDetail->redeem_amount  = $ebookAmount[$idx];
-                    $dataDetail->save();
-                    $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
-                    $dataDetail->save();
+                if($request->input('id_customer')){
+                    $data->id_customer      = $request->input('id_customer');
                 }
-                array_push($newData, $dataDetail);
+
+                if($request->input('id_marketing')){
+                    $data->id_marketing     = $request->input('id_marketing');
+                }
+
+                if($request->input('id_publisher')){
+                    $data->id_publisher     = $request->input('id_publisher');
+                }
+
+                if($request->input('net_price')){
+                    $data->net_price        = $request->input('net_price');
+                }
+
+                if($request->input('validity_month')){
+                    $data->validity_month   = $request->input('validity_month');
+                    $data->expired_at       = date('Y-m-d H:i:s', strtotime($data->created_at . '+' . $data->validity_month . ' months'));
+                }
+
+                $data->save();
+
+                $newData = array();
+                $ebookId = json_decode(json_encode($request->input('ebook_id_array')), FALSE);
+                $ebookAmount = json_decode(json_encode($request->input('ebook_limit_array')), FALSE);
+                $existingEbook = EbookRedeemDetail::where('id_redeem', $id)->get();
+
+                // Delete Nonmatch Ebook
+                foreach($existingEbook as $exist){
+                    if(!in_array($exist->id_ebook, $ebookId)){
+                        $exist->delete();
+                    }
+                }
+
+                // Check Update of Existing Ebook and Create the new one
+                $existingEbookId = EbookRedeemDetail::where('id_redeem', $id)->pluck('id_ebook')->toArray();
+                foreach($ebookId as $idx => $inputEbookId){
+                    if(in_array($inputEbookId, $existingEbookId)){
+                        $dataDetail                 = EbookRedeemDetail::where('id_ebook',$inputEbookId)->where('id_redeem', $id)->first();
+                        $dataDetail->redeem_amount  = $ebookAmount[$idx];
+                        $dataDetail->save();
+                    } else {
+                        $dataDetail                 = new EbookRedeemDetail();
+                        $dataDetail->id_redeem      = $data->id;
+                        $dataDetail->id_ebook       = $inputEbookId;
+                        $dataDetail->redeem_amount  = $ebookAmount[$idx];
+                        $dataDetail->save();
+                        $dataDetail->redeem_code    = strtoupper(Str::random(2) . str_pad(substr($dataDetail->id, -2), 2, '0', STR_PAD_LEFT) . Str::random(2));
+                        $dataDetail->save();
+                    }
+                    array_push($newData, $dataDetail);
+                }
+
+                $data = EbookRedeem::where('id', $data->id)->with(array('customer', 'detail' => function($query){
+                    $query->get();
+                }))->first();
+
+                return response()->json([
+                    'status'    =>  'Success',
+                    'data'      =>  $data,
+                    'message'   =>  'Update Claim Redeem Succeeded'
+                ], 200);
+
+            } else {
+                return response()->json([
+                    "status"   => "Failed",
+                    "message"  => 'Ebook Redeem already accepted [Cannot be edited]'
+                ], 500);
             }
 
-            $data = EbookRedeem::where('id', $data->id)->with(array('customer', 'detail' => function($query){
-                $query->get();
-            }))->first();
-
-            return response()->json([
-                'status'    =>  'Success',
-                'data'      =>  $data,
-                'message'   =>  'Update Claim Redeem Succeeded'
-            ], 200);
-            
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -377,37 +388,58 @@ class EbookRedeemController extends Controller
     {
         try {
             $dataRedeemDetail   = EbookRedeemDetail::where('redeem_code', $request->input('redeem_code'))->first();
-            $userId             = JWTAuth::parseToken()->authenticate()->id;
 
-            $data = new EbookRedeemHistory();
-            $data->id_redeem_detail     = $dataRedeemDetail->id;
-            $data->id_user              = $userId;
+            $isValid            = true;
+            $dataRedeem         = EbookRedeem::findOrFail($dataRedeemDetail->id_redeem);
+            $today              = date('Y-m-d H:i:s');
 
-            $dataLibrary                = EbookLibrary::where('id_user', $userId)->where('id_ebook', $dataRedeemDetail->id_ebook)->first();
-            if($dataLibrary == null){
-                $newLibrary             = new EbookLibrary();
-                $newLibrary->id_user    = $userId;
-                $newLibrary->id_ebook   = $dataRedeemDetail->id_ebook;
-                $newLibrary->save();
+            if($isValid && $today > $dataRedeem->expired_at){
+                $isValid        = false;
+                $message        = 'Redeem Code Expired';
+            }
 
-                $dataRedeemDetail->redeem_used      = $dataRedeemDetail->redeem_used + 1;
-                $dataRedeemDetail->save();
+            if($isValid && $dataRedeemDetail->redeem_used >= $dataRedeemDetail->redeem_amount){
+                $isValid        = false;
+                $message        = 'Maximum Quota is exceeded';
+            }
 
-                $data->save();
+            if($isValid){
+                $userId             = JWTAuth::parseToken()->authenticate()->id;
 
-                return response()->json([
-                    'status'    =>  'Success',
-                    'data'      =>  $data,
-                    'message'   =>  'Ebook Redeem Succeeded'
-                ], 200);
+                $data = new EbookRedeemHistory();
+                $data->id_redeem_detail     = $dataRedeemDetail->id;
+                $data->id_user              = $userId;
+
+                $dataLibrary                = EbookLibrary::where('id_user', $userId)->where('id_ebook', $dataRedeemDetail->id_ebook)->first();
+                if($dataLibrary == null){
+                    $newLibrary             = new EbookLibrary();
+                    $newLibrary->id_user    = $userId;
+                    $newLibrary->id_ebook   = $dataRedeemDetail->id_ebook;
+                    $newLibrary->save();
+
+                    $dataRedeemDetail->redeem_used      = $dataRedeemDetail->redeem_used + 1;
+                    $dataRedeemDetail->save();
+
+                    $data->save();
+
+                    return response()->json([
+                        'status'    =>  'Success',
+                        'data'      =>  $data,
+                        'message'   =>  'Ebook Redeem Succeeded'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'status'    =>  'Failed',
+                        'message'   =>  'This Ebook already exist at The Library'
+                    ], 200);
+                }
             } else {
                 return response()->json([
                     'status'    =>  'Failed',
-                    'message'   =>  'This Ebook already exist at The Library'
+                    'message'   =>  $message
                 ], 200);
             }
-            
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -435,7 +467,7 @@ class EbookRedeemController extends Controller
                             }))
                             ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -458,7 +490,7 @@ class EbookRedeemController extends Controller
                         }))
                         ->where('id', $id)
                         ->first();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -477,7 +509,7 @@ class EbookRedeemController extends Controller
         try {
             $roleList   = array(Role::ROLE["SCHOOL"], Role::ROLE["COMPANY"]);
             $data       = User::whereIn('role', $roleList)->get();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -512,7 +544,7 @@ class EbookRedeemController extends Controller
                             ->where('id_redeem_detail', $idRedeemDetail)
                             ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
 use FCM;
+use DB;
 
 class RoomController extends Controller
 {
@@ -117,6 +118,7 @@ class RoomController extends Controller
 
                 if(Role::ROLE["STUDENT"] == $user->role){
                     $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
                                         ->orWhere('tutor_id',$user->id);
@@ -132,9 +134,10 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
                 } else {
                     $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
                                 ->where(function($query) use ($user) {
                                     $query->where('user_id',$user->id)
                                         ->orWhere('tutor_id',$user->id);
@@ -150,12 +153,18 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
                 }
                 return $data;
             } else {
-                $data   =   RoomChat::where('user_id',$user->id)
-                                ->orWhere('tutor_id',$user->id)
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
                                 ->with(array('user'=>function($query){
                                     $query->select('id','name','email','photo', 'status', 'role');
                                 },'tutor'=>function($query){
@@ -165,13 +174,31 @@ class RoomController extends Controller
                                     }));
                                 }))
                                 ->orderBy('room_chat.last_message_at', 'DESC')
-                                ->paginate(10);
+                                ->paginate(20);
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where("room_chat.is_deleted", RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                }
                 return $data;
             }
         } catch (\Throwable $th) {
             return $th;
         }
-        // return 'A';
     }
 
     public function showById($id)
@@ -245,6 +272,10 @@ class RoomController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        DB::beginTransaction();
+
+        $database = app('firebase.database');
+
         $message = "Update Status Room";
         $status = "Success";
         try {
@@ -261,12 +292,43 @@ class RoomController extends Controller
                 $target = $room->user;
             }
 
-            $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
-            $channelName  = Notification::CHANNEL_NOTIF_NAMES[11];
-            if("open" == $room->status){
-                $messageNotif = "Sesi percakapan dengan " . $sender->name . " dimulai";
-                $channelName  = Notification::CHANNEL_NOTIF_NAMES[12];
+            if(RoomChat::ROOM_STATUS["OPEN"] == $room->status){
+                $messageNotif           = "Sesi percakapan dengan " . $sender->name . " dimulai";
+                $channelName            = Notification::CHANNEL_NOTIF_NAMES[12];
+
+                $room->session_active   = date("dmyHi");
+                $room->save();
+                $messageChatInformation = "[SENDER] memulai sesi #" . $room->session_active;
+
+            } else {
+                $messageNotif = "Sesi percakapan dengan " . $sender->name . " telah berakhir";
+                $channelName  = Notification::CHANNEL_NOTIF_NAMES[11];
+
+                if(is_null($room->session_active)){
+                    $messageChatInformation = "[SENDER] mengakhiri sesi percakapan";
+                } else {
+                    $messageChatInformation = "[SENDER] mengakhiri sesi #" . $room->session_active;
+                }
+                $room->session_active   = null;
+                $room->save();
             }
+
+            // SEND INFORMATION CHAT
+            $chatData = [
+                'created_at'        => date("d/m/Y H:i:s"),
+                'file'              => "",
+                'id'                => 0,
+                'message_readed'    => false,
+                'readed_at'         => '',
+                'room_key'          => $room->room_key,
+                'text'              => $messageChatInformation,
+                'user_id'           => (int) $senderId,
+                'information_chat'  => true
+            ];
+            $newChatKey = $database->getReference('room_chat/'. $room->room_key .'/chat')->push()->getKey();
+            $database->getReference('room_chat/'. $room->room_key .'/chat/' . $newChatKey)->set($chatData);
+
+            DB::commit();
 
             $dataNotif = [
                 "title" => "HaiTutor",
@@ -292,28 +354,28 @@ class RoomController extends Controller
         ], 201);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
-            $room = RoomChat::where("id", $id)->first();
 
-            $room->chat()->delete();
-            $delete = $room->delete();
+            $array_room_id = $request->input("array_room_id");
 
-            if ($delete) {
-                return response([
-                    "status"	=> "success",
-                    "message"   => "Success delete room chat"
-                ], 200);
-            } else {
-                return response([
-                    "status"    => "failed",
-                    "message"   => "Failed to delete data"
-                ], 400);
+            foreach ($array_room_id as $room_id) {
+                $room = RoomChat::where("id", $room_id)->firstOrFail();
+
+                $room->is_deleted = RoomChat::ROOM_DELETED_STATUS["DELETED"];
+                $room->status = RoomChat::ROOM_STATUS["CLOSED"];
+                $room->save();
             }
+
+            return response([
+                "status"	=> "Success",
+                "message"   => "Success delete room chat"
+            ], 200);
+
         } catch (\Throwable $th) {
             return response([
-                "status"	=> "failed",
+                "status"	=> "Failed",
                 "message"   => "failed to delete room chat",
                 "data"      => $th->getMessage()
             ], 400);
@@ -342,6 +404,120 @@ class RoomController extends Controller
                 "message"   => "failed to update room chat status",
                 "data"      => $th->getMessage()
             ], 400);
+        }
+    }
+
+    public function getAvailableForwardRoom(Request $request){
+        try{
+            $user           = JWTAuth::parseToken()->authenticate();
+            $listAdminId    = User::where('role', Role::ROLE["ADMIN"])->pluck('id')->toArray();
+
+            if($request->get('search')){
+                $query  = $request->get('search');
+
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('tutor_table.name','LIKE','%'.$query.'%')
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+
+                } else {
+                    $data   =   RoomChat::select('room_chat.*','user_table.name as user_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->where('user_table.name','LIKE','%'.$query.'%')
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                }
+            } else {
+                if(Role::ROLE["STUDENT"] == $user->role){
+                    $data   =   RoomChat::select('room_chat.*','tutor_table.name as tutor_name')
+                                ->where(function($query) use ($user) {
+                                    $query->where('user_id',$user->id)
+                                        ->orWhere('tutor_id',$user->id);
+                                })
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as tutor_table', 'tutor_table.id', '=', 'room_chat.tutor_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                } else {
+                    $data   =   RoomChat::where(function ($where) use ($user){
+                                $where->where('user_id', $user->id)
+                                    ->orWhere('tutor_id', $user->id);
+                                })
+                                ->whereNotIn('user_id', $listAdminId)
+                                ->whereNotIn('tutor_id', $listAdminId)
+                                ->join('users as user_table', 'user_table.id', '=', 'room_chat.user_id')
+                                ->with(array('user'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role');
+                                },'tutor'=>function($query){
+                                    $query->select('id','name','email','photo', 'status', 'role')
+                                    ->with(array('detail', 'tutorSubject'=>function($query){
+                                        $query->leftJoin('subject', 'subject.id', '=', 'tutor_subject.subject_id');
+                                    }));
+                                }))
+                                ->where('room_chat.is_deleted', RoomChat::ROOM_DELETED_STATUS["ACTIVE"])
+                                ->where('room_chat.status', RoomChat::ROOM_STATUS["OPEN"])
+                                ->orderBy('room_chat.last_message_at', 'DESC')
+                                ->paginate(20);
+                }
+            }
+
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Available Forward Room Succeeded',
+                'data'      => $data
+            ]);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Available Forward Room Failed',
+                'data'      => $e->getMessage()
+            ]);
         }
     }
 }
