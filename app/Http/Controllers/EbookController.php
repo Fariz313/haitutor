@@ -7,6 +7,7 @@ use App\EbookLibrary;
 use App\User;
 use App\Helpers\GoogleCloudStorageHelper;
 use App\Role;
+use App\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -39,7 +40,7 @@ class EbookController extends Controller
                 }))
                 ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -96,7 +97,7 @@ class EbookController extends Controller
                 $data                   = new Ebook();
                 $data->id_category      = $request->input('id_category');
                 $data->id_publisher     = $request->input('id_publisher');
-                
+
                 if($request->input('item_code')){
                     $data->item_code    = $request->input('item_code');
                 } else {
@@ -150,7 +151,7 @@ class EbookController extends Controller
                     'message'   =>  'Publisher Invalid'
                 ], 500);
             }
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -266,7 +267,7 @@ class EbookController extends Controller
                 GoogleCloudStorageHelper::delete('/photos/ebook/'.$data->back_cover);
                 $data->back_cover   = GoogleCloudStorageHelper::put($request->file('back_cover'), '/photos/ebook', 'image', Str::random(3));
             }
-            
+
             $data->save();
 
             return response()->json([
@@ -307,7 +308,7 @@ class EbookController extends Controller
                 'data'      =>  $data,
                 'message'   =>  $message
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -339,7 +340,7 @@ class EbookController extends Controller
                 ->where('type', Ebook::EBOOK_TYPE["FREE"])
                 ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -376,7 +377,7 @@ class EbookController extends Controller
                 ->where('type', Ebook::EBOOK_TYPE["PAID"])
                 ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -400,7 +401,7 @@ class EbookController extends Controller
                     $data           = new EbookLibrary();
                     $data->id_user  = $idUser;
                     $data->id_ebook = $idEbook;
-                    
+
                     $data->save();
                     array_push($newData, $data);
                 }
@@ -444,7 +445,7 @@ class EbookController extends Controller
                         ->groupBy('id_ebook')
                         ->orderBy('ebook.type','DESC')
                         ->paginate(10);
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -517,7 +518,7 @@ class EbookController extends Controller
                 }))
                 ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -544,7 +545,7 @@ class EbookController extends Controller
                         }))
                         ->orderBy('ebook.type','DESC')
                         ->paginate(10);
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -591,7 +592,7 @@ class EbookController extends Controller
                 ->whereNotIn('id', $dataLibrary)
                 ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -637,7 +638,7 @@ class EbookController extends Controller
                 ->whereNotIn('id', $dataLibrary)
                 ->paginate(4);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -647,6 +648,31 @@ class EbookController extends Controller
             return response()->json([
                 "status"   => "Failed",
                 "message"  => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getRatingEbook($idEbook)
+    {
+        try {
+
+            $data = Rating::where("target_id", $idEbook)
+                            ->with(array("sender" => function ($query) {
+                                $query->select("id", "email", "name", "role", "photo");
+                            }))
+                            ->with(array("serviceable"))
+                            ->paginate(10);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $data,
+                'message'   =>  'Get Data Success'
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $th->getMessage()
             ], 500);
         }
     }

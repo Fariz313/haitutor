@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Rating;
 use App\User;
+use App\Ebook;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -77,7 +78,7 @@ class RatingController extends Controller
     		$validator = Validator::make($request->all(), [
     			'comment'           => 'required|string',
                 'rate'	            => 'required|integer|max:5',
-                "serviceable_type"  => "required|in:chat,videocall",
+                "serviceable_type"  => "required|in:chat,videocall,ebook",
                 "serviceable_id"    => "required|integer"
     		]);
 
@@ -138,9 +139,18 @@ class RatingController extends Controller
             $data->serviceable_id   = $request->input('serviceable_id');
             $data->save();
 
-            $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
-            $user->total_rating = round($recount_average_rating, 1);
-            $user->save();
+            if ($data->serviceable_type == Rating::SERVICEABLE_TYPE["EBOOK"]) {
+
+                $ebook = Ebook::findOrFail($id);
+
+                $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
+                $ebook->rating = round($recount_average_rating, 1);
+                $ebook->save();
+            } else {
+                $recount_average_rating = Rating::where("target_id", $id)->avg('rate');
+                $user->total_rating = round($recount_average_rating, 1);
+                $user->save();
+            }
 
             DB::commit();
 
@@ -159,24 +169,28 @@ class RatingController extends Controller
         }
     }
 
-    public function check($user_id)
+    public function check(Request $request, $user_id)
     {
         try {
             $current_user = JWTAuth::parseToken()->authenticate();
 
+            $serviceable_type = $request->input("serviceable_type");
+
             $ratingExist = Rating::where('sender_id', $current_user->id)
                                  ->where('target_id', $user_id)
+                                 ->where("serviceable_type", $serviceable_type)
                                  ->first();
 
             if ($ratingExist) {
                 return response()->json([
                     'status'	=> 'success',
-                    'message'	=> 'Rating exist for this user'
+                    'message'	=> 'Rating exist',
+                    "data"      => $ratingExist
                 ], 200);
             } else {
                 return response()->json([
                     'status'	=> 'failed',
-                    'message'	=> 'Rating not exist for this user'
+                    'message'	=> 'Rating isnt exist',
                 ], 200);
              }
 

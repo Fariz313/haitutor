@@ -53,6 +53,7 @@ Route::middleware(['cors'])->group(function () {
         Route::delete('rating/{id}', 'RatingController@delete');
         Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
         Route::get('rating-user/{user_id}', 'RatingController@userRatingList');
+        Route::post('rating/check/{target_id}', 'RatingController@check');
 
         Route::get('get_student', 'UserController@getAllStudent');
         Route::get('get_student/{id}', 'UserController@getStudent');
@@ -221,6 +222,8 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
             Route::get('/list/publish', 'EbookController@getEbookPublished');
             Route::get('/{id}', 'EbookController@show');
+
+            Route::get("/rating/{id}", "EbookController@getRatingEbook");
 
             Route::post('/add', 'EbookController@store');
             Route::post('/{id}', 'EbookController@update');
@@ -473,11 +476,6 @@ Route::middleware(['cors'])->group(function () {
                     Route::delete('/{id}', 'ChatController@destroy');
                     Route::put('/', 'ChatController@updateReadedMessage');
                 });
-            });
-
-
-            Route::prefix('/rating')->group(function () {
-                Route::get('/check/{user_id}', 'RatingController@check');
             });
         });
         //--------------------------------------------------

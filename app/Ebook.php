@@ -32,4 +32,9 @@ class Ebook extends Model
     {
         return $this->hasOne('App\User','id','id_publisher');
     }
+
+    public function ebookRatings()
+    {
+        return $this->morphMany(Rating::class, "serviceable");
+    }
 }
