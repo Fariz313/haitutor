@@ -183,20 +183,20 @@ class RatingController extends Controller
 
             if ($ratingExist) {
                 return response()->json([
-                    'status'	=> 'success',
+                    'status'	=> 'Success',
                     'message'	=> 'Rating exist',
                     "data"      => $ratingExist
                 ], 200);
             } else {
                 return response()->json([
-                    'status'	=> 'failed',
+                    'status'	=> 'Failed',
                     'message'	=> 'Rating isnt exist',
                 ], 200);
              }
 
         } catch (\Throwable $th) {
             return response()->json([
-                'status' => 'failed',
+                'status' => 'Failed',
                 'message' => 'failed to check rating',
                 'data' => $th->getMessage()
             ]);
