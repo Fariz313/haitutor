@@ -352,6 +352,7 @@ Route::middleware(['cors'])->group(function () {
 
         Route::prefix('/statistics')->group(function () {
             Route::get('/general', 'DashboardController@getGeneralStatistics');
+            Route::get('/recent', 'DashboardController@getRecentInformationData');
             Route::get('/graphic/order', 'DashboardController@getGraphicOrderData');
             Route::get('/graphic/activity', 'DashboardController@getGraphicActivityData');
             Route::get('/student/new', 'DashboardController@getNewStudent');

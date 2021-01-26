@@ -96,16 +96,17 @@ class DashboardController extends Controller
         try {
             $NUMBER_USER    = 5;
 
-            $new_user       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+            $newUser        = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                                     ->where('role', Role::ROLE["STUDENT"])
                                     ->orderBy('created_at','DESC')
                                     ->take($NUMBER_USER)->get();
+            return $newUser;
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get New User Data Succeeded',
-                'data'      => $new_user
-            ], 200);
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get New User Data Succeeded',
+            //     'data'      => $newUser
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -118,16 +119,18 @@ class DashboardController extends Controller
         try {
             $NUMBER_USER    = 5;
 
-            $new_user       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
+            $newUser       = User::where('is_deleted', User::DELETED_STATUS["ACTIVE"])
                                     ->where('role', Role::ROLE["TUTOR"])
                                     ->orderBy('created_at','DESC')
                                     ->take($NUMBER_USER)->get();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get New User Data Succeeded',
-                'data'      => $new_user
-            ], 200);
+            return $newUser;
+
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get New User Data Succeeded',
+            //     'data'      => $newUser
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -140,17 +143,18 @@ class DashboardController extends Controller
         try {
             $NUMBER_USER    = 5;
 
-            $user_id        = Report::groupBy('target_id')
+            $userId         = Report::groupBy('target_id')
                                     ->selectRaw('target_id as id, users.name, users.role, count(report.id) as report_count')
                                     ->join("users", "report.target_id", "=", "users.id")
                                     ->orderBy('report_count','DESC')
                                     ->take($NUMBER_USER)->get();
+            return $userId;
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Most Reported User Data Succeeded',
-                'data'      => $user_id
-            ], 200);
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Most Reported User Data Succeeded',
+            //     'data'      => $userId
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -172,11 +176,13 @@ class DashboardController extends Controller
                                     ->orderBy('ebook_count','DESC')
                                     ->take($NUMBER_EBOOK)->get();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Best Seller Ebook Data Succeeded',
-                'data'      => $data
-            ], 200);
+            return $data;
+
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Best Seller Ebook Data Succeeded',
+            //     'data'      => $data
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -196,12 +202,13 @@ class DashboardController extends Controller
                                     ->with(['detail'])
                                     ->orderBy('tutor_detail.updated_at','DESC')
                                     ->take($NUMBER_USER)->get();
+            return $data;
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Recent Pending Tutor Data Succeeded',
-                'data'      => $data
-            ], 200);
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Recent Pending Tutor Data Succeeded',
+            //     'data'      => $data
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -221,11 +228,13 @@ class DashboardController extends Controller
                                     ->orderBy('ebook_redeem.created_at','DESC')
                                     ->take($NUMBER_EBOOK)->get();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Pending Ebook Redeem Request Data Succeeded',
-                'data'      => $data
-            ], 200);
+            return $data;
+
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Pending Ebook Redeem Request Data Succeeded',
+            //     'data'      => $data
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -245,11 +254,13 @@ class DashboardController extends Controller
                                     ->orderBy('ebook_order.created_at','DESC')
                                     ->take($NUMBER_EBOOK)->get();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Pending Ebook Manual Order Request Data Succeeded',
-                'data'      => $data
-            ], 200);
+            return $data;
+
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Pending Ebook Manual Order Request Data Succeeded',
+            //     'data'      => $data
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -497,11 +508,13 @@ class DashboardController extends Controller
                                     ->orderBy('disbursement.created_at','DESC')
                                     ->take($NUMBER_EBOOK)->get();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => 'Get Pending Disbursement Request Data Succeeded',
-                'data'      => $data
-            ], 200);
+            return $data;
+
+            // return response()->json([
+            //     'status'    => 'Success',
+            //     'message'   => 'Get Pending Disbursement Request Data Succeeded',
+            //     'data'      => $data
+            // ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status'    => 'Failed',
@@ -565,5 +578,30 @@ class DashboardController extends Controller
                 'message'   => 'Get Transaction Statistics Failed',
                 'error'     => $e->getMessage()], 500);
         }
+    }
+
+    public function getRecentInformationData(){
+        try {
+            return response()->json([
+                'status'    => 'Success',
+                'message'   => 'Get Recent Information Succeeded',
+                'data'      => [
+                    'new_student'                   => $this->getNewStudent(),
+                    'new_tutor'                     => $this->getNewTutor(),
+                    'most_reported_user'            => $this->getMostReportedUser(),
+                    'best_seller_ebook'             => $this->getBestSellerEbook(),
+                    'pending_tutor_verification'    => $this->getPendingTutor(),
+                    'pending_ebook_redeem'          => $this->getPendingEbookRedeem(),
+                    'pending_ebook_manual_order'    => $this->getPendingEbookManualOrder(),
+                    'pending_disbursement'          => $this->getPendingDisbursement()
+                ]], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'    => 'Failed',
+                'message'   => 'Get Recent Information Failed',
+                'error'     => $e->getMessage()], 500);
+        }
+
     }
 }
