@@ -126,7 +126,9 @@ class RatingController extends Controller
             //     ], 200);
             // }
 
-            $user = User::findOrFail($id);
+            if ($request->input('serviceable_type') !=  Rating::SERVICEABLE_TYPE["EBOOK"]) {
+                $user = User::findOrFail($id);
+            }
 
             DB::beginTransaction();
 
