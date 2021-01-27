@@ -13,7 +13,13 @@ class LogApps {
     const LOG_TYPE = array(
         "LOGIN"     => "login",
         "LOGOUT"    => "logout",
-        "DETAIL"    => "detail"
+        "DETAIL"    => "detail",
+        "UPDATE"    => "update"
+    );
+
+    const UPDATE_USER_TYPE = array(
+        "UPDATE_PROFILE"    => 1,
+        "RESET_PASSWORD"    => 2
     );
 
     public static function login($data) {
@@ -76,6 +82,24 @@ class LogApps {
         $logData->log_type      = LogApps::LOG_TYPE["DETAIL"];
         $logData->message       = "User " . $data["USER"]->name . " melihat " . $data["PACKAGE"]->name;
         $logData->after         = json_encode($data["PACKAGE"]);
+        $logData->save();
+
+        return $data;
+    }
+
+    public static function editUser($data, $type = UPDATE_USER_TYPE["UPDATE_PROFILE"]) {
+        $logData                = new \App\Logs();
+        $logData->user_id       = $data["USER"]->id;
+        $logData->user_ip       = $data["USER_IP"];
+        $logData->table_name    = User::class;
+        $logData->log_type      = LogApps::LOG_TYPE["UPDATE"];
+        if($type == UPDATE_USER_TYPE["UPDATE_PROFILE"]){
+            $logData->message   = "User " . $data["USER"]->name . " melakukan perubahan profil";
+        } else {
+            $logData->message   = "User " . $data["USER"]->name . " melakukan reset password";
+        }
+        $logData->before        = json_encode($data["BEFORE"]);
+        $logData->after         = json_encode($data["AFTER"]);
         $logData->save();
 
         return $data;

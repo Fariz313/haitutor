@@ -240,7 +240,9 @@ class UserController extends Controller
         $status = "Success";
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
-            $user = User::findOrFail($userDetail->id);
+            $user       = User::findOrFail($userDetail->id);
+            $beforeData = $user;
+
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }
@@ -271,6 +273,20 @@ class UserController extends Controller
 
             $message = "Update Success";
             $user->save();
+
+            $dataLog = [
+                "USER"      => $user,
+                "USER_IP"   => $request->ip(),
+                "BEFORE"    => $beforeData,
+                "AFTER"     => $user
+            ];
+
+            if($request->input('password')){
+                LogApps::editUser($dataLog, LogApps::UPDATE_USER_TYPE["RESET_PASSWORD"]);
+            } else {
+                LogApps::editUser($dataLog, LogApps::UPDATE_USER_TYPE["UPDATE_PROFILE"]);
+            }
+
             return response()->json(compact('user','status','message'),201);
         } catch (\Throwable $th) {
             $status     = 'Failed';
