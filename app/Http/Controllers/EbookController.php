@@ -11,6 +11,7 @@ use App\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\LogApps;
 use JWTAuth;
 
 class EbookController extends Controller
@@ -673,6 +674,32 @@ class EbookController extends Controller
             return response()->json([
                 "status"   => "Failed",
                 "message"  => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function recordEbookInterest(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            $dataLog = [
+                "USER"      => $user,
+                "USER_IP"   => $request->ip(),
+                "EBOOK"     => Ebook::findOrFail($request->input('id_ebook'))
+            ];
+
+            LogApps::ebookDetail($dataLog);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $user,
+                'message'   =>  'Ebook Interest Log Recorded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
             ], 500);
         }
     }
