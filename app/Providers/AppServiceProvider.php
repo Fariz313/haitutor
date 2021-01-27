@@ -32,8 +32,9 @@ class AppServiceProvider extends ServiceProvider
         date_default_timezone_set('Asia/Jakarta');
 
         Relation::morphMap([
-            "chat" => \App\RoomChat::class,
-            "videocall" => \App\RoomVC::class
+            "chat"      => \App\RoomChat::class,
+            "videocall" => \App\RoomVC::class,
+            "ebook"     => \App\Ebook::class
         ]);
 
     }

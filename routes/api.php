@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['cors'])->group(function () {
 
-    Route::post('/order/verify/{id}', 'OrderController@verify');
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
     Route::post('login', 'UserController@login');
@@ -34,12 +33,6 @@ Route::middleware(['cors'])->group(function () {
     Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
 
     Route::middleware(['role'])->group(function () {
-        Route::get('faq', 'AskController@getAllFAQ');
-
-        Route::get('appVersion', 'AppVersionController@getAll');
-        Route::get('information', 'InformationController@getAll');
-        Route::get('faq', 'FaqController@getAll');
-
         Route::get('get_tutor', 'TutorController@getTutor');
         Route::get('get_tutor/all', 'TutorController@getAllTutor');
         Route::get('get_tutor/{id}', 'TutorController@showTutor');
@@ -54,14 +47,15 @@ Route::middleware(['cors'])->group(function () {
         Route::delete('rating/{id}', 'RatingController@delete');
         Route::get('rating-by-user/{user_id}', 'RatingController@ratedByUser');
         Route::get('rating-user/{user_id}', 'RatingController@userRatingList');
+        Route::post('rating/check/{target_id}', 'RatingController@check');
 
         Route::get('get_student', 'UserController@getAllStudent');
         Route::get('get_student/{id}', 'UserController@getStudent');
 
-        Route::get('order', 'OrderController@index');
-        Route::get('order/{id}', 'OrderController@showById');
         Route::get('order-user', 'OrderController@show');
-        Route::post('order/{id}', 'OrderController@store');
+        Route::get('/order-token', 'OrderController@historyToken');
+        Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
+        Route::post('chat/forward', 'ChatController@forwardMessage');
         Route::post('request/order', 'OrderController@requestTransaction');
         Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
 
@@ -223,6 +217,8 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/list/publish', 'EbookController@getEbookPublished');
             Route::get('/{id}', 'EbookController@show');
 
+            Route::get("/rating/{id}", "EbookController@getRatingEbook");
+
             Route::post('/add', 'EbookController@store');
             Route::post('/{id}', 'EbookController@update');
 
@@ -305,6 +301,9 @@ Route::middleware(['cors'])->group(function () {
         Route::prefix('/article')->group(function () {
             Route::get('/', 'ArticleController@getAll');
             Route::get('/{id}', 'ArticleController@getOne');
+            Route::post('/', 'ArticleController@store');
+            Route::put('/{id}', 'ArticleController@update');
+            Route::delete('/{id}', 'ArticleController@destroy');
         });
 
         Route::prefix('/user')->group(function () {
@@ -353,6 +352,7 @@ Route::middleware(['cors'])->group(function () {
 
         Route::prefix('/statistics')->group(function () {
             Route::get('/general', 'DashboardController@getGeneralStatistics');
+            Route::get('/recent', 'DashboardController@getRecentInformationData');
             Route::get('/graphic/order', 'DashboardController@getGraphicOrderData');
             Route::get('/graphic/activity', 'DashboardController@getGraphicActivityData');
             Route::get('/student/new', 'DashboardController@getNewStudent');
@@ -372,8 +372,64 @@ Route::middleware(['cors'])->group(function () {
             Route::post('tutordoc/{id}', 'TutorDocController@update');
         });
 
-        Route::post('chat/forward', 'ChatController@forwardMessage');
-        Route::get('room/forward/available', 'RoomController@getAvailableForwardRoom');
+        Route::prefix('/room')->group(function () {
+            Route::get('/forward/available', 'RoomController@getAvailableForwardRoom');
+            Route::get('/list/all', 'RoomController@index');
+            Route::get('/detail/{id}', 'RoomController@showById');
+            Route::put('/{id}', 'RoomController@updateStatusByAdmin');
+            Route::delete('/{id}', 'RoomController@destroy');
+        });
+
+        Route::prefix('/room_vc')->group(function () {
+            Route::get('/list/all', 'RoomVCController@index');
+            Route::get('/detail/{id}', 'RoomVCController@showById');
+            Route::put('/{id}', 'RoomVCController@updateStatusByAdmin');
+            Route::delete('/{id}', 'RoomVCController@destroy');
+        });
+
+        Route::prefix('/order')->group(function () {
+            Route::get('/', 'OrderController@index');
+            Route::get('/{id}', 'OrderController@showById');
+            Route::post('/{id}', 'OrderController@store');
+            Route::post('/verify/{id}', 'OrderController@verify');
+            Route::put('/{id}', 'OrderController@manualVerifyOrder');
+            Route::delete('/{id}', 'OrderController@destroy');
+        });
+
+        Route::prefix('/appVersion')->group(function () {
+            Route::get('/', 'AppVersionController@getAll');
+            Route::get('/{id}', 'AppVersionController@getOne');
+            Route::post('/', 'AppVersionController@store');
+            Route::put('/{id}', 'AppVersionController@update');
+            Route::delete('/{id}', 'AppVersionController@destroy');
+        });
+
+        Route::prefix('/information')->group(function () {
+            Route::get('/', 'InformationController@getAll');
+            Route::get('/{id}', 'InformationController@getOne');
+            Route::post('/', 'InformationController@store');
+            Route::put('/{id}', 'InformationController@update');
+            Route::delete('/{id}', 'InformationController@destroy');
+        });
+
+        Route::prefix('/faq')->group(function () {
+            Route::get('/', 'FaqController@getAll');
+            Route::get('/{id}', 'FaqController@getOne');
+            Route::post('/', 'FaqController@store');
+            Route::put('/{id}', 'FaqController@update');
+            Route::delete('/{id}', 'FaqController@destroy');
+        });
+
+        Route::get('get_subject', 'SubjectController@getSubject');
+        Route::prefix('/subject')->group(function () {
+            Route::get('/', 'SubjectController@index');
+            Route::get('/{id}', 'SubjectController@show');
+            Route::get('/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
+            Route::post('/', 'SubjectController@store');
+            Route::post('/icon/{id}', 'SubjectController@updateIcon');
+            Route::put('/{id}', 'SubjectController@update');
+            Route::delete('/{id}', 'SubjectController@destroy');
+        });
 
         //--------------------------------------------------LOGGED IN USER MIDDLEWARE
         Route::middleware(['jwt.verify'])->group(function () {
@@ -454,113 +510,12 @@ Route::middleware(['cors'])->group(function () {
                     Route::put('/', 'ChatController@updateReadedMessage');
                 });
             });
-
-
-            Route::prefix('/rating')->group(function () {
-                Route::get('/check/{user_id}', 'RatingController@check');
-            });
         });
         //--------------------------------------------------
 
         Route::prefix('/admin')->group(function () {
-
             Route::post('/login', 'AdminController@login')->withoutMiddleware([RoleMiddleware::class]);
             Route::post('/register', 'AdminController@register')->withoutMiddleware([RoleMiddleware::class]);
-
-            Route::middleware(['admin.general'])->group(function () {
-                // Route::put('/verify_tutor/{id}', 'TutorController@verifyTutor');
-                // Route::put('/unverify_tutor/{id}', 'TutorController@unverifyTutor');
-                // Route::put('/verify_doc/{id}', 'TutorDocController@verifyingDoc');
-                // Route::put('/unverify_doc/{id}', 'TutorDocController@unverifyingDoc');
-                // Route::get('/get_tutor/unverified', 'TutorController@getUnverifiedTutor');
-                // Route::put('/suspend/{id}', 'UserController@suspendUser');
-                // Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
-                // Route::put('/verify_doc/all/{userId}', 'TutorDocController@verifyingAllDoc');
-                // Route::put('/unverify_doc/all/{userId}', 'TutorDocController@unverifyingAllDoc');
-
-                Route::get('/package', 'PackageController@index');
-                Route::post('/package', 'PackageController@store');
-                Route::get('/package/{id}', 'PackageController@show');
-                Route::put('/package/{id}', 'PackageController@update');
-                Route::delete('/package/{id}', 'PackageController@destroy');
-
-                Route::get('/room', 'RoomController@index');
-                Route::get('/room/{id}', 'RoomController@showById');
-                Route::put('/room/{id}', 'RoomController@updateStatusByAdmin');
-                Route::delete('/room/{id}', 'RoomController@destroy');
-
-                Route::get('/room_vc', 'RoomVCController@index');
-                Route::get('/room_vc/{id}', 'RoomVCController@showById');
-                Route::put('/room_vc/{id}', 'RoomVCController@updateStatusByAdmin');
-                Route::delete('/room_vc/{id}', 'RoomVCController@destroy');
-
-                // Route::put('/user/{id}', 'UserController@updateById');
-                // Route::delete('/user/{id}', 'UserController@destroy');
-                Route::put('/order/{id}', 'OrderController@manualVerifyOrder');
-                Route::delete('/order/{id}', 'OrderController@destroy');
-
-                Route::get('/order-token', 'OrderController@historyToken');
-                Route::get('/order-token/{id}', 'OrderController@detailHistoryToken');
-
-                Route::get('/article', 'ArticleController@getAll');
-                Route::post('/article', 'ArticleController@store');
-                Route::put('/article/{id}', 'ArticleController@update');
-                Route::get('/article/{id}', 'ArticleController@getOne');
-                Route::delete('/article/{id}', 'ArticleController@destroy');
-
-                Route::get('/appVersion', 'AppVersionController@getAll');
-                Route::post('/appVersion', 'AppVersionController@store');
-                Route::put('/appVersion/{id}', 'AppVersionController@update');
-                Route::get('/appVersion/{id}', 'AppVersionController@getOne');
-                Route::delete('/appVersion/{id}', 'AppVersionController@destroy');
-
-                Route::get('/information', 'InformationController@getAll');
-                Route::post('/information', 'InformationController@store');
-                Route::put('/information/{id}', 'InformationController@update');
-                Route::get('/information/{id}', 'InformationController@getOne');
-                Route::delete('/information/{id}', 'InformationController@destroy');
-
-                Route::get('/payment_method', 'PaymentMethodController@getAll');
-                Route::post('/payment_method', 'PaymentMethodController@store');
-                Route::put('/payment_method/{id}', 'PaymentMethodController@update');
-                Route::put('/payment_method/status/{id}', 'PaymentMethodController@updateStatus');
-                Route::get('/payment_method/{id}', 'PaymentMethodController@getOne');
-                Route::delete('/payment_method/{id}', 'PaymentMethodController@destroy');
-
-                Route::get('/faq', 'FaqController@getAll');
-                Route::post('/faq', 'FaqController@store');
-                Route::put('/faq/{id}', 'FaqController@update');
-                Route::get('/faq/{id}', 'FaqController@getOne');
-                Route::delete('/faq/{id}', 'FaqController@destroy');
-
-                // Route::prefix('/user')->group(function () {
-                //     Route::prefix('/admin')->group(function () {
-                //         Route::get('/', 'AdminController@index');
-                //         Route::get('/{id}', 'AdminController@showAdmin');
-                //         Route::put('/{id}', 'AdminController@updateAdmin');
-                //         Route::delete('/{id}', 'AdminController@destroyAdmin');
-                //     });
-
-                //     Route::prefix('/chat')->group(function () {
-                //         Route::post('/{userId}', 'AdminController@chatAdminToUser');
-                //     });
-                //     Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
-
-                //     Route::get('/list', 'UserController@getUserByRole');
-                // });
-
-
-                // Dashboard
-                Route::get('/statistics', 'AdminController@dashboard');
-
-                //Subject
-                Route::get('subject', 'SubjectController@index');
-                Route::get('subject/{id}', 'SubjectController@show');
-                Route::post('subject', 'SubjectController@store');
-                Route::put('subject/{id}', 'SubjectController@update');
-                Route::post('subject/icon/{id}', 'SubjectController@updateIcon');
-                Route::delete('subject/{id}', 'SubjectController@destroy');
-            });
         });
     });
 });

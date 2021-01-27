@@ -215,14 +215,14 @@ class RoomController extends Controller
             }))->firstOrFail();
 
             return response()->json([
-                "status"    => "success",
+                "status"    => "Success",
                 "message"   => "Success fetch room chat",
                 "data"      => $data
             ], 200);
 
         } catch (\Throwable $th) {
             return response()->json([
-                "status"    => "failed",
+                "status"    => "Failed",
                 "message"   => "Failed fetch room chat",
             ], 400);
         }
@@ -279,10 +279,10 @@ class RoomController extends Controller
         $message = "Update Status Room";
         $status = "Success";
         try {
-            $room = RoomChat::findOrFail($id);
-            $room->status = $request->input('status');
-            $senderId = $request->input('sender_id');
-            $message = "Update Status Room Succeed";
+            $room           = RoomChat::findOrFail($id);
+            $room->status   = $request->input('status');
+            $senderId       = $request->input('sender_id');
+            $message        = "Update Status Room Succeed";
             $room->save();
 
             $sender = $room->user;
