@@ -431,6 +431,12 @@ Route::middleware(['cors'])->group(function () {
             Route::delete('/{id}', 'SubjectController@destroy');
         });
 
+        Route::prefix('/log')->group(function () {
+            Route::post('/interest/ebook', 'EbookController@recordEbookInterest');
+            Route::post('/interest/tutor', 'TutorController@recordTutorInterest');
+            Route::post('/interest/package', 'PackageController@recordPackageInterest');
+        });
+
         //--------------------------------------------------LOGGED IN USER MIDDLEWARE
         Route::middleware(['jwt.verify'])->group(function () {
 
