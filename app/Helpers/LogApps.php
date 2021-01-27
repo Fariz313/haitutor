@@ -87,13 +87,13 @@ class LogApps {
         return $data;
     }
 
-    public static function editUser($data, $type = UPDATE_USER_TYPE["UPDATE_PROFILE"]) {
+    public static function editUser($data, $type = LogApps::UPDATE_USER_TYPE["UPDATE_PROFILE"]) {
         $logData                = new \App\Logs();
         $logData->user_id       = $data["USER"]->id;
         $logData->user_ip       = $data["USER_IP"];
         $logData->table_name    = User::class;
         $logData->log_type      = LogApps::LOG_TYPE["UPDATE"];
-        if($type == UPDATE_USER_TYPE["UPDATE_PROFILE"]){
+        if($type == LogApps::UPDATE_USER_TYPE["UPDATE_PROFILE"]){
             $logData->message   = "User " . $data["USER"]->name . " melakukan perubahan profil";
         } else {
             $logData->message   = "User " . $data["USER"]->name . " melakukan reset password";

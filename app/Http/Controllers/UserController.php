@@ -241,7 +241,7 @@ class UserController extends Controller
         try {
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user       = User::findOrFail($userDetail->id);
-            $beforeData = $user;
+            $beforeData = User::findOrFail($userDetail->id);
 
             if ($request->input('name')) {
                 $user->name = $request->input('name');
@@ -288,10 +288,10 @@ class UserController extends Controller
             }
 
             return response()->json(compact('user','status','message'),201);
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             $status     = 'Failed';
             $message    = 'Update is Failed';
-            $error      = $th;
+            $error      = $e->getMessage();
             return response()->json(compact('error','status','message'),201);
         }
     }
