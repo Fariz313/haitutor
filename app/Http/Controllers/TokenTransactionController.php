@@ -12,6 +12,7 @@ use App\RoomVC;
 use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Helpers\LogApps;
 use App\Notification;
 use App\Role;
 use JWTAuth;
