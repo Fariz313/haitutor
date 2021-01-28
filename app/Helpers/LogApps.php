@@ -6,6 +6,7 @@ namespace App\Helpers;
 use App\Ebook;
 use App\User;
 use App\Package;
+use App\RoomVC;
 use App\TutorDetail;
 
 class LogApps {
@@ -14,7 +15,8 @@ class LogApps {
         "LOGIN"     => "login",
         "LOGOUT"    => "logout",
         "DETAIL"    => "detail",
-        "UPDATE"    => "update"
+        "UPDATE"    => "update",
+        "CREATE"    => "create"
     );
 
     const UPDATE_USER_TYPE = array(
@@ -100,6 +102,19 @@ class LogApps {
         }
         $logData->before        = json_encode($data["BEFORE"]);
         $logData->after         = json_encode($data["AFTER"]);
+        $logData->save();
+
+        return $data;
+    }
+
+    public static function createVideoCall($data) {
+        $logData                = new \App\Logs();
+        $logData->user_id       = $data["USER"]->id;
+        $logData->user_ip       = $data["USER_IP"];
+        $logData->table_name    = RoomVC::class;
+        $logData->log_type      = LogApps::LOG_TYPE["CREATE"];
+        $logData->message       = "User " . $data["USER"]->name . " melakukan video call";
+        $logData->after         = json_encode($data["ROOM_VC"]);
         $logData->save();
 
         return $data;
