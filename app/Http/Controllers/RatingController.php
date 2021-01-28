@@ -22,10 +22,13 @@ class RatingController extends Controller
     public function index(Request $request)
     {
         try {
+            $existingUser   = User::where("users.is_deleted", User::DELETED_STATUS["ACTIVE"])->pluck('id')->toArray();
+
             if($request->get('search')){
                 $query = $request->get('search');
 
-                $data = Rating::where("users.name", "LIKE", "%".$query."%")
+                $data = Rating::whereIn('target_id', $existingUser)
+                        ->where("users.name", "LIKE", "%".$query."%")
                         ->join("users", "users.id", "=", "rating.target_id")
                         ->groupBy('target_id')
                         ->selectRaw("target_id,ROUND(AVG(rate), 1) average, max(rating.id) as id")
@@ -33,23 +36,24 @@ class RatingController extends Controller
                             $query->select("id", "email", "name", "role");
                         }))
                         ->paginate(10);
-            }else{
+            } else {
                 $data = Rating::selectRaw('target_id,ROUND(AVG(rate), 1) average, max(id) as id')
-                ->with(array("target" => function ($query) {
-                    $query->select("id", "email", "name", "role");
-                }))
-                ->groupBy('target_id')
-                ->paginate(10);
+                        ->with(array("target" => function ($query) {
+                            $query->select("id", "email", "name", "role");
+                        }))
+                        ->whereIn('target_id', $existingUser)
+                        ->groupBy('target_id')
+                        ->paginate(10);
             }
 
             return response()->json([
-                'status'    =>  'success',
+                'status'    =>  'Success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
         } catch (\Throwable $th) {
             return response()->json([
-                'status'    =>  'failed',
+                'status'    =>  'Failed',
                 'data'      =>  $th->getMessage(),
                 'message'   =>  'Get Data Failed'
             ]);
