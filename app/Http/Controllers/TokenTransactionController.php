@@ -12,6 +12,7 @@ use App\RoomVC;
 use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Helpers\LogApps;
 use App\Notification;
 use App\Role;
 use JWTAuth;
@@ -317,22 +318,22 @@ class TokenTransactionController extends Controller
                                 $checkVCRoom->duration_left  = $checkVCRoom->duration_left + $duration_video_call;
                                 $checkVCRoom->save();
 
-                                $order         = new Order();
-                                $order->user_id       = $current_user->id;
-                                $order->detail        = "Menambah durasi video call dengan ".$tutor->name."";
-                                $order->amount        = 1;
-                                $order->pos           = ORDER::POS_STATUS["KREDIT"];
-                                $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                                $order->status        = "completed";
+                                $order              = new Order();
+                                $order->user_id     = $current_user->id;
+                                $order->detail      = "Menambah durasi video call dengan ".$tutor->name."";
+                                $order->amount      = 1;
+                                $order->pos         = ORDER::POS_STATUS["KREDIT"];
+                                $order->type_code   = ORDER::TYPE_CODE["INTERNAL"];
+                                $order->status      = "completed";
                                 $order->save();
 
-                                $order_tutor         = new Order();
-                                $order_tutor->user_id       = $tutor->id;
-                                $order_tutor->detail        = $current_user->name." Menambah durasi videoc call anda";
-                                $order_tutor->amount        = 1;
-                                $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
-                                $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
-                                $order_tutor->status        = "completed";
+                                $order_tutor            = new Order();
+                                $order_tutor->user_id   = $tutor->id;
+                                $order_tutor->detail    = $current_user->name." Menambah durasi videoc call anda";
+                                $order_tutor->amount    = 1;
+                                $order_tutor->pos       = ORDER::POS_STATUS["DEBET"];
+                                $order_tutor->type_code = ORDER::TYPE_CODE["INTERNAL"];
+                                $order_tutor->status    = "completed";
                                 $order_tutor->save();
 
                                 $dataNotif = [
@@ -348,6 +349,15 @@ class TokenTransactionController extends Controller
                                 $responseNotif = FCM::pushNotification($dataNotif);
 
                                 DB::commit();
+
+                                $dataLog = [
+                                    "USER"      => $current_user,
+                                    "USER_IP"   => $request->ip(),
+                                    "ROOM_VC"   => $checkVCRoom
+                                ];
+
+                                LogApps::createVideoCall($dataLog);
+
                                 return response()->json([
                                     'status'        =>  'success',
                                     'message'       =>  'Video call duration added !',
@@ -453,6 +463,14 @@ class TokenTransactionController extends Controller
                             $responseNotif = FCM::pushNotification($dataNotif);
 
                             DB::commit();
+
+                            $dataLog = [
+                                "USER"      => $current_user,
+                                "USER_IP"   => $request->ip(),
+                                "ROOM_VC"   => $data
+                            ];
+
+                            LogApps::createVideoCall($dataLog);
 
                             return response()->json([
                                 'status'    =>  'success',

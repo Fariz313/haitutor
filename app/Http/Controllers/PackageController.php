@@ -6,6 +6,7 @@ use App\Information;
 use Illuminate\Http\Request;
 use App\Package;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\LogApps;
 use JWTAuth;
 
 
@@ -228,6 +229,32 @@ class PackageController extends Controller
             	"status"	=> "Failed",
                 "message"   => $e->getMessage()
             ]);
+        }
+    }
+
+    public function recordPackageInterest(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            $dataLog = [
+                "USER"      => $user,
+                "USER_IP"   => $request->ip(),
+                "PACKAGE"   => Package::findOrFail($request->input('id_package'))
+            ];
+
+            LogApps::packageDetail($dataLog);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $user,
+                'message'   =>  'Package Interest Log Recorded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
         }
     }
 }

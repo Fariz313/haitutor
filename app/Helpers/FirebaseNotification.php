@@ -81,7 +81,7 @@ class FirebaseNotification {
                     ],
                     'to' => $data["token_recipient"]
                 ];
-            } else if ($data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[11] || $data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[12]) {
+            } else if ($data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[11] || $data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[12] || $data["channel_name"] == Notification::CHANNEL_NOTIF_NAMES[0]) {
 
                 $body = [
                     'data' => [

@@ -13,6 +13,7 @@ use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Mail;
 use Illuminate\Support\Str;
+use App\Helpers\LogApps;
 use FCM;
 
 class TutorController extends Controller
@@ -442,5 +443,31 @@ class TutorController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function recordTutorInterest(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            $dataLog = [
+                "USER"      => $user,
+                "USER_IP"   => $request->ip(),
+                "TUTOR"     => User::findOrFail($request->input('id_tutor'))
+            ];
+
+            LogApps::tutorDetail($dataLog);
+
+            return response()->json([
+                'status'    =>  'Success',
+                'data'      =>  $user,
+                'message'   =>  'Tutor Interest Log Recorded'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status"   => "Failed",
+                "message"  => $e->getMessage()
+            ], 500);
+        }
     }
 }
