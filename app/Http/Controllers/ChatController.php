@@ -90,6 +90,7 @@ class ChatController extends Controller
                     "target_id" => $target->id,
                     'token_recipient' => $target->firebase_token,
                     "channel_name" => Notification::CHANNEL_NOTIF_NAMES[0],
+                    "room_chat"    => $room,
                     'save_data' => false
                 ];
                 $responseNotif = FCM::pushNotification($dataNotif);
