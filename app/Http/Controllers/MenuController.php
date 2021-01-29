@@ -66,7 +66,7 @@ class MenuController extends Controller
                 'data'      =>  $data,
                 'message'   =>  'Insert Menu Succeeded'
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -140,7 +140,7 @@ class MenuController extends Controller
                 'data'      =>  $data,
                 'message'   =>  'Update Menu Succeeded'
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -176,7 +176,7 @@ class MenuController extends Controller
                 'data'      =>  $data,
                 'message'   =>  $message
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -194,11 +194,16 @@ class MenuController extends Controller
             } else {
                 // Access view_primary_menu for Production Environment
                 $data = PrimaryMenu::select('view_primary_menu.*')
-                    ->with(array('subMenu' => function($query){
-                        $query->select('menu.*','sub_menu.*')->join("menu", "sub_menu.id_child_menu", "=", "menu.id");
+                    ->with(array('subMenu' => function($query) use ($id_role){
+                        $query->select('menu.*','sub_menu.*')
+                            ->join("menu", "sub_menu.id_child_menu", "=", "menu.id")
+                            ->join("menu_role", "menu_role.id_menu", "=", "menu.id")
+                            ->where('menu_role.id_role', $id_role)
+                            ->orderBy('menu.order','ASC');
                     }))
                     ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
                     ->where('menu_role.id_role', $id_role)
+                    ->orderBy('menu.order','ASC')
                     ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
 
                 return response()->json([
@@ -207,7 +212,7 @@ class MenuController extends Controller
                     'message'   =>  'Get Data Success'
                 ], 200);
             }
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
