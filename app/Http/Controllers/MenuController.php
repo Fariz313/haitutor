@@ -203,7 +203,7 @@ class MenuController extends Controller
                     }))
                     ->join("menu_role", "menu_role.id_menu", "=", "view_primary_menu.id")
                     ->where('menu_role.id_role', $id_role)
-                    ->orderBy('menu.order','ASC')
+                    ->orderBy('view_primary_menu.order','ASC')
                     ->where('is_deleted', Menu::STATUS_MENU_DELETED["ACTIVE"])->get();
 
                 return response()->json([
