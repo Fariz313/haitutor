@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AppVersion;
 use App\Information;
+use App\Notification;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +20,7 @@ use View;
 use Google_Client;
 use App\Helpers\LogApps;
 use App\Role;
+use FCM;
 
 class UserController extends Controller
 {
@@ -760,10 +762,18 @@ class UserController extends Controller
     public function requestVerification()
     {
         try {
-            $user_id = JWTAuth::parseToken()->authenticate()->id;
-            $tutor          = TutorDetail::where('user_id', '=', $user_id)->firstOrFail();
+            $user           = JWTAuth::parseToken()->authenticate();
+            $tutor          = TutorDetail::where('user_id', '=', $user->id)->firstOrFail();
             $tutor->status  = TutorDetail::TutorStatus["PENDING"];
             $tutor->save();
+
+            $dataNotif = [
+                "title"         => "HaiTutor",
+                "message"       => $user->name . " mengajukan permohonan verifikasi akun tutor",
+                "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[8]
+            ];
+            FCM::pushNotificationAdmin($dataNotif);
+
             return response()->json([
                 'status'    =>  'Success',
                 'message'   =>  'Request Verification Sent',

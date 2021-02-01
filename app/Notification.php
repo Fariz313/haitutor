@@ -23,6 +23,8 @@ class Notification extends Model
         11 => "CHANNEL_ROOM_CHAT_CLOSE",
         12 => "CHANNEL_ROOM_CHAT_OPEN",
         13 => "CHANNEL_EBOOK_PURCHASE",
-        14 => "CHANNEL_USER_IS_IN_ANOTHER_CALL"
+        14 => "CHANNEL_USER_IS_IN_ANOTHER_CALL",
+        15 => "CHANNEL_EBOOK_REDEEM",
+        16 => "CHANNEL_EBOOK_MANUAL_ORDER"
     );
 }
