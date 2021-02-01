@@ -6,12 +6,14 @@ use App\EbookLibrary;
 use App\EbookRedeem;
 use App\EbookRedeemDetail;
 use App\EbookRedeemHistory;
+use App\Notification;
 use App\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
+use FCM;
 
 use function PHPSTORM_META\elementType;
 
@@ -117,6 +119,14 @@ class EbookRedeemController extends Controller
                 // If Redeem is Requested by Publisher
                 $data->status       = EbookRedeem::EBOOK_REDEEM_STATUS["PENDING"];
                 $message            = "Request Claim Redeem Succeeded";
+
+                $dataNotif = [
+                    "title"         => "HaiTutor",
+                    "message"       => $user->name . " mengajukan permohonan redeem ebook",
+                    "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[15]
+                ];
+                FCM::pushNotificationAdmin($dataNotif);
+
             } else {
                 // If Redeem is Requested by Non-Publisher (Admin)
                 $data->status       = EbookRedeem::EBOOK_REDEEM_STATUS["ACTIVE"];
