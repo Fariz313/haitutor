@@ -409,6 +409,7 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/{id}', 'InformationController@getOne');
             Route::post('/', 'InformationController@store');
             Route::put('/{id}', 'InformationController@update');
+            Route::post('/icon/default', 'InformationController@setDefaultIcon');
             Route::delete('/{id}', 'InformationController@destroy');
         });
 
