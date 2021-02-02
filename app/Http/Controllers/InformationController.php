@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Helpers\GoogleCloudStorageHelper;
 use App\Information;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
@@ -11,41 +12,41 @@ use Illuminate\Support\Str;
 
 
 class InformationController extends Controller {
-    
+
     public function getAll(Request $request){
-    
+
          try{
-           
+
             if($request->get('search')){
                 $query = $request->get('search');
                 $data = Information::where(function ($where) use ($query){
                     $where->where('variable','LIKE','%'.$query.'%')
                         ->orWhere('value','LIKE','%'.$query.'%');
-                } )->paginate(10);    
+                } )->paginate(10);
             }else{
                 $data = Information::paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'success',
                 'data'      =>  $data,
                 'message'   =>  'Get Data Success'
             ]);
-        
+
          }catch(\Throwable $e){
-             
+
               return response()->json([
                "status"=>"gagal",
                "error"=>$e
                ],500);
-         }       
+         }
     }
 
     public function getOne($id)
     {
         try {
-            $data   =   Information::findOrFail($id);  
-            
+            $data   =   Information::findOrFail($id);
+
             return response()->json([
                 'status'    =>  'success',
                 'message'   =>  'Get Data Success',
@@ -131,7 +132,7 @@ class InformationController extends Controller {
             ]);
         }
     }
-    
+
     public function destroy($id)
     {
         try{
@@ -156,6 +157,42 @@ class InformationController extends Controller {
             ]);
         }
     }
-    
-    
+
+    public function setDefaultIcon(Request $request)
+    {
+        try{
+            if($request->input('type') == Information::TYPE_ICON["USER"]){
+                $data           = Information::where('variable', Information::ATRRIBUTE_NAME["DEFAULT_ICON_USER"])->first();
+                GoogleCloudStorageHelper::delete('/photos/user'.$data->value);
+                $data->value    = GoogleCloudStorageHelper::put($request->file('value'), '/photos/user', 'image', Str::random(3));
+
+            } else if($request->input('type') == Information::TYPE_ICON["SUBJECT"]){
+                $data           = Information::where('variable', Information::ATRRIBUTE_NAME["DEFAULT_ICON_SUBJECT"])->first();
+                GoogleCloudStorageHelper::delete('/photos/subject'.$data->value);
+                $data->value    = GoogleCloudStorageHelper::put($request->file('value'), '/photos/subject', 'image', Str::random(3));
+
+            } else {
+                $data           = Information::where('variable', Information::ATRRIBUTE_NAME["DEFAULT_ICON_PAYMENT_METHOD"])->first();
+                GoogleCloudStorageHelper::delete('/photos/payment_method'.$data->value);
+                $data->value    = GoogleCloudStorageHelper::put($request->file('value'), '/photos/payment_method', 'image', Str::random(3));
+
+            }
+
+	        $data->save();
+
+    		return response()->json([
+    			'status'	=> 'Success',
+                'message'	=> 'Default Icon updated successfully',
+                'data'      => $data
+    		], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'status' => 'Failed',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+
 }
