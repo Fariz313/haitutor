@@ -27,4 +27,28 @@ class Notification extends Model
         15 => "CHANNEL_EBOOK_REDEEM",
         16 => "CHANNEL_EBOOK_MANUAL_ORDER"
     );
+
+    const NOTIF_STATUS = array(
+        'READ'      => 1,
+        'UNREAD'    => 0,
+    );
+
+    const NOTIF_ACTION = array(
+        'DISBURSEMENT'          => '/disbursement',
+        'TUTOR_VERIFICATION'    => '/tutor',
+        'EBOOK_REDEEM'          => '/ebookRedeem',
+        'EBOOK_MANUAL_ORDER'    => '/ebookOrder',
+    );
+
+    const NOTIF_IMAGE = array(
+        'DISBURSEMENT'          => '/disbursement',
+        'TUTOR_VERIFICATION'    => '/tutor',
+        'EBOOK_REDEEM'          => '/ebookRedeem',
+        'EBOOK_MANUAL_ORDER'    => '/ebookOrder',
+    );
+
+    public function user()
+    {
+        return $this->hasOne('App\User','id','sender_id');
+    }
 }

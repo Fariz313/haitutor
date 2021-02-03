@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Notification;
+use App\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use FCM;
@@ -45,7 +46,7 @@ class NotificationController extends Controller
      */
     public function create()
     {
-        // 
+        //
     }
 
     /**
@@ -142,14 +143,48 @@ class NotificationController extends Controller
 
     public function getNotifByTargetId($targetId){
         try {
+            $userRole = JWTAuth::parseToken()->authenticate()->role;
+
             $tempDate = \Carbon\Carbon::today()->subDays(7);
-            $data = Notification::where('target_id',$targetId)
-                                ->where('created_at', '>=', $tempDate)
-                                ->orderBy('created_at','desc')->paginate(10);
 
             $status = 'Success';
             $message = "Get Notification By Target Succeed";
-            return response()->json(compact('status','message','data'),200);
+
+            if($userRole == Role::ROLE['ADMIN']){
+                $unreadNotif = Notification::where('target_id',$targetId)
+                                ->where('created_at', '>=', $tempDate)
+                                ->orderBy('created_at','desc')
+                                ->where('status', Notification::NOTIF_STATUS['UNREAD'])->get();
+
+                $data = Notification::where('target_id',$targetId)
+                                ->where('created_at', '>=', $tempDate)
+                                ->orderBy('created_at','desc')
+                                ->with(array('user' => function($query){
+                                    $query->with('role');
+                                }))
+                                ->get();
+
+                return response()->json([
+                                    'status'	=> $status,
+                                    'message'	=> $message,
+                                    'data'      => [
+                                        'count_unread'  => count($unreadNotif),
+                                        'message'       => $data
+                                    ]
+                                ], 200);
+
+            } else {
+                $data = Notification::where('target_id',$targetId)
+                                ->where('created_at', '>=', $tempDate)
+                                ->orderBy('created_at','desc')->paginate(10);
+
+                return response()->json([
+                                    'status'	=> $status,
+                                    'message'	=> $message,
+                                    'data'      => $data
+                                ], 200);
+            }
+
         } catch (\Throwable $th) {
             $status = 'Failed';
             $message = $th;
