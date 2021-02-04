@@ -113,6 +113,7 @@ class EbookOrderController extends Controller
                 $dataNotif = [
                     "title"         => "HaiTutor",
                     "message"       => $user->name . " mengajukan permohonan redeem ebook",
+                    "action"        => Notification::NOTIF_ACTION["EBOOK_MANUAL_ORDER"],
                     "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[15]
                 ];
                 FCM::pushNotificationAdmin($dataNotif);

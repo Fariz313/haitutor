@@ -36,14 +36,7 @@ class Notification extends Model
     const NOTIF_ACTION = array(
         'DISBURSEMENT'          => '/disbursement',
         'TUTOR_VERIFICATION'    => '/tutor',
-        'EBOOK_REDEEM'          => '/ebookRedeem',
-        'EBOOK_MANUAL_ORDER'    => '/ebookOrder',
-    );
-
-    const NOTIF_IMAGE = array(
-        'DISBURSEMENT'          => '/disbursement',
-        'TUTOR_VERIFICATION'    => '/tutor',
-        'EBOOK_REDEEM'          => '/ebookRedeem',
+        'EBOOK_REDEEM'          => '/ebookRedeemDetail',
         'EBOOK_MANUAL_ORDER'    => '/ebookOrder',
     );
 
