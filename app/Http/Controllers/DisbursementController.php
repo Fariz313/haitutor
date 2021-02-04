@@ -80,6 +80,7 @@ class DisbursementController extends Controller
             $dataNotif = [
                 "title"         => "HaiTutor",
                 "message"       => $user->name . " mengajukan permohonan pencairan token",
+                "action"        => Notification::NOTIF_ACTION["DISBURSEMENT"],
                 "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[9]
             ];
             FCM::pushNotificationAdmin($dataNotif);

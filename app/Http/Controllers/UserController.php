@@ -770,6 +770,7 @@ class UserController extends Controller
             $dataNotif = [
                 "title"         => "HaiTutor",
                 "message"       => $user->name . " mengajukan permohonan verifikasi akun tutor",
+                "action"        => Notification::NOTIF_ACTION["TUTOR_VERIFICATION"],
                 "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[8]
             ];
             FCM::pushNotificationAdmin($dataNotif);

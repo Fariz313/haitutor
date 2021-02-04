@@ -114,6 +114,8 @@ class EbookRedeemController extends Controller
                 $data->gross_price  = $request->input('net_price');
             }
 
+            $data->save();
+
             $user = JWTAuth::parseToken()->authenticate();
             if($user->role == Role::ROLE["PUBLISHER"]){
                 // If Redeem is Requested by Publisher
@@ -123,6 +125,7 @@ class EbookRedeemController extends Controller
                 $dataNotif = [
                     "title"         => "HaiTutor",
                     "message"       => $user->name . " mengajukan permohonan redeem ebook",
+                    "action"        => Notification::NOTIF_ACTION["EBOOK_REDEEM"] + "/" + $data->id,
                     "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[15]
                 ];
                 FCM::pushNotificationAdmin($dataNotif);
@@ -133,7 +136,6 @@ class EbookRedeemController extends Controller
                 $message            = "Claim Redeem Succeeded";
             }
 
-            $data->save();
             $data->redeem_invoice       = "INVHT" . str_pad($data->id, 8, '0', STR_PAD_LEFT);
 
             if($request->input('validity_month')){
