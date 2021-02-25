@@ -13,6 +13,7 @@ use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Helpers\LogApps;
+use App\Information;
 use App\Notification;
 use App\Role;
 use JWTAuth;
@@ -258,7 +259,13 @@ class TokenTransactionController extends Controller
         $channel_name = Str::random(16);
         $role = RtcTokenBuilder::RoleAttendee;
 
-        $duration_video_call = 600; // 10 minutes in seconds
+        $durationVideoCallVariable = "minutes_video_call_per_token";
+
+        $information = Information::where("variable", $durationVideoCallVariable)->first();
+
+        $videoCallDurationMinute = $information->value;
+
+        $duration_video_call = $videoCallDurationMinute * 60; // convert to second
 
         try {
 
@@ -342,7 +349,7 @@ class TokenTransactionController extends Controller
                                     "sender_id" => $current_user->id,
                                     "target_id" => $tutor->id,
                                     "channel_name"   => Notification::CHANNEL_NOTIF_NAMES[1],
-                                    "duration"       => 600,
+                                    "duration"       => $duration_video_call,
                                     'token_recipient' => $tutor->firebase_token,
                                     'save_data' => true
                                 ];
