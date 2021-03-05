@@ -1036,4 +1036,50 @@ class UserController extends Controller
             ], 400);
         }
     }
+
+    public function verifyUser($id)
+    {
+        try {
+            $user           = User::findOrFail($id);
+            $user->status   = User::STATUS["VERIFIED"];
+            $user->save();
+
+            return response()->json(
+                [
+                    'status'    =>  'Success',
+                    'message'   =>  'User Verification Succeed',
+                    'data'      =>  $user
+                ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'User Verification Failed',
+                'data'      =>  $th->getMessage()
+            ], 400);
+        }
+    }
+
+    public function unverifyUser($id)
+    {
+        try {
+            $user           = User::findOrFail($id);
+            $user->status   = User::STATUS["UNVERIFIED"];
+            $user->save();
+
+            return response()->json(
+                [
+                    'status'    =>  'Success',
+                    'message'   =>  'User Unverification Succeed',
+                    'data'      =>  $user
+                ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status'    =>  'Failed',
+                'message'   =>  'User Unverification Failed',
+                'data'      =>  $th->getMessage()
+            ], 400);
+        }
+    }
 }

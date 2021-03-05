@@ -323,6 +323,8 @@ Route::middleware(['cors'])->group(function () {
             Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
             Route::put('/doc/all/verify/{userId}', 'TutorDocController@verifyingAllDoc');
             Route::put('/doc/all/unverify/{userId}', 'TutorDocController@unverifyingAllDoc');
+            Route::put('/all/verify/{id}', 'UserController@verifyUser');
+            Route::put('/all/unverify/{id}', 'UserController@unverifyUser');
 
             Route::delete('/{id}', 'UserController@destroy');
 
