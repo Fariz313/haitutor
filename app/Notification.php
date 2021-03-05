@@ -23,6 +23,25 @@ class Notification extends Model
         11 => "CHANNEL_ROOM_CHAT_CLOSE",
         12 => "CHANNEL_ROOM_CHAT_OPEN",
         13 => "CHANNEL_EBOOK_PURCHASE",
-        14 => "CHANNEL_USER_IS_IN_ANOTHER_CALL"
+        14 => "CHANNEL_USER_IS_IN_ANOTHER_CALL",
+        15 => "CHANNEL_EBOOK_REDEEM",
+        16 => "CHANNEL_EBOOK_MANUAL_ORDER"
     );
+
+    const NOTIF_STATUS = array(
+        'READ'      => 1,
+        'UNREAD'    => 0,
+    );
+
+    const NOTIF_ACTION = array(
+        'DISBURSEMENT'          => '/disbursement',
+        'TUTOR_VERIFICATION'    => '/tutor',
+        'EBOOK_REDEEM'          => '/ebookRedeemDetail',
+        'EBOOK_MANUAL_ORDER'    => '/ebookOrder',
+    );
+
+    public function user()
+    {
+        return $this->hasOne('App\User','id','sender_id');
+    }
 }

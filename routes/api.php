@@ -323,6 +323,8 @@ Route::middleware(['cors'])->group(function () {
             Route::put('/unsuspend/{id}', 'UserController@unsuspendUser');
             Route::put('/doc/all/verify/{userId}', 'TutorDocController@verifyingAllDoc');
             Route::put('/doc/all/unverify/{userId}', 'TutorDocController@unverifyingAllDoc');
+            Route::put('/all/verify/{id}', 'UserController@verifyUser');
+            Route::put('/all/unverify/{id}', 'UserController@unverifyUser');
 
             Route::delete('/{id}', 'UserController@destroy');
 
@@ -383,6 +385,9 @@ Route::middleware(['cors'])->group(function () {
         Route::prefix('/room_vc')->group(function () {
             Route::get('/list/all', 'RoomVCController@index');
             Route::get('/detail/{id}', 'RoomVCController@showById');
+
+            Route::put('/token', 'RoomVCController@updateToken')->middleware(["user.verified"]);
+
             Route::put('/{id}', 'RoomVCController@updateStatusByAdmin');
             Route::delete('/{id}', 'RoomVCController@destroy');
         });
@@ -409,6 +414,7 @@ Route::middleware(['cors'])->group(function () {
             Route::get('/{id}', 'InformationController@getOne');
             Route::post('/', 'InformationController@store');
             Route::put('/{id}', 'InformationController@update');
+            Route::post('/icon/default', 'InformationController@setDefaultIcon');
             Route::delete('/{id}', 'InformationController@destroy');
         });
 
@@ -495,7 +501,6 @@ Route::middleware(['cors'])->group(function () {
                 Route::post('/history/{tutor_id}', 'HistoryVCController@createHistory');
                 Route::put('/history/{id}', 'HistoryVCController@updateHistory');
                 Route::get('/history', 'HistoryVCController@showRoom');
-                Route::put('/token', 'RoomVCController@updateToken');
 
                 Route::post('request/{room_id}', 'RoomVCController@sendNotifRequestJoinRoom');
                 Route::post('cancel/{room_id}', 'RoomVCController@cancelNotifRequestJoinRoom');

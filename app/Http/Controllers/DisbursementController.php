@@ -68,12 +68,22 @@ class DisbursementController extends Controller
     public function store(Request $request)
     {
         try{
+            $user               = JWTAuth::parseToken()->authenticate();
+
             $data               = new Disbursement();
-            $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
+            $data->user_id      = $user->id;
             $data->token        = $request->input('token');
             $data->amount       = $request->input('amount');
             $data->information  = $request->input('information');
-	        $data->save();
+            $data->save();
+
+            $dataNotif = [
+                "title"         => "HaiTutor",
+                "message"       => $user->name . " mengajukan permohonan pencairan token",
+                "action"        => Notification::NOTIF_ACTION["DISBURSEMENT"],
+                "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[9]
+            ];
+            FCM::pushNotificationAdmin($dataNotif);
 
     		return response()->json([
                 'status'	=> 'Success',

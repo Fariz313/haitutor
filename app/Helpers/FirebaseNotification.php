@@ -4,6 +4,8 @@ namespace App\Helpers;
 use Illuminate\Support\Facades\Http;
 use JWTAuth;
 use App\Notification;
+use App\Role;
+use App\User;
 use Illuminate\Http\Request;
 use App;
 
@@ -115,6 +117,32 @@ class FirebaseNotification {
             }
 
             return $response;
+
+        } catch(\Exception $e){
+            return $e->getMessage();
+        }
+    }
+
+    public static function pushNotificationAdmin($data) {
+        try{
+            $adminUser = User::where('role', Role::ROLE["ADMIN"])->where('is_deleted', User::DELETED_STATUS['ACTIVE'])->get();
+
+            foreach($adminUser as $admin){
+                $dataNotif              = new Notification();
+                $dataNotif->sender_id   = JWTAuth::parseToken()->authenticate()->id;
+                $dataNotif->target_id   = $admin->id;
+                $dataNotif->message     = $data["message"];
+                $dataNotif->status      = 0;
+                if(array_key_exists("action", $data)){
+                    $dataNotif->action = $data["action"];
+                }
+                if(array_key_exists("image", $data)){
+                    $dataNotif->image = $data["image"];
+                }
+                $dataNotif->save();
+            }
+
+            return 'Success';
 
         } catch(\Exception $e){
             return $e->getMessage();

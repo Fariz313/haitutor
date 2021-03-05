@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\EbookLibrary;
 use App\EbookOrder;
 use App\EbookOrderDetail;
-use App\EbookRedeem;
+use App\Notification;
 use App\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
+use FCM;
 
 class EbookOrderController extends Controller
 {
@@ -41,7 +42,7 @@ class EbookOrderController extends Controller
                             ->where('ebook_order.is_deleted', EbookOrder::EBOOK_ORDER_DELETED_STATUS["ACTIVE"])
                             ->paginate(10);
             }
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -108,6 +109,14 @@ class EbookOrderController extends Controller
                 // If Redeem is Requested by Publisher
                 $data->status       = EbookOrder::EBOOK_ORDER_STATUS["PENDING"];
                 $message            = "Request Manual Order Succeeded";
+
+                $dataNotif = [
+                    "title"         => "HaiTutor",
+                    "message"       => $user->name . " mengajukan permohonan redeem ebook",
+                    "action"        => Notification::NOTIF_ACTION["EBOOK_MANUAL_ORDER"],
+                    "channel_name"  => Notification::CHANNEL_NOTIF_NAMES[15]
+                ];
+                FCM::pushNotificationAdmin($dataNotif);
             } else {
                 // If Redeem is Requested by Non-Publisher (Admin)
                 $data->status       = EbookOrder::EBOOK_ORDER_STATUS["ACTIVE"];
@@ -124,7 +133,7 @@ class EbookOrderController extends Controller
                 $dataDetail->id_order       = $data->id;
                 $dataDetail->id_ebook       = $ebookId;
                 $dataDetail->amount         = 1;
-                
+
                 $dataLibrary                = EbookLibrary::where('id_user', $data->id_customer)->where('id_ebook', $dataDetail->id_ebook)->first();
                 if($dataLibrary == null){
                     // If Ebook Not Exist in Student Library
@@ -158,7 +167,7 @@ class EbookOrderController extends Controller
                 'data'      =>  $data,
                 'message'   =>  $message
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -186,7 +195,7 @@ class EbookOrderController extends Controller
                         }))
                         ->where('id', $id)
                         ->first();
-            
+
             return response()->json([
                 'status'    =>  'Success',
                 'data'      =>  $data,
@@ -230,13 +239,13 @@ class EbookOrderController extends Controller
                 if($request->input('id_publisher')){
                     $data->id_publisher = $request->input('id_publisher');
                 }
-    
+
                 if($request->input('net_price')){
                     $data->net_price        = $request->input('net_price');
                 }
-    
+
                 $data->save();
-    
+
                 $newData = array();
 
                 $ebookId = json_decode(json_encode($request->input('ebook_id_array')), FALSE);
@@ -261,7 +270,7 @@ class EbookOrderController extends Controller
                     } else {
                         $dataDetail                 = EbookOrderDetail::where('id_ebook',$inputEbookId)->where('id_order', $id)->first();
                     }
-                    
+
                     array_push($newData, $dataDetail);
                 }
 
@@ -269,11 +278,11 @@ class EbookOrderController extends Controller
                     $data->status = EbookOrder::EBOOK_ORDER_STATUS["PENDING"];
                     $data->save();
                 }
-    
+
                 $data = EbookOrder::where('id', $data->id)->with(array('customer', 'detail' => function($query){
                     $query->get();
                 }))->first();
-    
+
                 return response()->json([
                     'status'    =>  'Success',
                     'data'      =>  $data,
@@ -285,8 +294,8 @@ class EbookOrderController extends Controller
                     'message'   =>  'Manual order already accepted [Cannot be edited]'
                 ], 200);
             }
-            
-            
+
+
         } catch (\Exception $e) {
             return response()->json([
                 "status"   => "Failed",
@@ -356,7 +365,7 @@ class EbookOrderController extends Controller
                     array_push($newData, $dataDetail);
                 }
             }
-            
+
             $data->save();
 
             $data = EbookOrder::where('id', $data->id)->with(array('customer', 'detail' => function($query){
@@ -366,7 +375,7 @@ class EbookOrderController extends Controller
             if(count($newData) == 0){
                 $data->status       = EbookOrder::EBOOK_ORDER_STATUS["NON_ACTIVE"];
                 $data->save();
-                
+
                 return response()->json([
                     'status'    =>  'Failed',
                     'message'   =>  "All Ebooks Already Exist in Student Library"
