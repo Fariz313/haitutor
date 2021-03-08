@@ -12,6 +12,8 @@ use App\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use JWTAuth;
+use App\Information;
+use App\Helpers\PercentageHelper;
 use Tymon\JWTAuth\JWTAuth as JWTAuthJWTAuth;
 
 class RoomVCController extends Controller
@@ -238,8 +240,24 @@ class RoomVCController extends Controller
             $room                   = RoomVC::findOrFail($id);
             $room->duration_left    = $room->duration_left - $request->input("duration_used");
 
+            $initialDuration = $room->duration;
+            $durationLeft = $room->duration_left;
+
+            $videoCallDurationLimitPercentageVariable = "video_call_duration_limit_percentage";
+
+            $information = Information::where("variable", $videoCallDurationLimitPercentageVariable)->first();
+
+            $videoCallDurationLimitPercentageValue = $information->$videoCallDurationLimitPercentageVariable;
+
+            $percentageUsed = PercentageHelper::getPercentage($initialDuration, $durationLeft);
+
+            if ($percentageUsed >= $videoCallDurationLimitPercentageValue) {
+                $room->duration_left    = 1;
+            }
+
+
             if ($room->duration_left == 1) {
-                $room->status       = "close";
+                $room->status       = "closed";
             }
 
             $room->save();
