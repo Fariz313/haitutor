@@ -66,7 +66,7 @@ class TokenTransactionController extends Controller
 
             $tokenPerChat = "token_per_chat";
 
-            $tokenPerChatValue = Information::where("variable", $tokenPerChat)->first();
+            $tokenPerChatValue = (int) Information::where("variable", $tokenPerChat)->first()->value;
 
             //Check  tutor online status is offline or online
             $tutor = User::findOrFail($tutor_id);
@@ -291,7 +291,7 @@ class TokenTransactionController extends Controller
 
         $tokenPerVideoCall = "token_per_video_call";
 
-        $tokenPerVideoCallValue = Information::where("variable", $tokenPerVideoCall)->first();
+        $tokenPerVideoCallValue = (int) Information::where("variable", $tokenPerVideoCall)->first()->value;
 
         try {
 
