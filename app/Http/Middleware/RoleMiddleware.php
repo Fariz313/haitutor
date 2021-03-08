@@ -28,6 +28,8 @@ class RoleMiddleware
         }
         $userRole   = JWTAuth::parseToken()->authenticate()->role;
 
+        // dd($userRole);
+
         if($apiAllowed != null){
             if($userRole == Role::ROLE["ADMIN"] && $apiAllowed->admin_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
                 return $next($request);
@@ -44,6 +46,7 @@ class RoleMiddleware
             } else if($userRole == Role::ROLE["COMPANY"] && $apiAllowed->company_allowed == ApiAllowed::ALLOWED_STATUS["ALLOWED"]){
                 return $next($request);
             } else {
+                dd($apiAllowed);
                 return response()->json([
                     'status'    => 'Failed',
                     'message'   => 'Forbidden Access'], 403);

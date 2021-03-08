@@ -314,6 +314,7 @@ Route::middleware(['cors'])->group(function () {
             Route::post('/chat/{userId}', 'AdminController@chatAdminToUser');
             Route::post('/broadcast', 'AdminController@broadcastChatAdmin');
 
+            Route::put("/online-status", "TutorController@updateOnlineStatus");
             Route::put('/{id}', 'UserController@updateById');
             Route::put('/verify/{id}', 'TutorController@verifyTutor');
             Route::put('/unverify/{id}', 'TutorController@unverifyTutor');

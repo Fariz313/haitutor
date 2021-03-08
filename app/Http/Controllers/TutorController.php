@@ -15,6 +15,7 @@ use Mail;
 use Illuminate\Support\Str;
 use App\Helpers\LogApps;
 use FCM;
+use App\Helpers\ResponseHelper;
 
 class TutorController extends Controller
 {
@@ -468,6 +469,31 @@ class TutorController extends Controller
                 "status"   => "Failed",
                 "message"  => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function updateOnlineStatus()
+    {
+        try {
+            $tutor = JWTAuth::parseToken()->authenticate();
+
+            $is_online = $tutor->is_online;
+            if ($is_online) {
+                $tutor->is_online = User::ONLINE_STATUS["OFFLINE"];
+            } else {
+                $tutor->is_online = User::ONLINE_STATUS["ONLINE"];
+            }
+
+            $tutor->save();
+
+            return ResponseHelper::response(
+                "Ubah status berhasil", null, 200, "Success"
+            );
+
+        } catch (\Throwable $th) {
+            return ResponseHelper::response(
+                "Gagal mengubah status", null, 400, "Failed"
+            );
         }
     }
 }

@@ -41,6 +41,11 @@ class User extends Authenticatable implements JWTSubject
         "ACTIVE"    => 0
     );
 
+    const ONLINE_STATUS = array(
+        "ONLINE"    => 1,
+        "OFFLINE"   => 0
+    );
+
     /**
      * The attributes that are mass assignable.
      *
