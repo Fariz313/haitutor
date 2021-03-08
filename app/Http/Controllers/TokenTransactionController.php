@@ -62,11 +62,16 @@ class TokenTransactionController extends Controller
             $checkRoom              = RoomChat::where("user_id", $current_user->id)
                                                 ->where("tutor_id", $tutor_id)->first();
 
+
+            $tokenPerChat = "token_per_chat";
+
+            $tokenPerChatValue = Information::where("variable", $tokenPerChat)->first();
+
             if ($checkRoom) {
                 if ($checkRoom->status == RoomChat::ROOM_STATUS["CLOSED"]) {
                     $student                = User::findOrFail($current_user->id);
 
-                    if ($current_user->balance == 0) {
+                    if ($current_user->balance < $tokenPerChatValue) {
                         return response()->json([
                             'status'            =>  'failed',
                             'message'           =>  'insufficient token balance'
@@ -76,11 +81,11 @@ class TokenTransactionController extends Controller
                         try {
                             DB::beginTransaction();
 
-                            $current_user->balance      = $current_user->balance - 1;
+                            $current_user->balance      = $current_user->balance - $tokenPerChatValue;
                             $current_user->save();
 
                             $tutor              = User::findOrFail($tutor_id);
-                            $tutor->balance     = $tutor->balance + 1;
+                            $tutor->balance     = $tutor->balance + $tokenPerChatValue;
                             $tutor->save();
 
                             $checkRoom->status          = RoomChat::ROOM_STATUS["OPEN"];
@@ -91,7 +96,7 @@ class TokenTransactionController extends Controller
                             $order              = new Order();
                             $order->user_id     = $current_user->id;
                             $order->detail      = "Memulai chat dengan ".$tutor->name."";
-                            $order->amount      = 1;
+                            $order->amount      = $tokenPerChatValue;
                             $order->pos         = ORDER::POS_STATUS["KREDIT"];
                             $order->type_code   = ORDER::TYPE_CODE["INTERNAL"];
                             $order->status      = Order::ORDER_STATUS["COMPLETED"];
@@ -100,7 +105,7 @@ class TokenTransactionController extends Controller
                             $order_tutor                = new Order();
                             $order_tutor->user_id       = $tutor->id;
                             $order_tutor->detail        = $current_user->name." Memulai chat dengan ".$tutor->name."";
-                            $order_tutor->amount        = 1;
+                            $order_tutor->amount        = $tokenPerChatValue;
                             $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
                             $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
                             $order_tutor->status        = Order::ORDER_STATUS["COMPLETED"];
@@ -161,11 +166,11 @@ class TokenTransactionController extends Controller
                 try {
                     DB::beginTransaction();
 
-                    $current_user->balance  = $current_user->balance - 1;
+                    $current_user->balance  = $current_user->balance - $tokenPerChatValue;
                     $current_user->save();
 
                     $tutor                  = User::findOrFail($tutor_id);
-                    $tutor->balance         = $tutor->balance + 1;
+                    $tutor->balance         = $tutor->balance + $tokenPerChatValue;
                     $tutor->save();
 
                     $data                   = new RoomChat();
@@ -180,7 +185,7 @@ class TokenTransactionController extends Controller
                     $order                  = new Order();
                     $order->user_id         = $current_user->id;
                     $order->detail          = "Memulai chat dengan ".$tutor->name."";
-                    $order->amount          = 1;
+                    $order->amount          = $tokenPerChatValue;
                     $order->pos             = ORDER::POS_STATUS["KREDIT"];
                     $order->type_code       = ORDER::TYPE_CODE["INTERNAL"];
                     $order->status          = Order::ORDER_STATUS["COMPLETED"];
@@ -189,7 +194,7 @@ class TokenTransactionController extends Controller
                     $order_tutor            = new Order();
                     $order_tutor->user_id   = $tutor->id;
                     $order_tutor->detail    = $current_user->name." Memulai chat dengan ".$tutor->name."";
-                    $order_tutor->amount    = 1;
+                    $order_tutor->amount    = $tokenPerChatValue;
                     $order_tutor->pos       = ORDER::POS_STATUS["DEBET"];
                     $order_tutor->type_code = ORDER::TYPE_CODE["INTERNAL"];
                     $order_tutor->status    = Order::ORDER_STATUS["COMPLETED"];
@@ -267,6 +272,10 @@ class TokenTransactionController extends Controller
 
         $duration_video_call = $videoCallDurationMinute * 60; // convert to second
 
+        $tokenPerVideoCall = "token_per_video_call";
+
+        $tokenPerVideoCallValue = Information::where("variable", $tokenPerVideoCall)->first();
+
         try {
 
             $current_user                       = JWTAuth::parseToken()->authenticate();
@@ -295,7 +304,7 @@ class TokenTransactionController extends Controller
 
                     $student                    = User::findOrFail($current_user->id);
 
-                    if ($current_user->balance == 0) {
+                    if ($current_user->balance < $tokenPerVideoCallValue) {
 
                         return response()->json([
                             'status'            =>  'failed',
@@ -311,11 +320,11 @@ class TokenTransactionController extends Controller
                             try {
                                 DB::beginTransaction();
 
-                                $current_user->balance     = $current_user->balance - 1;
+                                $current_user->balance     = $current_user->balance - $tokenPerVideoCallValue;
                                 $current_user->save();
 
                                 $tutor                     = User::findOrFail($tutor_id);
-                                $tutor->balance            = $tutor->balance + 1;
+                                $tutor->balance            = $tutor->balance + $tokenPerVideoCallValue;
                                 $tutor->save();
 
                                 $duration_used               = $request->input("duration_used");
@@ -328,7 +337,7 @@ class TokenTransactionController extends Controller
                                 $order              = new Order();
                                 $order->user_id     = $current_user->id;
                                 $order->detail      = "Menambah durasi video call dengan ".$tutor->name."";
-                                $order->amount      = 1;
+                                $order->amount      = $tokenPerVideoCallValue;
                                 $order->pos         = ORDER::POS_STATUS["KREDIT"];
                                 $order->type_code   = ORDER::TYPE_CODE["INTERNAL"];
                                 $order->status      = "completed";
@@ -337,7 +346,7 @@ class TokenTransactionController extends Controller
                                 $order_tutor            = new Order();
                                 $order_tutor->user_id   = $tutor->id;
                                 $order_tutor->detail    = $current_user->name." Menambah durasi videoc call anda";
-                                $order_tutor->amount    = 1;
+                                $order_tutor->amount    = $tokenPerVideoCallValue;
                                 $order_tutor->pos       = ORDER::POS_STATUS["DEBET"];
                                 $order_tutor->type_code = ORDER::TYPE_CODE["INTERNAL"];
                                 $order_tutor->status    = "completed";
@@ -394,7 +403,7 @@ class TokenTransactionController extends Controller
 
             } else {
 
-                if ($current_user->balance == 0) {
+                if ($current_user->balance < $tokenPerVideoCallValue) {
 
                     return response()->json([
                         'status'            =>  'failed',
@@ -423,11 +432,11 @@ class TokenTransactionController extends Controller
                                 ]);
                             }
 
-                            $current_user->balance     = $current_user->balance - 1;
+                            $current_user->balance     = $current_user->balance - $tokenPerVideoCallValue;
                             $current_user->save();
 
                             $tutor                     = User::findOrFail($tutor_id);
-                            $tutor->balance            = $tutor->balance + 1;
+                            $tutor->balance            = $tutor->balance + $tokenPerVideoCallValue;
                             $tutor->save();
 
                             $data               =   new RoomVC();
@@ -442,7 +451,7 @@ class TokenTransactionController extends Controller
                             $order         = new Order();
                             $order->user_id       = $current_user->id;
                             $order->detail        = "Memulai video call ".$tutor->name."";
-                            $order->amount        = 1;
+                            $order->amount        = $tokenPerVideoCallValue;
                             $order->pos           = ORDER::POS_STATUS["KREDIT"];
                             $order->type_code     = ORDER::TYPE_CODE["INTERNAL"];
                             $order->status        = "completed";
@@ -451,7 +460,7 @@ class TokenTransactionController extends Controller
                             $order_tutor         = new Order();
                             $order_tutor->user_id       = $tutor->id;
                             $order_tutor->detail        = $current_user->name." Memulai video call dengan anda";
-                            $order_tutor->amount        = 1;
+                            $order_tutor->amount        = $tokenPerVideoCallValue;
                             $order_tutor->pos           = ORDER::POS_STATUS["DEBET"];
                             $order_tutor->type_code     = ORDER::TYPE_CODE["INTERNAL"];
                             $order_tutor->status        = "completed";
