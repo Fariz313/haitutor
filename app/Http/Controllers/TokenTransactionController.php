@@ -70,7 +70,7 @@ class TokenTransactionController extends Controller
 
             //Check  tutor online status is offline or online
             $tutor = User::findOrFail($tutor_id);
-            if ($tutor->is_online == User::ONLINE_STATUS["offline"]) {
+            if ($tutor->is_online == User::ONLINE_STATUS["OFFLINE"]) {
                 return ResponseHelper::response(
                     "Tutor sedang tidak aktif, silahkan coba lagi", null, 200, "Success"
                 );
@@ -275,7 +275,7 @@ class TokenTransactionController extends Controller
 
         //Check tutor online status is offline or online
         $tutor = User::findOrFail($tutor_id);
-        if ($tutor->is_online == User::ONLINE_STATUS["offline"]) {
+        if ($tutor->is_online == User::ONLINE_STATUS["OFFLINE"]) {
             return ResponseHelper::response(
                 "Tutor sedang tidak aktif, silahkan coba lagi", null, 200, "Success"
             );
