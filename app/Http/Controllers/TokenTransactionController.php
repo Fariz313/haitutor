@@ -13,6 +13,7 @@ use App\Libraries\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Helpers\LogApps;
+use App\Helpers\ResponseHelper;
 use App\Information;
 use App\Notification;
 use App\Role;
@@ -66,6 +67,14 @@ class TokenTransactionController extends Controller
             $tokenPerChat = "token_per_chat";
 
             $tokenPerChatValue = Information::where("variable", $tokenPerChat)->first();
+
+            //Check  tutor online status is offline or online
+            $tutor = User::findOrFail($tutor_id);
+            if ($tutor->is_online == User::ONLINE_STATUS["offline"]) {
+                return ResponseHelper::response(
+                    "Tutor sedang tidak aktif, silahkan coba lagi", null, 200, "Success"
+                );
+            }
 
             if ($checkRoom) {
                 if ($checkRoom->status == RoomChat::ROOM_STATUS["CLOSED"]) {
@@ -263,6 +272,14 @@ class TokenTransactionController extends Controller
         $appCertificate = RoomVC::AGORA_APP_CERFITICATE;
         $channel_name = Str::random(16);
         $role = RtcTokenBuilder::RoleAttendee;
+
+        //Check tutor online status is offline or online
+        $tutor = User::findOrFail($tutor_id);
+        if ($tutor->is_online == User::ONLINE_STATUS["offline"]) {
+            return ResponseHelper::response(
+                "Tutor sedang tidak aktif, silahkan coba lagi", null, 200, "Success"
+            );
+        }
 
         $durationVideoCallVariable = "minutes_video_call_per_token";
 
