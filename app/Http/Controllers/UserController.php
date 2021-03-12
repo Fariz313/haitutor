@@ -724,6 +724,33 @@ class UserController extends Controller
         $status = "Success";
         try {
             $data = Information::get();
+
+            $disbursementPriceToken = 0;
+            $disbursementPricePercentage = 0;
+            $pricePerToken = 0;
+
+            foreach ($data as $key => $value) {
+                if ($value->variable == "disbursement_price_token") {
+                    $disbursementPriceToken = $value->value;
+                }
+
+                if ($value->variable == "disbursement_price_percentage") {
+                    $disbursementPricePercentage = $value->value;
+                }
+
+                if ($value->variable == "price_per_token") {
+                    $pricePerToken = $value->value;
+                }
+            }
+
+            $disbursementPriceToken = strval($disbursementPricePercentage / 100 * $pricePerToken)   ;
+
+            foreach ($data   as $key => $value) {
+                if ($value->variable == "disbursement_price_token") {
+                    $value->value = $disbursementPriceToken;
+                }
+            }
+
             return response()->json(compact('data','status','message'),200);
         } catch (\Throwable $th) {
             $status      = 'Failed';
