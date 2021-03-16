@@ -89,6 +89,7 @@ class PackageController extends Controller
                 $data->price        = $request->input('price');
                 $data->balance      = $request->input('balance');
                 $data->user_id      = JWTAuth::parseToken()->authenticate()->id;
+                $data->is_deleted   = Package::PACKAGE_DELETED_STATUS["ACTIVE"];
                 $data->save();
 
                 return response()->json([
