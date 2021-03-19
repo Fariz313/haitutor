@@ -31,6 +31,7 @@ class CreateUsersTable extends Migration
             $table->string('firebase_token')->nullable();
 
             $table->rememberToken();
+            $table->integer("is_deleted");
             $table->timestamps();
         });
     }
