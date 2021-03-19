@@ -45,7 +45,7 @@ class PaymentMethodController extends Controller {
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
-                    })->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
+                    })->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
 
                 $allData = PaymentMethod::select('payment_method.*',
                     'payment_method_category.name as category_name',
@@ -65,7 +65,7 @@ class PaymentMethodController extends Controller {
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
                     })
-                    ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                     ->union($data)
                     ->orderBy('status','DESC')
                     ->orderBy('category_order','ASC')
@@ -87,7 +87,7 @@ class PaymentMethodController extends Controller {
                         'payment_provider.name as provider_name')
                         ->join("payment_provider", "payment_method_provider.id_payment_provider", "=", "payment_provider.id");
                     }))
-                    ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
+                    ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
 
                 $allData = PaymentMethod::select('payment_method.*',
                     'payment_method_category.name as category_name',
@@ -103,7 +103,7 @@ class PaymentMethodController extends Controller {
                     }, 'active_provider_name')
                     ->join("payment_method_category", "payment_method.id_payment_category", "=", "payment_method_category.id")
                     ->whereNotIn('payment_method.id', $data->pluck('id')->toArray())
-                    ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                     ->union($data)
                     ->orderBy('status','DESC')
                     ->orderBy('category_order','ASC')
@@ -261,7 +261,7 @@ class PaymentMethodController extends Controller {
             $maxOrder = PaymentMethod::selectRaw("MAX(payment_method.order) as maxOrder")
                         ->where('id_payment_category', $data->id_payment_category)
                         ->where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
-                        ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                        ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                         ->first()->maxOrder;
 
             $data->name                 = $request->input('name');
@@ -553,13 +553,13 @@ class PaymentMethodController extends Controller {
 
     private function tidyOrder(){
         $dataCategory  = PaymentMethod::where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
-                    ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                     ->orderBy('id_payment_category','ASC')
                     ->orderBy('order','ASC')->groupBy('id_payment_category')->pluck('id_payment_category')->toArray();
 
         for ($i = 0; $i < count($dataCategory); $i++) {
             $data   = PaymentMethod::where('status', PaymentMethod::PAYMENT_METHOD_STATUS["ENABLED"])
-                    ->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
+                    ->where('payment_method.isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"])
                     ->where('id_payment_category', $dataCategory[$i])
                     ->orderBy('id_payment_category','ASC')
                     ->orderBy('order','ASC')->get();
