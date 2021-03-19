@@ -45,7 +45,7 @@ class PaymentMethodController extends Controller {
                     ->where(function ($where) use ($query){
                         $where->where('payment_method.name','LIKE','%'.$query.'%')
                             ->orWhere('payment_method.code','LIKE','%'.$query.'%');
-                    })->where('is_deleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
+                    })->where('isDeleted', PaymentMethod::PAYMENT_METHOD_DELETED_STATUS["ACTIVE"]);
 
                 $allData = PaymentMethod::select('payment_method.*',
                     'payment_method_category.name as category_name',
