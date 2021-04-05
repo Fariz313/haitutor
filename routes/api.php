@@ -239,6 +239,7 @@ Route::middleware(['cors'])->group(function () {
                 Route::get('/publish/{id_user}', 'EbookController@getAllPublishedEbookInStudentLibrary');
                 Route::post('/{id_user}', 'EbookController@addEbooksToLibrary');
                 Route::post('/delete/{id_user}', 'EbookController@deleteEbooksFromStudentLibrary');
+                Route::put("/status/{user_id}", "EbookController@setEbookLibraryStatus");
             });
 
             Route::prefix('/redeem')->group(function () {

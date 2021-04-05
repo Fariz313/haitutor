@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\LogApps;
+use App\Helpers\ResponseHelper;
 use JWTAuth;
 
 class EbookController extends Controller
@@ -541,6 +542,7 @@ class EbookController extends Controller
                         ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                         ->where('ebook_library.id_user', $idUser)
                         ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                        ->where("status", EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"])
                         ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                             $query->select('id','name', 'email');
                         }))
@@ -701,6 +703,43 @@ class EbookController extends Controller
                 "status"   => "Failed",
                 "message"  => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function setEbookLibraryStatus($ebookLibraryId)
+    {
+        try {
+            $ebookLibrary = EbookLibrary::findOrFail($ebookLibraryId);
+
+            if ($ebookLibrary->status == EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"]) {
+                $ebookLibrary->status = EbookLibrary::EBOOK_LIBRARY_STATUS["NON_ACTIVE"];
+            } else {
+                $ebookLibrary->status = EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"];
+            }
+
+            $ebookLibrary->save();
+
+            return ResponseHelper::response(
+                "Berhasil mengubah status Library Ebook untuk User ini !",
+                null,
+                200,
+                "Success"
+            );
+
+        } catch(\Illuminate\Database\Eloquent\ModelNotFoundException $notFoundException){
+            return ResponseHelper::response(
+                "Data tidak ditemukan",
+                null,
+                404,
+                "Failed"
+            );
+        } catch (\Throwable $th) {
+            return ResponseHelper::response(
+                "Gagal mengubah Library Ebook untuk User ini, silahkan coba lagi",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 }
