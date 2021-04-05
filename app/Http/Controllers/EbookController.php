@@ -541,6 +541,7 @@ class EbookController extends Controller
                         ->where('ebook.is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                         ->where('ebook_library.id_user', $idUser)
                         ->where('is_published', Ebook::EBOOK_PUBLISHED_STATUS["PUBLISHED"])
+                        ->where("status", EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"])
                         ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                             $query->select('id','name', 'email');
                         }))
