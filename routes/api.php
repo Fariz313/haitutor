@@ -32,6 +32,25 @@ Route::middleware(['cors'])->group(function () {
     Route::post('callback', 'OrderController@callbackTransaction');
     Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
 
+    Route::prefix("article")->group(function() {
+        Route::get('/', 'ArticleController@getAll');
+        Route::get('/{id}', 'ArticleController@getOne');
+    });
+
+    Route::prefix('/ebook')->group(function () {
+        Route::get('/', 'EbookController@index');
+        Route::get('/list/free', 'EbookController@getAllFreeEbook');
+        Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
+        Route::get('/list/publish', 'EbookController@getEbookPublished');
+
+    });
+
+    Route::prefix('/faq')->group(function () {
+        Route::get('/', 'FaqController@getAll');
+        Route::get('/{id}', 'FaqController@getOne');
+    });
+
     Route::middleware(['role'])->group(function () {
         Route::get('get_tutor', 'TutorController@getTutor');
         Route::get('get_tutor/all', 'TutorController@getAllTutor');
@@ -209,12 +228,8 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/ebook')->group(function () {
-            Route::get('/', 'EbookController@index');
-            Route::get('/list/free', 'EbookController@getAllFreeEbook');
-            Route::get('/list/paid', 'EbookController@getAllPaidEbook');
-            Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
             Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
-            Route::get('/list/publish', 'EbookController@getEbookPublished');
+            Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
             Route::get('/{id}', 'EbookController@show');
 
             Route::get("/rating/{id}", "EbookController@getRatingEbook");
@@ -300,8 +315,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/article')->group(function () {
-            Route::get('/', 'ArticleController@getAll');
-            Route::get('/{id}', 'ArticleController@getOne');
             Route::post('/', 'ArticleController@store');
             Route::put('/{id}', 'ArticleController@update');
             Route::delete('/{id}', 'ArticleController@destroy');
@@ -421,8 +434,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/faq')->group(function () {
-            Route::get('/', 'FaqController@getAll');
-            Route::get('/{id}', 'FaqController@getOne');
             Route::post('/', 'FaqController@store');
             Route::put('/{id}', 'FaqController@update');
             Route::delete('/{id}', 'FaqController@destroy');
