@@ -32,14 +32,41 @@ Route::middleware(['cors'])->group(function () {
     Route::post('callback', 'OrderController@callbackTransaction');
     Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
 
+    Route::prefix("article")->group(function() {
+        Route::get('/', 'ArticleController@getAll');
+        Route::get('/{id}', 'ArticleController@getOne');
+    });
+
+    Route::prefix('/ebook')->group(function () {
+        Route::get('/', 'EbookController@index');
+        Route::get('/list/free', 'EbookController@getAllFreeEbook');
+        Route::get('/list/paid', 'EbookController@getAllPaidEbook');
+        Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
+        Route::get('/list/publish', 'EbookController@getEbookPublished');
+
+    });
+
+    Route::prefix('/faq')->group(function () {
+        Route::get('/', 'FaqController@getAll');
+        Route::get('/{id}', 'FaqController@getOne');
+    });
+
+    Route::prefix('/information')->group(function () {
+        Route::get('/', 'InformationController@getAll');
+        Route::get('/{id}', 'InformationController@getOne');
+    });
+
+    Route::get('get_tutor', 'TutorController@getTutor');
+    Route::get('get_tutor/all', 'TutorController@getAllTutor');
+    Route::get('get_tutor/{id}', 'TutorController@showTutor');
+    Route::prefix("/tutor")->group(function()
+    {
+        Route::get("list/recommended", "TutorController@getRecommendedTutorList");
+    });
+
+    Route::get('subject', 'SubjectController@index');
+
     Route::middleware(['role'])->group(function () {
-        Route::get('get_tutor', 'TutorController@getTutor');
-        Route::get('get_tutor/all', 'TutorController@getAllTutor');
-        Route::get('get_tutor/{id}', 'TutorController@showTutor');
-        Route::prefix("/tutor")->group(function()
-        {
-            Route::get("list/recommended", "TutorController@getRecommendedTutorList");
-        });
 
         Route::get('rating', 'RatingController@index');
         Route::get('rating/{id}', 'RatingController@show');
@@ -58,9 +85,6 @@ Route::middleware(['cors'])->group(function () {
         Route::post('chat/forward', 'ChatController@forwardMessage');
         Route::post('request/order', 'OrderController@requestTransaction');
         Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
-
-        Route::get('subject', 'SubjectController@index');
-        Route::get('subject/{id}', 'SubjectController@show');
         Route::post('subject', 'SubjectController@store');
         Route::put('subject/{id}', 'SubjectController@update');
         Route::delete('subject/{id}', 'SubjectController@destroy');
@@ -209,12 +233,8 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/ebook')->group(function () {
-            Route::get('/', 'EbookController@index');
-            Route::get('/list/free', 'EbookController@getAllFreeEbook');
-            Route::get('/list/paid', 'EbookController@getAllPaidEbook');
-            Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
             Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
-            Route::get('/list/publish', 'EbookController@getEbookPublished');
+            Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
             Route::get('/{id}', 'EbookController@show');
 
             Route::get("/rating/{id}", "EbookController@getRatingEbook");
@@ -300,8 +320,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/article')->group(function () {
-            Route::get('/', 'ArticleController@getAll');
-            Route::get('/{id}', 'ArticleController@getOne');
             Route::post('/', 'ArticleController@store');
             Route::put('/{id}', 'ArticleController@update');
             Route::delete('/{id}', 'ArticleController@destroy');
@@ -412,8 +430,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/information')->group(function () {
-            Route::get('/', 'InformationController@getAll');
-            Route::get('/{id}', 'InformationController@getOne');
             Route::post('/', 'InformationController@store');
             Route::put('/{id}', 'InformationController@update');
             Route::post('/icon/default', 'InformationController@setDefaultIcon');
@@ -421,8 +437,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/faq')->group(function () {
-            Route::get('/', 'FaqController@getAll');
-            Route::get('/{id}', 'FaqController@getOne');
             Route::post('/', 'FaqController@store');
             Route::put('/{id}', 'FaqController@update');
             Route::delete('/{id}', 'FaqController@destroy');
@@ -430,7 +444,7 @@ Route::middleware(['cors'])->group(function () {
 
         Route::get('get_subject', 'SubjectController@getSubject');
         Route::prefix('/subject')->group(function () {
-            Route::get('/', 'SubjectController@index');
+            Route::get('/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
             Route::get('/{id}', 'SubjectController@show');
             Route::get('/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
             Route::post('/', 'SubjectController@store');
