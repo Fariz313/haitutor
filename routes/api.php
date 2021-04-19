@@ -51,14 +51,21 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/{id}', 'FaqController@getOne');
     });
 
+    Route::prefix('/information')->group(function () {
+        Route::get('/', 'InformationController@getAll');
+        Route::get('/{id}', 'InformationController@getOne');
+
+    });
+
+    Route::get('get_tutor', 'TutorController@getTutor');
+    Route::get('get_tutor/all', 'TutorController@getAllTutor');
+    Route::get('get_tutor/{id}', 'TutorController@showTutor');
+    Route::prefix("/tutor")->group(function()
+    {
+        Route::get("list/recommended", "TutorController@getRecommendedTutorList");
+    });
+
     Route::middleware(['role'])->group(function () {
-        Route::get('get_tutor', 'TutorController@getTutor');
-        Route::get('get_tutor/all', 'TutorController@getAllTutor');
-        Route::get('get_tutor/{id}', 'TutorController@showTutor');
-        Route::prefix("/tutor")->group(function()
-        {
-            Route::get("list/recommended", "TutorController@getRecommendedTutorList");
-        });
 
         Route::get('rating', 'RatingController@index');
         Route::get('rating/{id}', 'RatingController@show');
@@ -425,8 +432,6 @@ Route::middleware(['cors'])->group(function () {
         });
 
         Route::prefix('/information')->group(function () {
-            Route::get('/', 'InformationController@getAll');
-            Route::get('/{id}', 'InformationController@getOne');
             Route::post('/', 'InformationController@store');
             Route::put('/{id}', 'InformationController@update');
             Route::post('/icon/default', 'InformationController@setDefaultIcon');
