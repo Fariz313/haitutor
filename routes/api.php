@@ -54,7 +54,6 @@ Route::middleware(['cors'])->group(function () {
     Route::prefix('/information')->group(function () {
         Route::get('/', 'InformationController@getAll');
         Route::get('/{id}', 'InformationController@getOne');
-
     });
 
     Route::get('get_tutor', 'TutorController@getTutor');
@@ -64,6 +63,8 @@ Route::middleware(['cors'])->group(function () {
     {
         Route::get("list/recommended", "TutorController@getRecommendedTutorList");
     });
+
+    Route::get('subject', 'SubjectController@index');
 
     Route::middleware(['role'])->group(function () {
 
@@ -84,9 +85,6 @@ Route::middleware(['cors'])->group(function () {
         Route::post('chat/forward', 'ChatController@forwardMessage');
         Route::post('request/order', 'OrderController@requestTransaction');
         Route::get('payment/method/', 'OrderController@getAllPaymentMethod');
-
-        Route::get('subject', 'SubjectController@index');
-        Route::get('subject/{id}', 'SubjectController@show');
         Route::post('subject', 'SubjectController@store');
         Route::put('subject/{id}', 'SubjectController@update');
         Route::delete('subject/{id}', 'SubjectController@destroy');
@@ -446,7 +444,7 @@ Route::middleware(['cors'])->group(function () {
 
         Route::get('get_subject', 'SubjectController@getSubject');
         Route::prefix('/subject')->group(function () {
-            Route::get('/', 'SubjectController@index');
+            Route::get('/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
             Route::get('/{id}', 'SubjectController@show');
             Route::get('/unassigned/{tutor_id}', 'SubjectController@getUnassignedSubject');
             Route::post('/', 'SubjectController@store');
