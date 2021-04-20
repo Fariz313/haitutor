@@ -7,12 +7,14 @@ use App\AdminDetail;
 use App\ApiAllowed;
 use App\Chat;
 use App\Helpers\GoogleCloudStorageHelper;
+use App\Helpers\ResponseHelper;
 use App\Notification;
 use App\RoomChat;
 use App\RoomVC;
 use App\Order;
 use App\Report;
 use App\Role;
+use App\TutorDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -123,13 +125,16 @@ class AdminController extends Controller
     public function register(Request $request)
     {
         try {
-            if($request->get('role') != Role::ROLE["ADMIN"]){
+            if($request->get('role') == Role::ROLE["ADMIN"]){
+
+                $registrator      =   JWTAuth::parseToken()->authenticate();
 
                 $validator = Validator::make($request->all(), [
                     'name'          => 'required|string|max:255',
                     'photo'         => 'file',
                     'contact'       => 'required|string|max:20',
-                    'address'       => 'required|string'
+                    'address'       => 'required|string',
+                    'nip'           => 'required|string|unique:admin_detail',
                 ]);
 
                 if($validator->fails()){
@@ -139,23 +144,23 @@ class AdminController extends Controller
                     ],400);
                 }
 
+                $role               = Role::ROLE["ADMIN"];
+
+                if($request->get('email')){
+                    $email    = $request->get('email');
+                } else {
+                    $email    = strtolower($role->name) . "@haitutor.id";
+                }
+
                 $user = User::create([
                     'name'          => $request->get('name'),
-                    'email'         => "",
+                    'email'         => $email,
                     'password'      => Hash::make('haitutor123'),
                     'birth_date'    => '01/01/2001',
-                    'role'          => $request->get('role'),
+                    'role'          => Role::ROLE["ADMIN"],
                     'contact'       => $request->get('contact'),
                     'address'       => $request->get('address')
                 ]);
-
-                $role               = Role::findOrFail($user->role);
-
-                if($request->get('email')){
-                    $user->email    = $request->get('email');
-                } else {
-                    $user->email    = strtolower($role->name) . $user->id . "@haitutor.id";
-                }
 
                 if($request->file('photo')){
                     $user->photo    = GoogleCloudStorageHelper::put($request->file('photo'), '/photos/user', 'image', $user->id);
@@ -163,6 +168,22 @@ class AdminController extends Controller
 
                 $user->status       = User::STATUS["VERIFIED"];
                 $user->save();
+
+                $user_detail                    = new AdminDetail();
+                $user_detail->nip               = $request->get('nip');
+                $user_detail->user_id           = $user->id;
+                $user_detail->registrator_id    = $registrator->id;
+                $user_detail->save();
+
+                //Add user to Firebase Authentication
+                $userProperties = [
+                    "email" => $email,
+                    "password"  => "haitutor123"
+                ];
+
+                $auth = app('firebase.auth');
+                $auth->createUser($userProperties);
+                //End Add user to Firebase Authentication
 
                 return response()->json([
                     'status'    => 'Success',
@@ -176,62 +197,71 @@ class AdminController extends Controller
                     'email'         => 'required|string|email|max:255|unique:users',
                     'password'      => 'required|string|min:6',
                     'birth_date'    => 'required|date',
-                    'photo'         => 'file',
                     'contact'       => 'required|string|max:20',
-                    'address'       => 'required|string',
-                    'nip'           => 'required|string|unique:admin_detail',
+                    'address'       => 'required|string'
                 ]);
 
                 if($validator->fails()){
                     return response()->json([
-                        'status'    =>'failed',
-                        'error'     =>$validator->errors()
+                        'status'    =>  'failed',
+                        'error'     =>  $validator->errors()
                     ],400);
                 }
-                $message = "Upload";
+
                 try {
-                    $registrator      =   JWTAuth::parseToken()->authenticate();
                     $user = User::create([
                         'name'          => $request->get('name'),
                         'email'         => $request->get('email'),
                         'password'      => Hash::make($request->get('password')),
                         'birth_date'    => $request->get('birth_date'),
-                        'role'          => Role::ROLE["ADMIN"],
+                        'role'          => $request->get('role'),
                         'contact'       => $request->get('contact'),
                         'company_id'    => $request->get('company_id'),
                         'address'       => $request->get('address'),
                     ]);
-                    $user_detail                = new AdminDetail();
-                    $user_detail->nip           = $request->get('nip');
-                    $user_detail->user_id       = $user->id;
-                    $user_detail->registrator_id= $registrator->id;
-                    $user_detail->save();
-                    try{
-                        $photo = $request->file('photo');
-                        $tujuan_upload = 'temp';
-                        $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                        $photo->move($tujuan_upload,$photo_name);
-                        $user->photo = $photo_name;
-                        $user->save();
-                        $message = "Upload Success";
-                    }catch(\throwable $e){
-                        $message = "Upload Success no image";
-                    }
-                    $token = JWTAuth::fromUser($user);
 
-                    return response()->json(compact('user','user_detail','token','message'),201);
+                    if ($user->role == Role::ROLE["TUTOR"]) {
+                        $detail = new TutorDetail();
+                        $detail->user_id    = $user->id;
+                        $detail->status     = 'unverified';
+                        $detail->biography  = '-';
+
+                        $detail->save();
+                    }
+
+                    //Add user to Firebase Authentication
+                    $userProperties = [
+                        "email" => $request->get("email"),
+                        "password"  => $request->get("password")
+                    ];
+
+                    $auth = app('firebase.auth');
+                    $auth->createUser($userProperties);
+                    //End Add user to Firebase Authentication
+
+                    return ResponseHelper::response(
+                        "Berhasil menambah user",
+                        null,
+                        200,
+                        "Success"
+                    );
+
                 } catch (\Throwable $th) {
-                    $user       = 'no admin';
-                    $token      = 'no token';
-                    $message    = 'Failed To Create Admin';
-                    return response()->json(compact('user','token','message'),500);
+                    return ResponseHelper::response(
+                        "Gagal menambah user",
+                        null,
+                        400,
+                        "Failed"
+                    );
                 }
             }
         } catch (\Exception $e) {
-            return response()->json([
-                'status'    => 'Failed',
-                'message'   => 'Register User Failed',
-                'error'     => $e->getMessage()], 500);
+            return ResponseHelper::response(
+                "Gagal menambah user",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 
