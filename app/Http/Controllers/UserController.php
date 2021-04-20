@@ -250,7 +250,6 @@ class UserController extends Controller
             //Get firebase auth data
             $auth = app('firebase.auth');
             $userFirebase = $auth->getUserByEmail($user->email);
-            // dd($userFirebase);
             $userFirebaseUid = $userFirebase->uid;
 
             if ($request->input('name')) {
@@ -279,9 +278,6 @@ class UserController extends Controller
                 $user->jenjang = $request->input('jenjang');
             }
 
-            // $user->makeVisible(['password']);
-
-            $message = "Update Success";
             $user->save();
 
             //Update firebase auth data
@@ -309,10 +305,12 @@ class UserController extends Controller
 
             return response()->json(compact('user','status','message'),201);
         } catch (\Exception $e) {
-            $status     = 'Failed';
-            $message    = 'Update is Failed';
-            $error      = $e->getMessage();
-            return response()->json(compact('error','status','message'),201);
+            return ResponseHelper::response(
+                "Gagal mengedit profil",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 
@@ -325,21 +323,25 @@ class UserController extends Controller
             'birth_date' => 'date',
             'photo' => 'file',
             'contact' => 'string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'string',
-
         ]);
 
         if($validator->fails()){
-            // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
                 'status'    =>'failed validate',
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Update";
+
         try {
+
             $user = User::findOrFail($id);
+
+            //Get firebase auth data
+            $auth = app('firebase.auth');
+            $userFirebase = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $userFirebase->uid;
+
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }
@@ -364,6 +366,23 @@ class UserController extends Controller
 
             $user->save();
 
+            //Update firebase auth data
+            if ($request->input("email")) {
+                $auth->changeUserEmail($userFirebaseUid, $request->input("email"));
+            }
+
+            if ($request->input("password")) {
+                $auth->changeUserPassword($userFirebaseUid, $request->input("password"));
+            }
+            //End of Update firebase auth data
+
+            return ResponseHelper::response(
+                "Berhasil mengedit profil",
+                $user,
+                200,
+                "Success"
+            );
+
             return response()->json([
                 'status'    => 'Success',
                 'message'   => "Success update user",
@@ -371,12 +390,12 @@ class UserController extends Controller
             ],200);
 
         } catch (\Throwable $th) {
-            return response()->json([
-                'status'    => 'Failed',
-                'message'   => "Failed to update user",
-                'user'      => $user,
-                'data'      => $th->getMessage()
-            ],400);
+            return ResponseHelper::response(
+                "Gagal mengedit profil",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
     public function updateAdmin(Request $request)
