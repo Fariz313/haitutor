@@ -227,7 +227,6 @@ class UserController extends Controller
             'email' => 'string|email|max:255',
             'password' => 'string|min:6',
             'birth_date' => 'date',
-            'photo' => 'file',
             'contact' => 'string|max:20',
             'company_id' => 'integer|max:20',
             'address' => 'string',
@@ -247,6 +246,12 @@ class UserController extends Controller
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user       = User::findOrFail($userDetail->id);
             $beforeData = User::findOrFail($userDetail->id);
+
+            //Get firebase auth data
+            $auth = app('firebase.auth');
+            $userFirebase = $auth->getUserByEmail($user->email);
+            // dd($userFirebase);
+            $userFirebaseUid = $userFirebase->uid;
 
             if ($request->input('name')) {
                 $user->name = $request->input('name');
@@ -274,10 +279,20 @@ class UserController extends Controller
                 $user->jenjang = $request->input('jenjang');
             }
 
-            $user->makeVisible(['password']);
+            // $user->makeVisible(['password']);
 
             $message = "Update Success";
             $user->save();
+
+            //Update firebase auth data
+            if ($request->input("email")) {
+                $auth->changeUserEmail($userFirebaseUid, $request->input("email"));
+            }
+
+            if ($request->input("password")) {
+                $auth->changeUserPassword($userFirebaseUid, $request->input("password"));
+            }
+            //End of Update firebase auth data
 
             $dataLog = [
                 "USER"      => $user,
