@@ -21,6 +21,7 @@ use Google_Client;
 use App\Helpers\LogApps;
 use App\Helpers\ResponseHelper;
 use App\Role;
+use Facade\FlareClient\Http\Response;
 use FCM;
 
 class UserController extends Controller
@@ -68,7 +69,6 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
-            'photo' => 'file',
             'contact' => 'required|string|max:20',
             'address' => 'required|string',
             'jenjang' => 'required|integer|max:20'
@@ -81,7 +81,7 @@ class UserController extends Controller
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Upload";
+
         try {
             $user = User::create([
                 'name'          => $request->get('name'),
@@ -94,27 +94,31 @@ class UserController extends Controller
                 'jenjang'       => $request->get('jenjang')
             ]);
 
-            $user->makeVisible(['password']);
+            //Add user to Firebase Authentication
+            $userProperties = [
+                "email" => $request->get('email'),
+                "password"  => $request->get('password')
+            ];
 
-            try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $user->photo = $photo_name;
-                $user->save();
-                    $message = "Upload Success";
-            }catch(\throwable $e){
-                    $message = "Upload Success no image";
-            }
-            $token = JWTAuth::fromUser($user);
+            $auth = app('firebase.auth');
+            $auth->createUser($userProperties);
+            //End Add user to Firebase Authentication
 
-            return response()->json(compact('user','token','message'),201);
+            return ResponseHelper::response(
+                "Berhasil mendaftarkan akun, silahkan login",
+                null,
+                200,
+                "Success"
+            );
+
         } catch (\Throwable $th) {
-            $user       = 'no user';
-            $token      = 'no token';
-            $message    = 'Failed To Create User';
-            return response()->json(compact('user','token','message'),500);
+
+            return ResponseHelper::response(
+                "Gagal mendaftarkan akun, silahkan coba lagi",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 
@@ -170,7 +174,7 @@ class UserController extends Controller
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
                 null,
-                400,
+                200,
                 "Success"
             );
 
