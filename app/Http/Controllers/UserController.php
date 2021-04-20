@@ -19,6 +19,7 @@ use App\Otp;
 use View;
 use Google_Client;
 use App\Helpers\LogApps;
+use App\Helpers\ResponseHelper;
 use App\Role;
 use FCM;
 
@@ -124,22 +125,19 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
-            'photo' => 'file',
             'contact' => 'required|string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'required|string',
-
         ]);
 
         if($validator->fails()){
-            // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
                 'status'    =>'failed',
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Upload";
+
         try {
+
             $user = User::create([
                 'name'          => $request->get('name'),
                 'email'         => $request->get('email'),
@@ -147,23 +145,19 @@ class UserController extends Controller
                 'birth_date'    => $request->get('birth_date'),
                 'role'          => Role::ROLE["TUTOR"],
                 'contact'       => $request->get('contact'),
-                'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
             ]);
 
-            $user->makeVisible(['password']);
+            //Add user to Firebase Authentication
+            $userProperties = [
+                "email" => $request->get('email'),
+                "password"  => $request->get('password')
+            ];
 
-            try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $user->photo = $photo_name;
+            $auth = app('firebase.auth');
+            $auth->createUser($userProperties);
+            //End Add user to Firebase Authentication
 
-                $message = "Upload Success";
-            }catch(\throwable $e){
-                $message = "Upload Success no image";
-            }
             $user->save();
 
             $detail = new TutorDetail();
@@ -173,16 +167,21 @@ class UserController extends Controller
 
             $detail->save();
 
-            $token = JWTAuth::fromUser($user);
-        } catch (\Throwable $th) {
-            $user       = 'no user';
-            $token      = 'no token';
-            $message    = 'Failed To Create User';
-            $th         = $th;
-            return response()->json(compact('user','token','message', 'th'),500);
-        }
+            return ResponseHelper::response(
+                "Berhasil mendaftarkan akun, silahkan login",
+                null,
+                400,
+                "Success"
+            );
 
-        return response()->json(compact('user','token','message'),201);
+        } catch (\Throwable $th) {
+            return ResponseHelper::response(
+                "Gagal mendaftarkan akun, silahkan coba lagi",
+                null,
+                400,
+                "Success"
+            );
+        }
     }
 
     public function uploadPhoto(Request $request){
