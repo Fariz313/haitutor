@@ -124,7 +124,7 @@ class UserController extends Controller
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
                 null,
-                200,
+                201,
                 "Success"
             );
 
@@ -208,7 +208,7 @@ class UserController extends Controller
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
                 null,
-                200,
+                201,
                 "Success"
             );
 
