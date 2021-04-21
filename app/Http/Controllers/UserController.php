@@ -324,7 +324,7 @@ class UserController extends Controller
             }
             //End of Update firebase auth data
 
-            //Add user collection to firebase realtime database
+            //Update user collection to firebase realtime database
             $firebaseUser = $auth->getUserByEmail($user->email);
             $userFirebaseUid = $firebaseUser->uid;
 
@@ -336,12 +336,8 @@ class UserController extends Controller
                 "password" => $user->password,
             ];
 
-            $updates = [
-                "users/".$userFirebaseUid."/" => $updatedUserData
-            ];
-
             $database->getReference("users/".$userFirebaseUid."/")->update($updatedUserData);
-            //End of Add user collection to firebase realtime database
+            //End of Update user collection to firebase realtime database
 
             $dataLog = [
                 "USER"      => $user,
@@ -429,6 +425,21 @@ class UserController extends Controller
             }
             //End of Update firebase auth data
 
+            //Update user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $updatedUserData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->update($updatedUserData);
+            //End of Update user collection to firebase realtime database
+
             return ResponseHelper::response(
                 "Berhasil mengedit profil",
                 $user,
@@ -436,15 +447,9 @@ class UserController extends Controller
                 "Success"
             );
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => "Success update user",
-                'user'      => $user
-            ],200);
-
         } catch (\Throwable $th) {
             return ResponseHelper::response(
-                "Gagal mengedit profil",
+                "Gagal mengedit profil".$th->getMessage(),
                 null,
                 400,
                 "Failed"
