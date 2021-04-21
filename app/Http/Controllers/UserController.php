@@ -104,6 +104,7 @@ class UserController extends Controller
             $auth->createUser($userProperties);
             //End Add user to Firebase Authentication
 
+            //Add user collection to firebase realtime database
             $firebaseUser = $auth->getUserByEmail($request->get('email'));
             $userFirebaseUid = $firebaseUser->uid;
 
@@ -118,6 +119,7 @@ class UserController extends Controller
             ];
 
             $database->getReference("users/".$userFirebaseUid."/")->set($userData);
+            //End of Add user collection to firebase realtime database
 
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
@@ -185,6 +187,23 @@ class UserController extends Controller
             $detail->biography  = '-';
 
             $detail->save();
+
+            //Add user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($request->get('email'));
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $userData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+                "last_online" => now(),
+                "online" => false
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->set($userData);
+            //End of Add user collection to firebase realtime database
 
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
