@@ -19,7 +19,9 @@ use App\Otp;
 use View;
 use Google_Client;
 use App\Helpers\LogApps;
+use App\Helpers\ResponseHelper;
 use App\Role;
+use Facade\FlareClient\Http\Response;
 use FCM;
 
 class UserController extends Controller
@@ -67,7 +69,6 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
-            'photo' => 'file',
             'contact' => 'required|string|max:20',
             'address' => 'required|string',
             'jenjang' => 'required|integer|max:20'
@@ -80,7 +81,7 @@ class UserController extends Controller
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Upload";
+
         try {
             $user = User::create([
                 'name'          => $request->get('name'),
@@ -93,27 +94,48 @@ class UserController extends Controller
                 'jenjang'       => $request->get('jenjang')
             ]);
 
-            $user->makeVisible(['password']);
+            //Add user to Firebase Authentication
+            $userProperties = [
+                "email" => $request->get('email'),
+                "password"  => $request->get('password')
+            ];
 
-            try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $user->photo = $photo_name;
-                $user->save();
-                    $message = "Upload Success";
-            }catch(\throwable $e){
-                    $message = "Upload Success no image";
-            }
-            $token = JWTAuth::fromUser($user);
+            $auth = app('firebase.auth');
+            $auth->createUser($userProperties);
+            //End Add user to Firebase Authentication
 
-            return response()->json(compact('user','token','message'),201);
+            //Add user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($request->get('email'));
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $userData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+                "last_online" => now(),
+                "online" => false
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->set($userData);
+            //End of Add user collection to firebase realtime database
+
+            return ResponseHelper::response(
+                "Berhasil mendaftarkan akun, silahkan login",
+                null,
+                200,
+                "Success"
+            );
+
         } catch (\Throwable $th) {
-            $user       = 'no user';
-            $token      = 'no token';
-            $message    = 'Failed To Create User';
-            return response()->json(compact('user','token','message'),500);
+
+            return ResponseHelper::response(
+                "Gagal mendaftarkan akun, silahkan coba lagi".$th->getMessage(),
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 
@@ -124,22 +146,19 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'birth_date' => 'required|date',
-            'photo' => 'file',
             'contact' => 'required|string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'required|string',
-
         ]);
 
         if($validator->fails()){
-            // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
                 'status'    =>'failed',
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Upload";
+
         try {
+
             $user = User::create([
                 'name'          => $request->get('name'),
                 'email'         => $request->get('email'),
@@ -147,23 +166,19 @@ class UserController extends Controller
                 'birth_date'    => $request->get('birth_date'),
                 'role'          => Role::ROLE["TUTOR"],
                 'contact'       => $request->get('contact'),
-                'company_id'    => $request->get('company_id'),
                 'address'       => $request->get('address'),
             ]);
 
-            $user->makeVisible(['password']);
+            //Add user to Firebase Authentication
+            $userProperties = [
+                "email" => $request->get('email'),
+                "password"  => $request->get('password')
+            ];
 
-            try{
-                $photo = $request->file('photo');
-                $tujuan_upload = 'temp';
-                $photo_name = $user->id.'_'.$photo->getClientOriginalName().'_'.Str::random(3).'.'.$photo->getClientOriginalExtension();
-                $photo->move($tujuan_upload,$photo_name);
-                $user->photo = $photo_name;
+            $auth = app('firebase.auth');
+            $auth->createUser($userProperties);
+            //End Add user to Firebase Authentication
 
-                $message = "Upload Success";
-            }catch(\throwable $e){
-                $message = "Upload Success no image";
-            }
             $user->save();
 
             $detail = new TutorDetail();
@@ -173,16 +188,38 @@ class UserController extends Controller
 
             $detail->save();
 
-            $token = JWTAuth::fromUser($user);
-        } catch (\Throwable $th) {
-            $user       = 'no user';
-            $token      = 'no token';
-            $message    = 'Failed To Create User';
-            $th         = $th;
-            return response()->json(compact('user','token','message', 'th'),500);
-        }
+            //Add user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($request->get('email'));
+            $userFirebaseUid = $firebaseUser->uid;
 
-        return response()->json(compact('user','token','message'),201);
+            $database = app('firebase.database');
+
+            $userData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+                "last_online" => now(),
+                "online" => false
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->set($userData);
+            //End of Add user collection to firebase realtime database
+
+            return ResponseHelper::response(
+                "Berhasil mendaftarkan akun, silahkan login",
+                null,
+                200,
+                "Success"
+            );
+
+        } catch (\Throwable $th) {
+            return ResponseHelper::response(
+                "Gagal mendaftarkan akun, silahkan coba lagi",
+                null,
+                400,
+                "Success"
+            );
+        }
     }
 
     public function uploadPhoto(Request $request){
@@ -224,7 +261,6 @@ class UserController extends Controller
             'email' => 'string|email|max:255',
             'password' => 'string|min:6',
             'birth_date' => 'date',
-            'photo' => 'file',
             'contact' => 'string|max:20',
             'company_id' => 'integer|max:20',
             'address' => 'string',
@@ -244,6 +280,11 @@ class UserController extends Controller
             $userDetail = UserController::getAuthenticatedUserVariable();
             $user       = User::findOrFail($userDetail->id);
             $beforeData = User::findOrFail($userDetail->id);
+
+            //Get firebase auth data
+            $auth = app('firebase.auth');
+            $userFirebase = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $userFirebase->uid;
 
             if ($request->input('name')) {
                 $user->name = $request->input('name');
@@ -271,10 +312,32 @@ class UserController extends Controller
                 $user->jenjang = $request->input('jenjang');
             }
 
-            $user->makeVisible(['password']);
-
-            $message = "Update Success";
             $user->save();
+
+            //Update firebase auth data
+            if ($request->input("email")) {
+                $auth->changeUserEmail($userFirebaseUid, $request->input("email"));
+            }
+
+            if ($request->input("password")) {
+                $auth->changeUserPassword($userFirebaseUid, $request->input("password"));
+            }
+            //End of Update firebase auth data
+
+            //Update user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $updatedUserData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->update($updatedUserData);
+            //End of Update user collection to firebase realtime database
 
             $dataLog = [
                 "USER"      => $user,
@@ -291,10 +354,12 @@ class UserController extends Controller
 
             return response()->json(compact('user','status','message'),201);
         } catch (\Exception $e) {
-            $status     = 'Failed';
-            $message    = 'Update is Failed';
-            $error      = $e->getMessage();
-            return response()->json(compact('error','status','message'),201);
+            return ResponseHelper::response(
+                "Gagal mengedit profil",
+                null,
+                400,
+                "Failed"
+            );
         }
     }
 
@@ -307,21 +372,25 @@ class UserController extends Controller
             'birth_date' => 'date',
             'photo' => 'file',
             'contact' => 'string|max:20',
-            'company_id' => 'integer|max:20',
             'address' => 'string',
-
         ]);
 
         if($validator->fails()){
-            // return response()->json($validator->errors()->toJson(), 400);
             return response()->json([
                 'status'    =>'failed validate',
                 'error'     =>$validator->errors()
             ],400);
         }
-        $message = "Update";
+
         try {
+
             $user = User::findOrFail($id);
+
+            //Get firebase auth data
+            $auth = app('firebase.auth');
+            $userFirebase = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $userFirebase->uid;
+
             if ($request->input('name')) {
                 $user->name = $request->input('name');
             }
@@ -346,19 +415,45 @@ class UserController extends Controller
 
             $user->save();
 
-            return response()->json([
-                'status'    => 'Success',
-                'message'   => "Success update user",
-                'user'      => $user
-            ],200);
+            //Update firebase auth data
+            if ($request->input("email")) {
+                $auth->changeUserEmail($userFirebaseUid, $request->input("email"));
+            }
+
+            if ($request->input("password")) {
+                $auth->changeUserPassword($userFirebaseUid, $request->input("password"));
+            }
+            //End of Update firebase auth data
+
+            //Update user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $updatedUserData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->update($updatedUserData);
+            //End of Update user collection to firebase realtime database
+
+            return ResponseHelper::response(
+                "Berhasil mengedit profil",
+                $user,
+                200,
+                "Success"
+            );
 
         } catch (\Throwable $th) {
-            return response()->json([
-                'status'    => 'Failed',
-                'message'   => "Failed to update user",
-                'user'      => $user,
-                'data'      => $th->getMessage()
-            ],400);
+            return ResponseHelper::response(
+                "Gagal mengedit profil".$th->getMessage(),
+                null,
+                400,
+                "Failed"
+            );
         }
     }
     public function updateAdmin(Request $request)
