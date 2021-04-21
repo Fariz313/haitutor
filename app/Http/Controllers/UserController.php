@@ -324,6 +324,25 @@ class UserController extends Controller
             }
             //End of Update firebase auth data
 
+            //Add user collection to firebase realtime database
+            $firebaseUser = $auth->getUserByEmail($user->email);
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $updatedUserData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+            ];
+
+            $updates = [
+                "users/".$userFirebaseUid."/" => $updatedUserData
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->update($updatedUserData);
+            //End of Add user collection to firebase realtime database
+
             $dataLog = [
                 "USER"      => $user,
                 "USER_IP"   => $request->ip(),
