@@ -104,6 +104,21 @@ class UserController extends Controller
             $auth->createUser($userProperties);
             //End Add user to Firebase Authentication
 
+            $firebaseUser = $auth->getUserByEmail($request->get('email'));
+            $userFirebaseUid = $firebaseUser->uid;
+
+            $database = app('firebase.database');
+
+            $userData = [
+                "id" => $user->id,
+                "email" => $user->email,
+                "password" => $user->password,
+                "last_online" => now(),
+                "online" => false
+            ];
+
+            $database->getReference("users/".$userFirebaseUid."/")->set($userData);
+
             return ResponseHelper::response(
                 "Berhasil mendaftarkan akun, silahkan login",
                 null,
@@ -114,7 +129,7 @@ class UserController extends Controller
         } catch (\Throwable $th) {
 
             return ResponseHelper::response(
-                "Gagal mendaftarkan akun, silahkan coba lagi",
+                "Gagal mendaftarkan akun, silahkan coba lagi".$th->getMessage(),
                 null,
                 400,
                 "Failed"
