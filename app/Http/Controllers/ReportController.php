@@ -32,8 +32,7 @@ class ReportController extends Controller
                                 }))
                                 ->with(array('target' => function ($query) {
                                     $query->select("id", 'name', 'email', 'role');
-                                }))
-                                ->paginate(10);
+                                }));
             }else{
                 $data = Report::with(array('reportIssue' => function ($query) {
 
@@ -43,13 +42,19 @@ class ReportController extends Controller
                 }))
                 ->with(array('target' => function ($query) {
                     $query->select("id", 'name', 'email', 'role');
-                }))
-                ->paginate(10);
+                }));
+            }
+            if($request->get('filter-time')){
+                try {
+                    $data->orderBy('created_at',$request->get('filter-time'));
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
             }
 
             return response()->json([
                 'status'    =>  'Success',
-                'data'      =>  $data,
+                'data'      =>  $data->paginate(10),
                 'message'   =>  'Get Data Success'
             ]);
         } catch (\Throwable $th) {

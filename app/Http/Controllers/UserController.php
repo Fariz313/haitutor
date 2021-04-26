@@ -1029,6 +1029,7 @@ class UserController extends Controller
                                 ->orWhere('address','LIKE','%'.$query.'%');
                             })
                             ->where('role', Role::ROLE["ADMIN"])
+                            ->where('is_deleted',0)
                             ->with(array("admin_detail" => function($query){
                                 $query->select("*");
                             }))->paginate(10);
