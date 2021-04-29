@@ -145,6 +145,7 @@ class TutorController extends Controller
                             ->whereHas("detail", function ($query) {
                                 $query->where("status", "verified");
                             })
+                            ->where("status", User::STATUS["VERIFIED"])
                             ->where("isRestricted", User::IS_RESTRICTED["FALSE"])
                             ->with(array("detail", "tutorSubject" => function ($query) {
                                 $query->leftJoin("subject", "subject.id", "=", "tutor_subject.subject_id");
