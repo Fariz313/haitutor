@@ -24,6 +24,12 @@ class EbookController extends Controller
      */
     public function index(Request $request)
     {
+
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             if($request->get('search')){
                 $query  = $request->get('search');
@@ -40,7 +46,7 @@ class EbookController extends Controller
                 ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                     $query->select('id','name', 'email');
                 }))
-                ->paginate(10);
+                ->paginate($paginate);
             }
 
             return response()->json([
@@ -321,6 +327,12 @@ class EbookController extends Controller
 
     public function getAllFreeEbook(Request $request)
     {
+
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             if($request->get('search')){
                 $query  = $request->get('search');
@@ -333,14 +345,14 @@ class EbookController extends Controller
                 }))
                 ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->where('type', Ebook::EBOOK_TYPE["FREE"])
-                ->paginate(10);
+                ->paginate($paginate);
             } else {
                 $data = Ebook::with(array('ebookCategory', 'ebookPublisher' => function($query){
                     $query->select('id','name', 'email');
                 }))
                 ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->where('type', Ebook::EBOOK_TYPE["FREE"])
-                ->paginate(10);
+                ->paginate($paginate);
             }
 
             return response()->json([
@@ -358,6 +370,12 @@ class EbookController extends Controller
 
     public function getAllPaidEbook(Request $request)
     {
+
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             if($request->get('search')){
                 $query  = $request->get('search');
@@ -377,7 +395,7 @@ class EbookController extends Controller
                 }))
                 ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->where('type', Ebook::EBOOK_TYPE["PAID"])
-                ->paginate(10);
+                ->paginate($paginate);
             }
 
             return response()->json([
@@ -434,8 +452,14 @@ class EbookController extends Controller
         }
     }
 
-    public function getAllEbookInStudentLibrary($idUser)
+    public function getAllEbookInStudentLibrary(Request $request, $idUser)
     {
+
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             $data = Ebook::select("ebook.*", 'ebook_library.status as library_status')
                         ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
@@ -446,7 +470,7 @@ class EbookController extends Controller
                         }))
                         ->groupBy('id_ebook')
                         ->orderBy('ebook.type','DESC')
-                        ->paginate(10);
+                        ->paginate($paginate);
 
             return response()->json([
                 'status'    =>  'Success',
@@ -500,6 +524,11 @@ class EbookController extends Controller
 
     public function getEbookPublished(Request $request)
     {
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             if($request->get('search')){
                 $query  = $request->get('search');
@@ -518,7 +547,7 @@ class EbookController extends Controller
                 ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                     $query->select('id','name', 'email');
                 }))
-                ->paginate(10);
+                ->paginate($paginate);
             }
 
             return response()->json([
@@ -534,8 +563,13 @@ class EbookController extends Controller
         }
     }
 
-    public function getAllPublishedEbookInStudentLibrary($idUser)
+    public function getAllPublishedEbookInStudentLibrary(Request $request, $idUser)
     {
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             $data = Ebook::select("ebook.*", 'ebook_library.status as library_status')
                         ->join("ebook_library", "ebook.id", "=", "ebook_library.id_ebook")
@@ -547,7 +581,7 @@ class EbookController extends Controller
                             $query->select('id','name', 'email');
                         }))
                         ->orderBy('ebook.type','DESC')
-                        ->paginate(10);
+                        ->paginate($paginate);
 
             return response()->json([
                 'status'    =>  'Success',
@@ -564,6 +598,11 @@ class EbookController extends Controller
 
     public function getAllUnpaidEbook(Request $request)
     {
+        $paginate = 10;
+        if($request->get('paginate')){
+            $paginate = $request->get('paginate');
+        }
+
         try {
             $idUser = JWTAuth::parseToken()->authenticate()->id;
             $dataLibrary = Ebook::select("ebook.*")
@@ -585,7 +624,7 @@ class EbookController extends Controller
                 ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->where('type', Ebook::EBOOK_TYPE["PAID"])
                 ->whereNotIn('id', $dataLibrary)
-                ->paginate(10);
+                ->paginate($paginate);
             } else {
                 $data = Ebook::with(array('ebookCategory', 'ebookPublisher' => function($query){
                     $query->select('id','name', 'email');
@@ -593,7 +632,7 @@ class EbookController extends Controller
                 ->where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->where('type', Ebook::EBOOK_TYPE["PAID"])
                 ->whereNotIn('id', $dataLibrary)
-                ->paginate(10);
+                ->paginate($paginate);
             }
 
             return response()->json([
