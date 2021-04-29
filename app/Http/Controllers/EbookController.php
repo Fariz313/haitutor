@@ -25,7 +25,7 @@ class EbookController extends Controller
     public function index(Request $request)
     {
 
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -40,7 +40,7 @@ class EbookController extends Controller
                 ->with(array('ebookCategory', 'ebookPublisher' => function($query){
                     $query->select('id','name', 'email');
                 }))
-                ->paginate(10);
+                ->paginate($paginate);
             } else {
                 $data = Ebook::where('is_deleted', Ebook::EBOOK_DELETED_STATUS["ACTIVE"])
                 ->with(array('ebookCategory', 'ebookPublisher' => function($query){
@@ -328,7 +328,7 @@ class EbookController extends Controller
     public function getAllFreeEbook(Request $request)
     {
 
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -371,7 +371,7 @@ class EbookController extends Controller
     public function getAllPaidEbook(Request $request)
     {
 
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -455,7 +455,7 @@ class EbookController extends Controller
     public function getAllEbookInStudentLibrary(Request $request, $idUser)
     {
 
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -524,7 +524,7 @@ class EbookController extends Controller
 
     public function getEbookPublished(Request $request)
     {
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -565,7 +565,7 @@ class EbookController extends Controller
 
     public function getAllPublishedEbookInStudentLibrary(Request $request, $idUser)
     {
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
@@ -598,7 +598,7 @@ class EbookController extends Controller
 
     public function getAllUnpaidEbook(Request $request)
     {
-        $paginate = 10;
+        $paginate = 8;
         if($request->get('paginate')){
             $paginate = $request->get('paginate');
         }
