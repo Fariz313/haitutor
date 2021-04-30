@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['cors'])->group(function () {
+    Route::prefix("ar3d")->group(function() {
+        Route::get('/', 'aR3dController@index');
+        Route::post('/', 'aR3dController@store');
+        Route::post('/{id}', 'aR3dController@update');
+        Route::get('/{id}', 'aR3dController@show');
+    });
 
     Route::post('register', 'UserController@register');
     Route::post('register_tutor', 'UserController@registerTutor');
@@ -36,6 +42,8 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/', 'ArticleController@getAll');
         Route::get('/{id}', 'ArticleController@getOne');
     });
+
+    
 
     Route::prefix('/ebook')->group(function () {
         Route::get('/', 'EbookController@index');
