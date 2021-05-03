@@ -70,9 +70,9 @@ class aR3dController extends Controller
         $ar3d = new AR3d();
         $ar3d->object_name  = $request->input('object_name');
         $ar3d->image_name   = $request->input('image_name');
-        $ar3d->object_path       = GoogleCloudStorageHelper::put($request->file('object'), '/ar3d/object', 'other', $rand);
-        $ar3d->image_path        = GoogleCloudStorageHelper::put($request->file('image'), '/ar3d/image', 'other', $rand);
-        
+        $ar3d->object_path       = GoogleCloudStorageHelper::put($request->file('object'), '/ar3d/object', 'file', $rand);
+        $ar3d->image_path        = GoogleCloudStorageHelper::put($request->file('image'), '/ar3d/image', 'file', $rand);
+
         $ar3d->save();
         return response()->json([
             'status'    =>'sucess',
@@ -101,7 +101,7 @@ class aR3dController extends Controller
                 'message'   =>  'data is empty'
             ],400);
         }
-        
+
     }
 
     public function update(Request $request, $id)
@@ -141,7 +141,7 @@ class aR3dController extends Controller
             $ar3d->image_path        = GoogleCloudStorageHelper::put($request->file('image'), '/ar3d/image', 'other', $rand);
             GoogleCloudStorageHelper::delete('/ar3d/image'.$ar3d->image_path);
         }
-        
+
         $ar3d->save();
         return response()->json([
             'status'    =>'sucess',
