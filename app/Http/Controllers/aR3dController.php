@@ -135,10 +135,10 @@ class aR3dController extends Controller
         }if($request->exists('image_name')){
             $ar3d->image_name   = $request->input('image_name');
         }if($request->exists('image')){
-            $ar3d->object_path       = GoogleCloudStorageHelper::put($request->file('object'), '/ar3d/object', 'other', $rand);
+            $ar3d->object_path       = GoogleCloudStorageHelper::put($request->file('object'), '/ar3d/object', 'file', $rand);
             GoogleCloudStorageHelper::delete('/ar3d/object'.$ar3d->object_path);
         }if($request->exists('object')){
-            $ar3d->image_path        = GoogleCloudStorageHelper::put($request->file('image'), '/ar3d/image', 'other', $rand);
+            $ar3d->image_path        = GoogleCloudStorageHelper::put($request->file('image'), '/ar3d/image', 'file', $rand);
             GoogleCloudStorageHelper::delete('/ar3d/image'.$ar3d->image_path);
         }
 
