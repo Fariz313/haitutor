@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('ar3d/download/image_path', 'aR3dController@downloadZip');
 Route::middleware(['cors'])->group(function () {
     Route::prefix("ar3d")->group(function() {
         Route::get('/', 'aR3dController@index');

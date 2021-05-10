@@ -7,7 +7,7 @@ use App\Helpers\GoogleCloudStorageHelper;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use App\AR3d;
-
+use Illuminate\Support\Facades\Storage;
 
 class aR3dController extends Controller
 {
@@ -21,7 +21,7 @@ class aR3dController extends Controller
         if($data = AR3d::count()){
             return response()->json([
                 'status'    =>  'Success',
-                'data'      =>  AR3d::paginate(10),
+                'data'      =>  AR3d::get(),
                 'message'   =>  'Get Data Success'
             ],200);
         }else{
@@ -29,7 +29,7 @@ class aR3dController extends Controller
                 'status'    =>  'Failed',
                 'data'      =>  $data,
                 'message'   =>  'data is empty'
-            ],204);
+            ],400);
         }
         return response()->json([
             'status'    =>  'Failed',
@@ -38,6 +38,39 @@ class aR3dController extends Controller
         ],400);
     }
 
+    public function downloadZip()
+    {
+        // try {
+            $ar = AR3d::get();
+            $zip_file = 'invoices.zip';
+            $zip = new \ZipArchive();
+            $zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            $content="";
+            $random     = Str::random(40);
+            foreach ($ar as $aritem) {
+                $image_link = 'https://storage.googleapis.com/haitutor-dev/ar3d/image/'.$aritem->image_path;
+                $image_file = file_get_contents($image_link);
+                $zip->addFromString(basename($image_link), $image_file);
+                if(strlen($content)<1){
+                    $content = $aritem->image_name.'|'.$aritem->image_path."\n";
+                }else{
+                    $content = $content.$aritem->image_name.'|'.$aritem->image_path."\n";
+                }
+            }
+            Storage::disk('local')->put($random.'.txt', $content);
+            $zip->addFile(storage_path('app/'.$random.'.txt'), "path.txt");
+            $zip->close();
+            Storage::disk('local')->delete($random.'.txt', $content);
+            return response()->download($zip_file);
+        // } catch (\Throwable $th) {
+        //     return response()->json([
+        //         'status'    =>  'Failed',
+        //         'data'      =>  null,
+        //         'message'   =>  'data is empty'
+        //     ],400);
+        // }
+    }
+    
     /**
      * Store a newly created resource in storage.
      *
