@@ -8,7 +8,7 @@ use App;
 
 class GoogleCloudStorageHelper
 {
-    public static function put($file_request, $dir, $file_type = "other", $user_id)
+    public static function put($file_request, $dir, $file_type = "other", $user_id = null)
     {
         try {
 
