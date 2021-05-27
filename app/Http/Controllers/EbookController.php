@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Helpers\LogApps;
 use App\Helpers\ResponseHelper;
 use JWTAuth;
+use Tymon\JWTAuth\Facades\JWTAuth as FacadesJWTAuth;
+use Tymon\JWTAuth\JWTAuth as JWTAuthJWTAuth;
 
 class EbookController extends Controller
 {
@@ -181,8 +183,12 @@ class EbookController extends Controller
                         $query->select('id','name', 'email');
                     }))->first();
 
-            $user = JWTAuth::parseToken()->authenticate();
-            $dataLibrary = EbookLibrary::where('id_user', $user->id)->where('id_ebook', $id)->first();
+            $dataLibrary = null;
+            if (JWTAuth::getToken()) {
+                $user = JWTAuth::parseToken()->authenticate();
+                $dataLibrary = EbookLibrary::where('id_user', $user->id)->where('id_ebook', $id)->first();
+            }
+
             if($dataLibrary != null){
                 $data->is_in_library    = EbookLibrary::EBOOK_LIBRARY_STATUS["ACTIVE"];
             } else {

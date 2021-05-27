@@ -44,7 +44,7 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/{id}', 'ArticleController@getOne');
     });
 
-    
+
 
     Route::prefix('/ebook')->group(function () {
         Route::get('/', 'EbookController@index');
@@ -52,7 +52,7 @@ Route::middleware(['cors'])->group(function () {
         Route::get('/list/paid', 'EbookController@getAllPaidEbook');
         Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
         Route::get('/list/publish', 'EbookController@getEbookPublished');
-
+        Route::get('/{id}', 'EbookController@show');
     });
 
     Route::prefix('/faq')->group(function () {
@@ -244,7 +244,6 @@ Route::middleware(['cors'])->group(function () {
         Route::prefix('/ebook')->group(function () {
             Route::get('/list/recommended', 'EbookController@getRecommendedEbook');
             Route::get('/list/unpaid', 'EbookController@getAllUnpaidEbook');
-            Route::get('/{id}', 'EbookController@show');
 
             Route::get("/rating/{id}", "EbookController@getRatingEbook");
 
