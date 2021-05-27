@@ -41,6 +41,8 @@ class GoogleCloudStorageHelper
 
                 // UPLOAD TO GCS
                 Storage::disk('gcs')->put($directory, file_get_contents($file_request));
+                Storage::disk("gcs")->setVisibility($directory, "public");
+
                 // END UPLOAD TO GCS
 
                 return $filename;
