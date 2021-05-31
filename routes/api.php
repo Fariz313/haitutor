@@ -17,11 +17,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('ar3d/download/image_path', 'aR3dController@downloadZip');
 Route::middleware(['cors'])->group(function () {
-    Route::prefix("ar3d")->group(function() {
+    Route::prefix("ar3d")->group(function () {
         Route::get('/', 'aR3dController@index');
         Route::post('/', 'aR3dController@store');
         Route::post('/{id}', 'aR3dController@update');
         Route::get('/{id}', 'aR3dController@show');
+        Route::delete('/{id}', 'aR3dController@destroy');
     });
 
     Route::post('register', 'UserController@register');
@@ -39,7 +40,7 @@ Route::middleware(['cors'])->group(function () {
     Route::post('callback', 'OrderController@callbackTransaction');
     Route::post('callback/tripay', 'OrderController@callbackTransactionTripay');
 
-    Route::prefix("article")->group(function() {
+    Route::prefix("article")->group(function () {
         Route::get('/', 'ArticleController@getAll');
         Route::get('/{id}', 'ArticleController@getOne');
     });
@@ -68,8 +69,7 @@ Route::middleware(['cors'])->group(function () {
     Route::get('get_tutor', 'TutorController@getTutor');
     Route::get('get_tutor/all', 'TutorController@getAllTutor');
     Route::get('get_tutor/{id}', 'TutorController@showTutor');
-    Route::prefix("/tutor")->group(function()
-    {
+    Route::prefix("/tutor")->group(function () {
         Route::get("list/recommended", "TutorController@getRecommendedTutorList");
     });
 
